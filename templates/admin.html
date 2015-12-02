@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+	    <meta name="HandheldFriendly" content="True">
+	    <meta name="MobileOptimized" content="320">
+	    <meta content="telephone=no" name="format-detection">
+	    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1, user-scalable=no">
+		<title>
+			学生心理发展指导中心预约系统
+		</title>
+		<link rel="stylesheet" href="/Reservation/css/datepicker.css" type="text/css" />
+		<link type="text/css" href="/Reservation/css/style.css" rel="stylesheet">
+		<script type="text/javascript" src="/Reservation/js/jquery-2.1.3.min.js"></script>
+		<script type="text/javascript" src="/Reservation/js/datepicker.js"></script>
+	</head>
+	<body background="/Reservation/img/bg.png"  style="text-align:center;">
+		<div id="page_title">
+			学生心理发展指导中心预约系统<br>管理员系统
+		</div>
+		<button onclick="addReservation();">新增</button>
+		<button onclick="removeReservations();">删除</button>
+		<button onclick="cancelReservations();">取消预约</button>
+		<button onclick="logout();" style="margin-left:50px">退出登录</button>
+		<div style="padding-top:10px">
+			<input type="text" id="query_date" style="width:80px"></input>
+			<button onclick="queryReservations();">查询</button>
+			<input type="text" id="export_date" style="width:80px;margin-left:50px"></input>
+			<button onclick="exportReservations();">导出一周时间表</button>
+		</div>
+		<div style="padding-top:10px">
+			请输入学生学号
+			<input type="text" id="query_student" style="width: 100px"></input>
+			<button onclick="queryStudent();">查看学生信息</button>
+		</div>
+		<div id="page_maintable">
+			
+		</div>
+		<div id="page_bottom"><br><br>清华大学学生心理发展指导中心<br>联系方式：010-62782007</div>
+
+	</body>
+	<script type="text/javascript" src="/Reservation/js/user.js"></script>
+	<script type="text/javascript" src="/Reservation/js/admin.js"></script>
+	<script type="text/javascript">
+		viewReservations();
+		$("#query_date").DatePicker({
+			format: "YY-m-dd",
+			date: $("#query_date").val(),
+			current: $("#query_date").val(),
+			starts: 1,
+			position: "r",
+			onBeforeShow: function() {
+				$("#query_date").DatePickerSetDate($("#query_date").val(), true);
+			},
+			onChange: function(formated, dates) {
+				$("#query_date").val(formated);
+				$("#query_date").val($("#query_date").val().substr(4, 10));
+				$("#query_date").DatePickerHide();
+			},
+		});
+		$("#export_date").DatePicker({
+			format: "YY-m-dd",
+			date: $("#export_date").val(),
+			current: $("#export_date").val(),
+			starts: 1,
+			position: "r",
+			onBeforeShow: function() {
+				$("#export_date").DatePickerSetDate($("#export_date").val(), true);
+			},
+			onChange: function(formated, dates) {
+				$("#export_date").val(formated);
+				$("#export_date").val($("#export_date").val().substr(4, 10));
+				$("#export_date").DatePickerHide();
+			},
+		});
+	</script>
+</html>

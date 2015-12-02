@@ -66,11 +66,11 @@ func (ul *UserLogic) StudentRegister(username string, password string) (*models.
 }
 
 // 获取学生
-func (ul *UserLogic) GetStudentByUsername(username string) (*models.Student, error) {
-	if len(username) == 0 {
+func (ul *UserLogic) GetStudentById(userId string) (*models.Student, error) {
+	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	}
-	student, err := models.GetStudentByUsername(username)
+	student, err := models.GetStudentById(userId)
 	if err != nil {
 		return nil, errors.New("请先登录")
 	}

@@ -88,3 +88,15 @@ func (ul *UserLogic) GetTeacherByUsername(username string) (*models.Teacher, err
 	}
 	return teacher, nil
 }
+
+// 获取咨询师或管理员
+func (ul *UserLogic) GetTeacherById(userId string) (*models.Teacher, error) {
+	if len(userId) == 0 {
+		return nil, errors.New("请先登录")
+	}
+	teacher, err := models.GetTeacherById(userId)
+	if err != nil {
+		return nil, errors.New("请先登录")
+	}
+	return teacher, nil
+}

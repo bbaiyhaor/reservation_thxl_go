@@ -254,7 +254,7 @@ func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, problem st
 }
 
 // 咨询师查看学生信息
-func (tl *TeacherLogic) GetStudentInfoByTeacher(reservationId string, userId string, userType models.UserType) (*models.StudentInfo, error) {
+func (tl *TeacherLogic) GetStudentInfoByTeacher(reservationId string, userId string, userType models.UserType) (*models.Student, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.TEACHER {

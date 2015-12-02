@@ -1,6 +1,8 @@
 package models
 
-import "gopkg.in/mgo.v2/bson"
+import (
+	"gopkg.in/mgo.v2/bson"
+)
 
 type UserType int
 
@@ -45,6 +47,7 @@ type Student struct {
 	CurrentAddress string     `bson:"current_address"`
 	FamilyAddress  string     `bson:"family_address"`
 	Mobile         string     `bson:"mobile"`
+	Email string `bson:"email"`
 	Experience     Experience `bson:"experience"`
 	FatherAge      string     `bson:"father_age"`
 	FatherJob      string     `bson:"father_job"`

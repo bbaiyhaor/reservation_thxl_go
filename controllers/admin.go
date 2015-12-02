@@ -309,7 +309,7 @@ func BindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, u
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
-	}if len(student.BindedTeacher) != 0 {
+	} else if len(student.BindedTeacher) != 0 {
 		teacher, err := ul.GetTeacherByUsername(student.BindedTeacher)
 		if err != nil {
 			studentJson["student_binded_teacher_username"] = "无"

@@ -30,6 +30,10 @@ type Experience struct {
 	Teacher  string `bson:"teacher"`
 }
 
+func (e Experience) IsEmpty() bool {
+	return len(e.Time) == 0 && len(e.Location) == 0 && len(e.Teacher) == 0
+}
+
 type Student struct {
 	Id bson.ObjectId `bson:"_id"`
 	// Indexed

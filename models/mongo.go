@@ -20,6 +20,7 @@ func AddStudent(username string, password string) (*Student, error) {
 		Id:       bson.NewObjectId(),
 		Username: username,
 		Password: password,
+		UserType: STUDENT,
 	}
 	if err := collection.Insert(newStudent); err != nil {
 		return nil, err

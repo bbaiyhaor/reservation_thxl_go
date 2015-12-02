@@ -3,8 +3,8 @@ package buslogic
 import (
 	"errors"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"strings"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
+	"strings"
 )
 
 const (
@@ -88,4 +88,3 @@ func (ul *UserLogic) GetTeacherByUsername(username string) (*models.Teacher, err
 	}
 	return teacher, nil
 }
-

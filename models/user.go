@@ -2,6 +2,26 @@ package models
 
 import "gopkg.in/mgo.v2/bson"
 
+type UserType int
+
+const (
+	UNKNWONUSER UserType = iota
+	STUDENT
+	TEACHER
+	ADMIN
+)
+
+var userTypes = [...]string{
+	"UNKNOWN",
+	"STUDENT",
+	"TEACHER",
+	"ADMIN",
+}
+
+func (ut UserType) String() string {
+	return userTypes[ut]
+}
+
 type Experience struct {
 	Time     string `bson:"time"`
 	Location string `bson:"location"`
@@ -11,8 +31,9 @@ type Experience struct {
 type Student struct {
 	Id bson.ObjectId `bson:"_id"`
 	// Indexed
-	Username string `bson:"username"`
-	Password string `bson:"password"`
+	Username string   `bson:"username"`
+	Password string   `bson:"password"`
+	UserType UserType `bson:"user_type"`
 	// Indexed
 	BindedTeacher string `bson:"binded_teacher"`
 
@@ -34,26 +55,6 @@ type Student struct {
 	ParentMarriage string     `bson:"parent_marriage"`
 	Significant    string     `bson:"significant"`
 	Problem        string     `bson:"problem"`
-}
-
-type UserType int
-
-const (
-	UNKNWONUSER UserType = iota
-	STUDENT
-	TEACHER
-	ADMIN
-)
-
-var userTypes = [...]string{
-	"UNKNOWN",
-	"STUDENT",
-	"TEACHER",
-	"ADMIN",
-}
-
-func (ut UserType) String() string {
-	return userTypes[ut]
 }
 
 type Teacher struct {

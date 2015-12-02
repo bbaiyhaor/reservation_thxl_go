@@ -1,16 +1,17 @@
 package buslogic
+
 import (
-	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"errors"
-"strings"
+	"github.com/shudiwsh2009/reservation_thxl_go/models"
+	"strings"
 )
 
-type AdminLogic struct  {
+type AdminLogic struct {
 }
 
 // 查找咨询师
 // 查找顺序:全名 > 工号 > 手机号
-func (al *AdminLogic) SearchTeacherByAdmin(teacherFullname string, teacherUsername string, teacherMobile string, userId string, userType models.UserType) (*models.User, error) {
+func (al *AdminLogic) SearchTeacherByAdmin(teacherFullname string, teacherUsername string, teacherMobile string, userId string, userType models.UserType) (*models.Teacher, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {

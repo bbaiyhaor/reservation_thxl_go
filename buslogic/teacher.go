@@ -244,8 +244,8 @@ func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, problem st
 		utils.SendFeedbackSMS(reservation)
 	}
 	reservation.TeacherFeedback = models.TeacherFeedback{
-		Problem:problem,
-		Record:record,
+		Problem: problem,
+		Record:  record,
 	}
 	if err = models.UpsertReservation(reservation); err != nil {
 		return nil, errors.New("数据获取失败")

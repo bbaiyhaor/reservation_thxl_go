@@ -564,7 +564,7 @@ function showStudent(student) {
 			家庭住址：" + student.student_family_address + "<br>\
 			联系电话：" + student.student_mobile + "<br>\
 			Email：" + student.student_email + "<br>\
-			咨询经历：" + (student.student_experience_time ? "时间：" + student.student_experience_time + " 地点：" + student.student_experience_location + " 咨询师：" + stduent.student_experience_teacher : "无") + "<br>\
+			咨询经历：" + (student.student_experience_time ? "时间：" + student.student_experience_time + " 地点：" + student.student_experience_location + " 咨询师：" + student.student_experience_teacher : "无") + "<br>\
 			父亲年龄：" + student.student_father_age + " 职业：" + student.student_father_job + " 学历：" + student.student_father_edu + "<br>\
 			母亲年龄：" + student.student_mother_age + " 职业：" + student.student_mother_job + " 学历：" + student.student_mother_edu + "<br>\
 			父母婚姻状况：" + student.student_parent_marriage + "<br>\

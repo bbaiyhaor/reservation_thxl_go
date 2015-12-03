@@ -3,7 +3,6 @@ package utils
 import (
 	"errors"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxx_go/utils"
 	"github.com/tealeg/xlsx"
 	"path/filepath"
 )
@@ -15,7 +14,7 @@ const (
 	ExcelSuffix                         = ".xlsx"
 )
 
-func ExportStudent(student models.Student, filename string) error {
+func ExportStudent(student *models.Student, filename string) error {
 	xl, err := xlsx.OpenFile(filepath.FromSlash(ExportFolder + DefaultStudentExportExcelFilename))
 	if err != nil {
 		return errors.New("导出失败：打开模板文件失败")
@@ -148,7 +147,7 @@ func ExportStudent(student models.Student, filename string) error {
 		for i, r := range reservations {
 			row = sheet.AddRow()
 			cell = row.AddCell()
-			cell.SetString("咨询小结" + (i + 1))
+			cell.SetString("咨询小结" + (string)(i + 1))
 
 			row = sheet.AddRow()
 			cell = row.AddCell()
@@ -166,7 +165,7 @@ func ExportStudent(student models.Student, filename string) error {
 			cell = row.AddCell()
 			cell.SetString("咨询日期")
 			cell = row.AddCell()
-			cell.SetString(r.StartTime.In(utils.Location).Format(DATE_PATTERN))
+			cell.SetString(r.StartTime.In(Location).Format(DATE_PATTERN))
 
 			row = sheet.AddRow()
 			cell = row.AddCell()
@@ -179,7 +178,7 @@ func ExportStudent(student models.Student, filename string) error {
 			cell.SetString("来访者反馈")
 			for _, s := range r.StudentFeedback.Scores {
 				cell = row.AddCell()
-				cell.SetInt(s)
+				cell.SetString(s)
 			}
 		}
 	}
@@ -206,9 +205,9 @@ func ExportReservationTimetable(reservations []*models.Reservation, filename str
 	for _, r := range reservations {
 		row = sheet.AddRow()
 		cell = row.AddCell()
-		cell.SetString(r.StartTime.In(utils.Location).Format(TIME_PATTERN))
+		cell.SetString(r.StartTime.In(Location).Format(TIME_PATTERN))
 		cell = row.AddCell()
-		cell.SetString(r.EndTime.In(utils.Location).Format(TIME_PATTERN))
+		cell.SetString(r.EndTime.In(Location).Format(TIME_PATTERN))
 		cell = row.AddCell()
 		cell.SetString(r.TeacherFullname)
 	}

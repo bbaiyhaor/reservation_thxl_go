@@ -46,7 +46,7 @@ func StudentRegister(w http.ResponseWriter, r *http.Request, userId string, user
 	return result
 }
 
-func StudentLogin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) {
+func StudentLogin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
@@ -84,7 +84,7 @@ func StudentLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 	return result
 }
 
-func TeacherLogin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) {
+func TeacherLogin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
@@ -129,13 +129,18 @@ func TeacherLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 	return result
 }
 
-func Logout(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) {
+func Logout(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	var result = map[string]interface{}{"state": "SUCCESS"}
 
-	if userType == models.ADMIN {
-		result["url"] = "/appointment/admin"
-	} else {
-		result["url"] = "/appointment/entry"
+	switch userType {
+	case models.ADMIN:
+		result["url"] = "/reservation/admin"
+	case models.TEACHER:
+		result["url"] = "/reservation/teacher"
+	case models.STUDENT:
+		result["url"] = "/reservation/student"
+	default:
+		result["url"] = "/reservation/entry"
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:   "user_id",

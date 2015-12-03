@@ -140,7 +140,7 @@ func (sl *StudentLogic) GetFeedbackByStudent(reservationId string, userId string
 }
 
 // 学生反馈
-func (sl *StudentLogic) SubmitFeedbackByStudent(reservationId string, scores []int, userId string, userType models.UserType) (*models.Reservation, error) {
+func (sl *StudentLogic) SubmitFeedbackByStudent(reservationId string, scores []string, userId string, userType models.UserType) (*models.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.STUDENT {

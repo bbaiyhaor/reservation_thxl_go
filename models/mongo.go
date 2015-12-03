@@ -30,7 +30,7 @@ func AddStudent(username string, password string) (*Student, error) {
 
 func UpsertStudent(student *Student) error {
 	collection := Mongo.C("student")
-	_, err := collection.UpdateId(student.Id, student)
+	_, err := collection.UpsertId(student.Id, student)
 	return err
 }
 
@@ -127,6 +127,24 @@ func GetTeacherByMobile(mobile string) (*Teacher, error) {
 	}
 	return teacher, nil
 }
+
+/**
+ADMIN
+ */
+func AddAdmin(username string, password string) (*Teacher, error) {
+	collection := Mongo.C("teacher")
+	newAdmin := &Teacher{
+		Id:       bson.NewObjectId(),
+		Username: username,
+		Password: password,
+		UserType: ADMIN,
+	}
+	if err := collection.Insert(newAdmin); err != nil {
+		return nil, err
+	}
+	return newAdmin, nil
+}
+
 
 /**
 Reservation

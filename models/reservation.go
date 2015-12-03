@@ -26,7 +26,7 @@ func (rs ReservationStatus) String() string {
 }
 
 type StudentFeedback struct {
-	Scores []int `bson:"scores"`
+	Scores []string `bson:"scores"`
 }
 
 func (sf StudentFeedback) IsEmpty() bool {

@@ -377,22 +377,22 @@ func (al *AdminLogic) QueryStudentInfoByAdmin(studentUsername string, userId str
 // 管理员导出一周时间表
 func (al *AdminLogic) ExportReservationTimetable(fromTime string, userId string, userType models.UserType) (string, error) {
 	if len(userId) == 0 {
-		return nil, errors.New("请先登录")
+		return "", errors.New("请先登录")
 	} else if userType != models.ADMIN {
-		return nil, errors.New("权限不足")
+		return "", errors.New("权限不足")
 	}
 	admin, err := models.GetTeacherById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
-		return nil, errors.New("管理员账户出错,请联系技术支持")
+		return "", errors.New("管理员账户出错,请联系技术支持")
 	}
 	from, err := time.ParseInLocation(utils.DATE_PATTERN, fromTime, utils.Location)
 	if err != nil {
-		return nil, errors.New("开始时间格式错误")
+		return "", errors.New("开始时间格式错误")
 	}
 	to := from.AddDate(0, 0, 7)
 	reservations, err := models.GetReservatedReservationsBetweenTime(from, to)
 	if err != nil {
-		return nil, errors.New("数据获取失败")
+		return "", errors.New("数据获取失败")
 	}
 	filename := "timetable_" + fromTime + utils.ExcelSuffix
 	if len(reservations) == 0 {

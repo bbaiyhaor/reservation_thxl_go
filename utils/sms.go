@@ -28,7 +28,7 @@ func SendSuccessSMS(reservation *models.Reservation) error {
 	if err := sendSMS(reservation.StudentMobile, studentSMS); err != nil {
 		return err
 	}
-	teacherSMS := fmt.Sprintf(SMS_SUCCESS_TEACHER, reservation.TeacherFullname, reservation.StudentInfo.Name,
+	teacherSMS := fmt.Sprintf(SMS_SUCCESS_TEACHER, reservation.TeacherFullname, reservation.StudentFullname,
 		Weekdays[reservation.StartTime.Weekday()], reservation.StartTime.Month(), reservation.StartTime.Day(),
 		reservation.StartTime.Format("15:04"), reservation.EndTime.Format("15:04"))
 	if err := sendSMS(reservation.TeacherMobile, teacherSMS); err != nil {
@@ -43,7 +43,7 @@ func SendReminderSMS(reservation *models.Reservation) error {
 	if err := sendSMS(reservation.StudentMobile, studentSMS); err != nil {
 		return err
 	}
-	teacherSMS := fmt.Sprintf(SMS_REMINDER_TEACHER, reservation.TeacherFullname, reservation.StudentInfo.Name,
+	teacherSMS := fmt.Sprintf(SMS_REMINDER_TEACHER, reservation.TeacherFullname, reservation.StudentFullname,
 		reservation.StartTime.Format("15:04"), reservation.EndTime.Format("15:04"))
 	if err := sendSMS(reservation.TeacherMobile, teacherSMS); err != nil {
 		return err

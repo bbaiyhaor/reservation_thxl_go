@@ -22,8 +22,7 @@ var redirectTeacherPath = regexp.MustCompile("^(/reservation/(teache|admin)$|/(t
 func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, models.UserType) interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// check url to see whether there is "/teacher/" or "/admin/" or "/logout"
-		m := needUserPath.FindStringSubmatch(r.URL.Path)
-		if len(m) == 0 {
+		if !needUserPath.MatchString(r.URL.Path) {
 			if result := fn(w, r, "", 0); result != nil {
 				if data, err := json.Marshal(result); err == nil {
 					w.Header().Set("Content-Type", "application/json;charset=UTF-8")
@@ -33,9 +32,9 @@ func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, models
 			return
 		}
 		redirectUrl := "/reservation/entry"
-		if redirectStudentPath.FindStringSubmatch(r.URL.Path) {
+		if redirectStudentPath.MatchString(r.URL.Path) {
 			redirectUrl = "/reservation/student/login"
-		} else if redirectTeacherPath.FindStringSubmatch(r.URL.Path) {
+		} else if redirectTeacherPath.MatchString(r.URL.Path) {
 			redirectUrl = "/reservation/teacher/login"
 		}
 		var userId string
@@ -121,14 +120,18 @@ func main() {
 	adminRouter := router.PathPrefix("/admin").Subrouter()
 	adminRouter.HandleFunc("/reservation/view", handleWithCookie(controllers.ViewReservationsByAdmin)).Methods("GET")
 	adminRouter.HandleFunc("/reservation/view/monthly", handleWithCookie(controllers.ViewMonthlyReservationsByAdmin)).Methods("GET")
+	adminRouter.HandleFunc("/reservation/export", handleWithCookie(controllers.ExportReservationsByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/reservation/add", handleWithCookie(controllers.AddReservationByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/reservation/edit", handleWithCookie(controllers.EditReservationByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/reservation/remove", handleWithCookie(controllers.RemoveReservationByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/reservation/cancel", handleWithCookie(controllers.CancelReservationByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/reservation/feedback/get", handleWithCookie(controllers.GetFeedbackByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/reservation/feedback/submit", handleWithCookie(controllers.SubmitFeedbackByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/reservation/export", handleWithCookie(controllers.ExportReservationsByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/student/get", handleWithCookie(controllers.GetStudentInfoByAdmin)).Methods("POST")
+	adminRouter.HandleFunc("/student/export", handleWithCookie(controllers.ExportStudentByAdmin)).Methods("POST")
+	adminRouter.HandleFunc("/student/unbind", handleWithCookie(controllers.UnbindStudentByAdmin)).Methods("POST")
+	adminRouter.HandleFunc("/student/bind", handleWithCookie(controllers.BindStudentByAdmin)).Methods("POST")
+	adminRouter.HandleFunc("/student/query", handleWithCookie(controllers.QueryStudentInfoByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/teacher/search", handleWithCookie(controllers.SearchTeacherByAdmin)).Methods("POST")
 	// http加载处理器
 	http.Handle("/", router)

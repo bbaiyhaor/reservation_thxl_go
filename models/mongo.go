@@ -130,7 +130,7 @@ func GetTeacherByMobile(mobile string) (*Teacher, error) {
 
 /**
 ADMIN
- */
+*/
 func AddAdmin(username string, password string) (*Teacher, error) {
 	collection := Mongo.C("teacher")
 	newAdmin := &Teacher{
@@ -144,7 +144,6 @@ func AddAdmin(username string, password string) (*Teacher, error) {
 	}
 	return newAdmin, nil
 }
-
 
 /**
 Reservation

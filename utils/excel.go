@@ -148,7 +148,7 @@ func ExportStudent(student *models.Student, filename string) error {
 		for i, r := range reservations {
 			row = sheet.AddRow()
 			cell = row.AddCell()
-			cell.SetString("咨询小结" + strconv.Itoa(i + 1))
+			cell.SetString("咨询小结" + strconv.Itoa(i+1))
 
 			row = sheet.AddRow()
 			cell = row.AddCell()

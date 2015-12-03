@@ -186,6 +186,16 @@ func GetReservationsBetweenTime(from time.Time, to time.Time) ([]*Reservation, e
 	return reservations, nil
 }
 
+func GetReservatedReservationsBetweenTime(from time.Time, to time.Time) ([]*Reservation, error) {
+	collection := Mongo.C("reservation")
+	var reservations []*Reservation
+	if err := collection.Find(bson.M{"start_time": bson.M{"$gte": from, "$lte": to},
+		"status": RESERVATED}).Sort("start_time").All(&reservations); err != nil {
+		return nil, err
+	}
+	return reservations, nil
+}
+
 func GetReservationsAfterTime(from time.Time) ([]*Reservation, error) {
 	collection := Mongo.C("reservation")
 	var reservations []*Reservation

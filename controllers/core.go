@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func EntryPage(w http.ResponseWriter, r *http.Request, username string, userType models.UserType) interface{} {
+func EntryPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	t := template.Must(template.ParseFiles("templates/entry.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
@@ -16,7 +16,7 @@ func EntryPage(w http.ResponseWriter, r *http.Request, username string, userType
 	return nil
 }
 
-func StudentLoginPage(w http.ResponseWriter, r *http.Request, username string, userType models.UserType) interface{} {
+func StudentLoginPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	t := template.Must(template.ParseFiles("templates/student_login.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
@@ -25,7 +25,7 @@ func StudentLoginPage(w http.ResponseWriter, r *http.Request, username string, u
 	return nil
 }
 
-func StudentRegisterPage(w http.ResponseWriter, r *http.Request, username string, userType models.UserType) interface{} {
+func StudentRegisterPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	t := template.Must(template.ParseFiles("templates/student_register.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
@@ -34,7 +34,7 @@ func StudentRegisterPage(w http.ResponseWriter, r *http.Request, username string
 	return nil
 }
 
-func StudentPage(w http.ResponseWriter, r *http.Request, username string, userType models.UserType) interface{} {
+func StudentPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	if userType == models.TEACHER {
 		http.Redirect(w, r, "/reservation/teacher", http.StatusFound)
 		return nil
@@ -50,7 +50,16 @@ func StudentPage(w http.ResponseWriter, r *http.Request, username string, userTy
 	return nil
 }
 
-func TeacherPage(w http.ResponseWriter, r *http.Request, username string, userType models.UserType) interface{} {
+func TeacherLoginPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	t := template.Must(template.ParseFiles("templates/teacher_login.html"))
+	err := t.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func TeacherPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	if userType == models.STUDENT {
 		http.Redirect(w, r, "/reservation/student", http.StatusFound)
 		return nil
@@ -66,7 +75,7 @@ func TeacherPage(w http.ResponseWriter, r *http.Request, username string, userTy
 	return nil
 }
 
-func AdminPage(w http.ResponseWriter, r *http.Request, username string, userType models.UserType) interface{} {
+func AdminPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	if userType == models.STUDENT {
 		http.Redirect(w, r, "/reservation/student", http.StatusFound)
 		return nil

@@ -81,7 +81,26 @@ func ViewMonthlyReservationsByAdmin(w http.ResponseWriter, r *http.Request, user
 	return result
 }
 
-// TODO 导出Timetable
+func ExportReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	queryForm, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil || len(queryForm["from_time"]) == 0 {
+		ErrorHandler(w, r, errors.New("参数错误"))
+		return nil
+	}
+	fromTime := queryForm["from_time"][0]
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var al = buslogic.AdminLogic{}
+
+	url, err := al.ExportReservationTimetable(fromTime, userId, userType)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
+	result["url"] = url
+
+	return result
+}
 
 func AddReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	startTime := r.PostFormValue("start_time")
@@ -264,7 +283,21 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	return result
 }
 
-// TODO 导出学生
+func ExportStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	studentUsername := r.PostFormValue("student_username")
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var al = buslogic.AdminLogic{}
+
+	url, err := al.ExportStudentByAdmin(studentUsername, userId, userType)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
+	result["url"] = url
+
+	return result
+}
 
 func UnbindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	studentUsername := r.PostFormValue("student_username")

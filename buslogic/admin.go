@@ -283,7 +283,27 @@ func (al *AdminLogic) GetStudentInfoByAdmin(reservationId string, userId string,
 	return student, nil
 }
 
-// TODO 管理员导出学生信息
+// 管理员导出学生信息
+func (al *AdminLogic) ExportStudentByAdmin(studentUsername string, userId string, userType models.UserType) (string, error) {
+	if len(userId) == 0 {
+		return "", errors.New("请先登录")
+	} else if userType != models.ADMIN {
+		return "", errors.New("权限不足")
+	}
+	admin, err := models.GetTeacherById(userId)
+	if err != nil || admin.UserType != models.ADMIN {
+		return "", errors.New("管理员账户出错,请联系技术支持")
+	}
+	student, err := models.GetStudentByUsername(studentUsername)
+	if err != nil {
+		return "", errors.New("学生未注册")
+	}
+	filename := "student_" + student.Username + "_" + time.Now().In(utils.Location).Format(utils.DATE_PATTERN) + utils.ExcelSuffix
+	if err = utils.ExportStudent(student, filename); err != nil {
+		return "", err
+	}
+	return "/" + utils.ExportFolder + filename, nil
+}
 
 // 管理员解绑学生的匹配咨询师
 func (al *AdminLogic) UnbindStudentByAdmin(studentUsername string, userId string, userType models.UserType) (*models.Student, error) {
@@ -354,7 +374,35 @@ func (al *AdminLogic) QueryStudentInfoByAdmin(studentUsername string, userId str
 	return student, nil
 }
 
-// TODO 管理员导出一周时间表
+// 管理员导出一周时间表
+func (al *AdminLogic) ExportReservationTimetable(fromTime string, userId string, userType models.UserType) (string, error) {
+	if len(userId) == 0 {
+		return nil, errors.New("请先登录")
+	} else if userType != models.ADMIN {
+		return nil, errors.New("权限不足")
+	}
+	admin, err := models.GetTeacherById(userId)
+	if err != nil || admin.UserType != models.ADMIN {
+		return nil, errors.New("管理员账户出错,请联系技术支持")
+	}
+	from, err := time.ParseInLocation(utils.DATE_PATTERN, fromTime, utils.Location)
+	if err != nil {
+		return nil, errors.New("开始时间格式错误")
+	}
+	to := from.AddDate(0, 0, 7)
+	reservations, err := models.GetReservatedReservationsBetweenTime(from, to)
+	if err != nil {
+		return nil, errors.New("数据获取失败")
+	}
+	filename := "timetable_" + fromTime + utils.ExcelSuffix
+	if len(reservations) == 0 {
+		return "", nil
+	}
+	if err = utils.ExportReservationTimetable(reservations, filename); err != nil {
+		return "", err
+	}
+	return "/" + utils.ExportFolder + filename, nil
+}
 
 // 查找咨询师
 // 查找顺序:全名 > 工号 > 手机号

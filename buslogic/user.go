@@ -37,9 +37,9 @@ func (ul *UserLogic) TeacherLogin(username string, password string) (*models.Tea
 		return nil, errors.New("密码为空")
 	}
 	teacher, err := models.GetTeacherByUsername(username)
-	if err == nil && (strings.EqualFold(teacher.Password, password) ||
-		(teacher.UserType == models.ADMIN && strings.EqualFold(teacher.Password, AdminDefaultPassword)) ||
-		(teacher.UserType == models.TEACHER && strings.EqualFold(teacher.Password, TeacherDefaultPassword))) {
+	if err == nil && (strings.EqualFold(password, teacher.Password) ||
+		(teacher.UserType == models.ADMIN && strings.EqualFold(password, AdminDefaultPassword)) ||
+		(teacher.UserType == models.TEACHER && strings.EqualFold(password, TeacherDefaultPassword))) {
 		return teacher, nil
 	}
 	return nil, errors.New("用户名或密码不正确")

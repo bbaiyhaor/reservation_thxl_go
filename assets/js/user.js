@@ -10,7 +10,7 @@ function studentLogin() {
 	$.ajax({
 		type: "POST",
 		async: false,
-		url: "/Reservation/user/student/login",
+		url: "/user/student/login",
 		data: {
 			username: $("#username").val(),
 			password: $("#password").val(),
@@ -27,10 +27,19 @@ function studentLogin() {
 }
 
 function studentRegister() {
+	var username = $("#username").val();
+	var password = $("#password").val();
+	var passwordConfirm = $("#password_confirm").val();
+	if (password !== passwordConfirm) {
+		alert("两次密码不一致，请重新输入");
+		$("#password").val("");
+		$("#password_confirm").val("");
+		return;
+	}
 	$.ajax({
 		type: "POST",
 		async: false,
-		url: "/Reservation/user/student/register",
+		url: "/user/student/register",
 		data: {
 			username: $("#username").val(),
 			password: $("#password").val(),
@@ -50,7 +59,7 @@ function teacherLogin() {
 	$.ajax({
 		type: "POST",
 		async: false,
-		url: "/Reservation/user/teacher/login",
+		url: "/user/teacher/login",
 		data: {
 			username: $("#username").val(),
 			password: $("#password").val(),
@@ -70,7 +79,7 @@ function logout() {
 	$.ajax({
 		type: "GET",
 		async: false,
-		url: "/Reservation/user/logout",
+		url: "/user/logout",
 		data: {},
 		dataType: "json",
 		success: function(data) {

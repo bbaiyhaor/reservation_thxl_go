@@ -82,12 +82,7 @@ func ViewMonthlyReservationsByAdmin(w http.ResponseWriter, r *http.Request, user
 }
 
 func ExportReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	queryForm, err := url.ParseQuery(r.URL.RawQuery)
-	if err != nil || len(queryForm["from_time"]) == 0 {
-		ErrorHandler(w, r, errors.New("参数错误"))
-		return nil
-	}
-	fromTime := queryForm["from_time"][0]
+	fromTime := r.PostFormValue("from_time")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var al = buslogic.AdminLogic{}

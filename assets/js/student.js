@@ -7,7 +7,7 @@ function viewReservations() {
 	$.ajax({
 		type: "GET",
 		async: false,
-		url: "/Reservation/reservation/student/view",
+		url: "/student/reservation/view",
 		dataType: "json",
 		success: function(data) {
 			if (data.state === "SUCCESS") {
@@ -167,7 +167,7 @@ function makeReservationConfirm(index) {
 	$.ajax({
 		type: "POST",
 		async: false,
-		url: "/Reservation/reservation/student/make",
+		url: "/student/reservation/make",
 		data: payload,
 		dataType: "json",
 		success: function(data) {
@@ -201,7 +201,7 @@ function getFeedback(index) {
 	$.ajax({
 		type: "POST",
 		async: false,
-		url: "/Reservation/reservation/student/feedback/get",
+		url: "/student/reservation/feedback/get",
 		data: payload,
 		dataType: "json",
 		success: function(data) {
@@ -277,7 +277,7 @@ function submitFeedback(index) {
 	$.ajax({
 		type: "POST",
 		async: false,
-		url: "/Reservation/reservation/student/feedback/submit",
+		url: "/student/reservation/feedback/submit",
 		data: payload,
 		traditional: true,
 		dataType: "json",

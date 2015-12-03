@@ -416,19 +416,19 @@ func (al *AdminLogic) SearchTeacherByAdmin(teacherFullname string, teacherUserna
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
-	if !strings.EqualFold(teacherFullname, "") {
+	if len(teacherFullname) != 0 {
 		teacher, err := models.GetTeacherByFullname(teacherFullname)
 		if err == nil {
 			return teacher, nil
 		}
 	}
-	if !strings.EqualFold(teacherUsername, "") {
+	if len(teacherUsername) != 0 {
 		teacher, err := models.GetTeacherByUsername(teacherUsername)
 		if err == nil {
 			return teacher, nil
 		}
 	}
-	if !strings.EqualFold(teacherMobile, "") {
+	if len(teacherMobile) != 0 {
 		teacher, err := models.GetTeacherByMobile(teacherMobile)
 		if err == nil {
 			return teacher, nil

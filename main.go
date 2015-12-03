@@ -17,7 +17,7 @@ import (
 
 var needUserPath = regexp.MustCompile("^(/reservation/(student|teacher|admin)$|/(user/logout|(student|teacher|admin)/))")
 var redirectStudentPath = regexp.MustCompile("^(/reservation/student$|/student/)")
-var redirectTeacherPath = regexp.MustCompile("^(/reservation/(teache|admin)$|/(teacher|admin)/)")
+var redirectTeacherPath = regexp.MustCompile("^(/reservation/(teacher|admin)$|/(teacher|admin)/)")
 
 func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, models.UserType) interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -95,12 +95,14 @@ func main() {
 	pageRouter.HandleFunc("/entry", handleWithCookie(controllers.EntryPage))
 	pageRouter.HandleFunc("/student", handleWithCookie(controllers.StudentPage))
 	pageRouter.HandleFunc("/student/login", handleWithCookie(controllers.StudentLoginPage))
+	pageRouter.HandleFunc("/student/register", handleWithCookie(controllers.StudentRegisterPage))
 	pageRouter.HandleFunc("/teacher", handleWithCookie(controllers.TeacherPage))
 	pageRouter.HandleFunc("/admin", handleWithCookie(controllers.AdminPage))
 	pageRouter.HandleFunc("/teacher/login", handleWithCookie(controllers.TeacherLoginPage))
 	// 加载动态处理器
 	userRouter := router.PathPrefix("/user").Subrouter()
 	userRouter.HandleFunc("/student/login", handleWithCookie(controllers.StudentLogin)).Methods("POST")
+	userRouter.HandleFunc("/student/register", handleWithCookie(controllers.StudentRegister)).Methods("POST")
 	userRouter.HandleFunc("/teacher/login", handleWithCookie(controllers.TeacherLogin)).Methods("POST")
 	userRouter.HandleFunc("/logout", handleWithCookie(controllers.Logout)).Methods("GET")
 	studentRouter := router.PathPrefix("/student").Subrouter()

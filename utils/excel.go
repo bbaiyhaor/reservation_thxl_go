@@ -5,6 +5,7 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/tealeg/xlsx"
 	"path/filepath"
+	"strconv"
 )
 
 const (
@@ -147,7 +148,7 @@ func ExportStudent(student *models.Student, filename string) error {
 		for i, r := range reservations {
 			row = sheet.AddRow()
 			cell = row.AddCell()
-			cell.SetString("咨询小结" + (string)(i + 1))
+			cell.SetString("咨询小结" + strconv.Itoa(i + 1))
 
 			row = sheet.AddRow()
 			cell = row.AddCell()
@@ -191,7 +192,7 @@ func ExportStudent(student *models.Student, filename string) error {
 }
 
 func ExportReservationTimetable(reservations []*models.Reservation, filename string) error {
-	xl, err := xlsx.OpenFile(filepath.FromSlash(ExportFolder + DefaultStudentExportExcelFilename))
+	xl, err := xlsx.OpenFile(filepath.FromSlash(ExportFolder + DefaultTimetableExportExcelFilename))
 	if err != nil {
 		return errors.New("导出失败：打开模板文件失败")
 	}

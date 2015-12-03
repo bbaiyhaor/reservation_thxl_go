@@ -18,7 +18,7 @@ const (
 	SMS_SUCCESS_TEACHER  = "%s您好，%s已预约您星期%s（%d月%d日）%s-%s咨询，地点：紫荆C楼407室。电话：62792453。"
 	SMS_REMINDER_STUDENT = "温馨提示：%s你好，你已成功预约明天%s-%s咨询，地点：紫荆C楼407室。电话：62792453。"
 	SMS_REMINDER_TEACHER = "温馨提示：%s您好，%s已预约您明天%s-%s咨询，地点：紫荆C楼407室。电话：62792453。"
-	SMS_FEEDBACK_STUDENT = "温馨提示：%s你好，感谢使用我们的一对一咨询服务，请再次登录乐学预约界面，为咨询师反馈评分，帮助我们成长。"
+	SMS_FEEDBACK_STUDENT = "温馨提示：%s你好，感谢使用我们的一对一咨询服务，请再次登录预约界面，为咨询师反馈评分，帮助我们成长。"
 )
 
 func SendSuccessSMS(reservation *models.Reservation) error {
@@ -63,9 +63,9 @@ func sendSMS(mobile string, content string) error {
 	if m := IsMobile(mobile); !m {
 		return errors.New("手机号格式不正确")
 	}
-	appEnv := os.Getenv("RESERVATION_THXX_ENV")
-	uid := os.Getenv("RESERVATION_THXX_SMS_UID")
-	key := os.Getenv("RESERVATION_THXX_SMS_KEY")
+	appEnv := os.Getenv("RESERVATION_THXL_ENV")
+	uid := os.Getenv("RESERVATION_THXL_SMS_UID")
+	key := os.Getenv("RESERVATION_THXL_SMS_KEY")
 	if !strings.EqualFold(appEnv, "ONLINE") || len(uid) == 0 || len(key) == 0 {
 		fmt.Printf("Send SMS: \"%s\" to %s.\n", content, mobile)
 		return nil

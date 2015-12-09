@@ -29,8 +29,8 @@ type ReservationSource int
 
 const (
 	TIMETABLE ReservationSource = 1 + iota
-	TEACHER
-	ADMIN
+	TEACHER_ADD
+	ADMIN_ADD
 )
 
 var reservationSources = [...]string{

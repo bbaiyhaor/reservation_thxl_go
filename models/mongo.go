@@ -17,10 +17,11 @@ Student
 func AddStudent(username string, password string) (*Student, error) {
 	collection := Mongo.C("student")
 	newStudent := &Student{
-		Id:       bson.NewObjectId(),
-		Username: username,
-		Password: password,
-		UserType: STUDENT,
+		Id:             bson.NewObjectId(),
+		Username:       username,
+		Password:       password,
+		UserType:       STUDENT,
+		ReservationIds: make(map[string]bool),
 	}
 	if err := collection.Insert(newStudent); err != nil {
 		return nil, err
@@ -56,29 +57,17 @@ func GetStudentByUsername(username string) (*Student, error) {
 Teacher
 */
 
-func AddSimpleTeacher(username string, password string) (*Teacher, error) {
+func AddTeacher(username string, password string, fullname string, mobile string) (*Teacher, error) {
 	collection := Mongo.C("teacher")
 	newTeacher := &Teacher{
-		Id:       bson.NewObjectId(),
-		Username: username,
-		Password: password,
-		UserType: TEACHER,
-	}
-	if err := collection.Insert(newTeacher); err != nil {
-		return nil, err
-	}
-	return newTeacher, nil
-}
-
-func AddFullTeacher(username string, password string, fullname string, mobile string) (*Teacher, error) {
-	collection := Mongo.C("teacher")
-	newTeacher := &Teacher{
-		Id:       bson.NewObjectId(),
-		Username: username,
-		Password: password,
-		Fullname: fullname,
-		Mobile:   mobile,
-		UserType: TEACHER,
+		Id:                 bson.NewObjectId(),
+		Username:           username,
+		Password:           password,
+		Fullname:           fullname,
+		Mobile:             mobile,
+		UserType:           TEACHER,
+		ReservationIdMap:   make(map[string]bool),
+		BindedStudentIdMap: make(map[string]bool),
 	}
 	if err := collection.Insert(newTeacher); err != nil {
 		return nil, err
@@ -129,11 +118,12 @@ func GetTeacherByMobile(mobile string) (*Teacher, error) {
 }
 
 /**
-ADMIN
+Admin
 */
-func AddAdmin(username string, password string) (*Teacher, error) {
-	collection := Mongo.C("teacher")
-	newAdmin := &Teacher{
+
+func AddAdmin(username string, password string) (*Admin, error) {
+	collection := Mongo.C("admin")
+	newAdmin := &Admin{
 		Id:       bson.NewObjectId(),
 		Username: username,
 		Password: password,
@@ -145,21 +135,34 @@ func AddAdmin(username string, password string) (*Teacher, error) {
 	return newAdmin, nil
 }
 
+func UpsertAdmin(admin *Admin) error {
+	collection := Mongo.C("admin")
+	_, err := collection.UpsertId(admin.Id, admin)
+	return err
+}
+
+func GetAdminById(adminId string) (*Admin, error) {
+	collection := Mongo.C("admin")
+	admin := &Admin{}
+	if err := collection.FindId(bson.ObjectIdHex(adminId)).One(admin); err != nil {
+		return nil, err
+	}
+	return admin, nil
+}
+
 /**
 Reservation
 */
 
-func AddReservation(startTime time.Time, endTime time.Time, teacherFullname string, teacherUsername string,
-	teacherMobile string) (*Reservation, error) {
+func AddReservation(startTime time.Time, endTime time.Time,source ReservationSource, teacherId string) (*Reservation, error) {
 	collection := Mongo.C("reservation")
 	newReservation := &Reservation{
 		Id:              bson.NewObjectId(),
 		StartTime:       startTime,
 		EndTime:         endTime,
 		Status:          AVAILABLE,
-		TeacherFullname: teacherFullname,
-		TeacherUsername: teacherUsername,
-		TeacherMobile:   teacherMobile,
+		Source:source,
+		TeacherId: teacherId,
 		StudentFeedback: StudentFeedback{},
 		TeacherFeedback: TeacherFeedback{},
 	}
@@ -182,15 +185,6 @@ func GetReservationById(id string) (*Reservation, error) {
 		return nil, err
 	}
 	return reservation, nil
-}
-
-func GetReservationsByStudentUsername(username string) ([]*Reservation, error) {
-	collection := Mongo.C("reservation")
-	var reservations []*Reservation
-	if err := collection.Find(bson.M{"student_username": username}).All(&reservations); err != nil {
-		return nil, err
-	}
-	return reservations, nil
 }
 
 func GetReservationsBetweenTime(from time.Time, to time.Time) ([]*Reservation, error) {
@@ -221,4 +215,50 @@ func GetReservationsAfterTime(from time.Time) ([]*Reservation, error) {
 		return nil, err
 	}
 	return reservations, nil
+}
+
+/**
+TimedReservation
+ */
+
+func AddTimedReservation(weekday time.Weekday, startTime time.Time, endTime time.Time, teacherId string) (*TimedReservation, error) {
+	collection := Mongo.C("timetable")
+	timedReservation := &TimedReservation{
+		Id: bson.NewObjectId(),
+		Weekday:weekday,
+		StartTime:startTime,
+		EndTime:endTime,
+		Status:AVAILABLE,
+		TeacherId:teacherId,
+		Exceptions: make(map[string]bool),
+	}
+	if err := collection.Insert(timedReservation); err != nil {
+		return nil, err
+	}
+	return timedReservation, nil
+}
+
+func UpsertTimedReservation(timedReservation TimedReservation) error {
+	collection := Mongo.C("timetable")
+	_, err := collection.UpsertId(timedReservation.Id, timedReservation)
+	return err
+}
+
+func GetTimedReservationById(timedReservtionId string) (*TimedReservation, error) {
+	collection := Mongo.C("timetable")
+	timedReservation := &TimedReservation{}
+	if err := collection.FindId(bson.ObjectIdHex(timedReservtionId)).One(timedReservation); err != nil {
+		return nil, err
+	}
+	return timedReservation, nil
+}
+
+func GetTimedReservationsByWeekday(weekday time.Weekday) ([]*TimedReservation, error) {
+	collection := Mongo.C("timetable")
+	var timedReservations []*TimedReservation
+	if err := collection.Find(bson.M{"weekday": weekday,
+		"status": bson.M{"$ne": DELETED}}).Sort("start_time").All(&timedReservations); err != nil {
+		return nil, err
+	}
+	return timedReservations, nil
 }

@@ -35,13 +35,12 @@ func (e Experience) IsEmpty() bool {
 }
 
 type Student struct {
-	Id bson.ObjectId `bson:"_id"`
-	// Indexed
-	Username string   `bson:"username"`
-	Password string   `bson:"password"`
-	UserType UserType `bson:"user_type"`
-	// Indexed
-	BindedTeacher string `bson:"binded_teacher"`
+	Id              bson.ObjectId   `bson:"_id"`
+	Username        string          `bson:"username"` // Indexed
+	Password        string          `bson:"password"`
+	UserType        UserType        `bson:"user_type"`
+	BindedTeacherId string          `bson:"binded_teacher_id"`
+	ReservationIds  map[string]bool `bson:"reservation_ids"`
 
 	Fullname       string     `bson:"fullname"`
 	Gender         string     `bson:"gender"`
@@ -65,11 +64,19 @@ type Student struct {
 }
 
 type Teacher struct {
-	Id bson.ObjectId `bson:"_id"`
-	// Indexed
-	Username string   `bson:"username"`
-	Password string   `bson:"password"`
-	Fullname string   `bson:"fullname"`
-	Mobile   string   `bson:"mobile"`
-	UserType UserType `bson:"user_type"`
+	Id                 bson.ObjectId   `bson:"_id"`
+	Username           string          `bson:"username"` // Indexed
+	Password           string          `bson:"password"`
+	Fullname           string          `bson:"fullname"`
+	Mobile             string          `bson:"mobile"`
+	UserType           UserType        `bson:"user_type"`
+	ReservationIdMap   map[string]bool `bson:"reservation_id_map"`
+	BindedStudentIdMap map[string]bool `bson:"binded_student_id_map"`
+}
+
+type Admin struct {
+	Id       bson.ObjectId `bson:"_id"`
+	Username string        `bson:"username"` // Indexed
+	Password string        `bson:"password"`
+	UserType UserType      `bson:"user_type"`
 }

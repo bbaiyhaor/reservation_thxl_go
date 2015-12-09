@@ -25,6 +25,24 @@ func (rs ReservationStatus) String() string {
 	return reservationStatuses[rs-1]
 }
 
+type ReservationSource int
+
+const (
+	TIMETABLE ReservationSource = 1 + iota
+	TEACHER
+	ADMIN
+)
+
+var reservationSources = [...]string{
+	"TIMETABLE",
+	"TEACHER",
+	"ADMIN",
+}
+
+func (rs ReservationSource) String() string {
+	return reservationSources[rs-1]
+}
+
 type StudentFeedback struct {
 	Scores []string `bson:"scores"`
 }
@@ -48,13 +66,9 @@ type Reservation struct {
 	StartTime       time.Time         `bson:"start_time"`
 	EndTime         time.Time         `bson:"end_time"`
 	Status          ReservationStatus `bson:"status"`
-	TeacherUsername string            `bson:"teacher_username"`
-	TeacherFullname string            `bson:"teacher_fullname"`
-	TeacherMobile   string            `bson:"teacher_mobile"`
-	// Indexed
-	StudentUsername string          `bson:"student_username"`
-	StudentFullname string          `bson:"student_fullname"`
-	StudentMobile   string          `bson:"student_mobile"`
-	StudentFeedback StudentFeedback `bson:"student_feedback"`
-	TeacherFeedback TeacherFeedback `bson:"teacher_feedback"`
+	Source          ReservationSource `bson:"source"`
+	TeacherId       string            `bson:"teacher_id"`
+	StudentId       string            `bson:"student_id"`
+	StudentFeedback StudentFeedback   `bson:"student_feedback"`
+	TeacherFeedback TeacherFeedback   `bson:"teacher_feedback"`
 }

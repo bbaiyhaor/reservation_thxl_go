@@ -108,7 +108,7 @@ func (rl *ReservationLogic) GetReservationsByAdmin(userId string, userType model
 	} else if userType != models.ADMIN {
 		return nil, errors.New("权限不足")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
@@ -161,7 +161,7 @@ func (rl *ReservationLogic) GetReservationsMonthlyByAdmin(from string, userId st
 	} else if userType != models.ADMIN {
 		return nil, errors.New("权限不足")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}

@@ -2,8 +2,8 @@ package models
 
 import (
 	"gopkg.in/mgo.v2/bson"
-	"time"
 	"strings"
+	"time"
 )
 
 type ReservationStatus int

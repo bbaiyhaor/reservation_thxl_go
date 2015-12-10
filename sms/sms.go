@@ -5,13 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
+	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
-	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 )
 
 const (

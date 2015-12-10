@@ -5,8 +5,8 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"net/http"
-	"time"
 	"strconv"
+	"time"
 )
 
 func ViewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {

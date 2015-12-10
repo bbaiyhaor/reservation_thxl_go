@@ -1,10 +1,10 @@
 package models
 
 import (
+	"fmt"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"gopkg.in/mgo.v2/bson"
 	"time"
-	"fmt"
 )
 
 type TimedReservation struct {

@@ -3,12 +3,12 @@ package controllers
 import (
 	"errors"
 	"github.com/shudiwsh2009/reservation_thxl_go/buslogic"
+	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"net/http"
 	"net/url"
-	"time"
 	"strconv"
-"github.com/shudiwsh2009/reservation_thxl_go/models"
+	"time"
 )
 
 func ViewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {

@@ -1,8 +1,8 @@
 package models
 
 import (
-	"gopkg.in/mgo.v2/bson"
 	"fmt"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type UserType int

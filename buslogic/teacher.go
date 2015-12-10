@@ -3,9 +3,9 @@ package buslogic
 import (
 	"errors"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
+	"github.com/shudiwsh2009/reservation_thxl_go/sms"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"strings"
-	"github.com/shudiwsh2009/reservation_thxl_go/sms"
 )
 
 type TeacherLogic struct {

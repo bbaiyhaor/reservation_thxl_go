@@ -2,12 +2,12 @@ package buslogic
 
 import (
 	"errors"
+	"github.com/shudiwsh2009/reservation_thxl_go/excel"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
+	"github.com/shudiwsh2009/reservation_thxl_go/sms"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"strings"
 	"time"
-	"github.com/shudiwsh2009/reservation_thxl_go/sms"
-	"github.com/shudiwsh2009/reservation_thxl_go/excel"
 )
 
 type AdminLogic struct {
@@ -306,23 +306,23 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId strin
 func (al *AdminLogic) GetStudentInfoByAdmin(studentId string,
 	userId string, userType models.UserType) (*models.Student, []*models.Reservation, error) {
 	if len(userId) == 0 {
-	return nil, nil, errors.New("请先登录")
+		return nil, nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
-	return nil, nil, errors.New("权限不足")
+		return nil, nil, errors.New("权限不足")
 	} else if len(studentId) == 0 {
-	return nil, nil, errors.New("咨询未被预约，不能查看")
+		return nil, nil, errors.New("咨询未被预约，不能查看")
 	}
 	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
-	return nil, nil, errors.New("管理员账户出错,请联系技术支持")
+		return nil, nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := models.GetStudentById(studentId)
 	if err != nil {
-	return nil, nil, errors.New("学生未注册")
+		return nil, nil, errors.New("学生未注册")
 	}
 	reservations, err := models.GetReservationsByStudentId(student.Id.Hex())
 	if err != nil {
-	return nil, nil, errors.New("获取数据失败")
+		return nil, nil, errors.New("获取数据失败")
 	}
 	return student, reservations, nil
 }

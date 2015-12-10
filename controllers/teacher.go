@@ -6,6 +6,7 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"net/http"
 	"time"
+	"strconv"
 )
 
 func ViewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
@@ -34,8 +35,10 @@ func ViewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId st
 		resJson["reservation_id"] = res.Id
 		resJson["start_time"] = res.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
 		resJson["end_time"] = res.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
-		resJson["teacher_fullname"] = res.TeacherFullname
-		resJson["teacher_mobile"] = res.TeacherMobile
+		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
+			resJson["teacher_fullname"] = teacher.Fullname
+			resJson["teacher_mobile"] = teacher.Mobile
+		}
 		if res.Status == models.AVAILABLE {
 			resJson["status"] = models.AVAILABLE.String()
 		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now().In(utils.Location)) {
@@ -52,12 +55,13 @@ func ViewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId st
 
 func GetFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	reservationId := r.PostFormValue("reservation_id")
+	sourceId := r.PostFormValue("source_id")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var tl = buslogic.TeacherLogic{}
 
 	var feedback = make(map[string]interface{})
-	reservation, err := tl.GetFeedbackByTeacher(reservationId, userId, userType)
+	reservation, err := tl.GetFeedbackByTeacher(reservationId, sourceId, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -71,13 +75,23 @@ func GetFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string,
 
 func SubmitFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	reservationId := r.PostFormValue("reservation_id")
+	sourceId := r.PostFormValue("source_id")
+	category := r.PostFormValue("category")
+	r.ParseForm()
+	participants := []string(r.Form["reservation_ids"])
 	problem := r.PostFormValue("problem")
 	record := r.PostFormValue("record")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var tl = buslogic.TeacherLogic{}
 
-	_, err := tl.SubmitFeedbackByTeacher(reservationId, problem, record, userId, userType)
+	participantsInt := []int{}
+	for _, p := range participants {
+		if pi, err := strconv.Atoi(p); err == nil {
+			participantsInt = append(participantsInt, pi)
+		}
+	}
+	_, err := tl.SubmitFeedbackByTeacher(reservationId, sourceId, category, participantsInt, problem, record, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -87,14 +101,14 @@ func SubmitFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 }
 
 func GetStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	reservationId := r.PostFormValue("reservation_id")
+	studentId := r.PostFormValue("student_id")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var tl = buslogic.TeacherLogic{}
 	var ul = buslogic.UserLogic{}
 
 	var studentJson = make(map[string]interface{})
-	student, err := tl.GetStudentInfoByTeacher(reservationId, userId, userType)
+	student, _, err := tl.GetStudentInfoByTeacher(studentId, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -123,8 +137,8 @@ func GetStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 	studentJson["student_parent_marriage"] = student.ParentMarriage
 	studentJson["student_significant"] = student.Significant
 	studentJson["student_problem"] = student.Problem
-	if len(student.BindedTeacher) != 0 {
-		teacher, err := ul.GetTeacherByUsername(student.BindedTeacher)
+	if len(student.BindedTeacherId) != 0 {
+		teacher, err := ul.GetTeacherById(student.BindedTeacherId)
 		if err != nil {
 			studentJson["student_binded_teacher_username"] = "无"
 			studentJson["student_binded_teacher_fullname"] = ""

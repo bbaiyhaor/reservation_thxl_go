@@ -53,7 +53,9 @@ func ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId st
 		resJson["reservation_id"] = res.Id
 		resJson["start_time"] = res.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
 		resJson["end_time"] = res.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
-		resJson["teacher_fullname"] = res.TeacherFullname
+		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
+			resJson["teacher_fullname"] = teacher.Fullname
+		}
 		if res.Status == models.AVAILABLE {
 			resJson["status"] = models.AVAILABLE.String()
 		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now().In(utils.Location)) {
@@ -70,6 +72,8 @@ func ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId st
 
 func MakeReservationByStudent(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	reservationId := r.PostFormValue("reservation_id")
+	sourceId := r.PostFormValue("source_id")
+	startTime := r.PostFormValue("start_time")
 	fullname := r.PostFormValue("student_fullname")
 	gender := r.PostFormValue("student_gender")
 	birthday := r.PostFormValue("student_birthday")
@@ -94,10 +98,11 @@ func MakeReservationByStudent(w http.ResponseWriter, r *http.Request, userId str
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var sl = buslogic.StudentLogic{}
+	var ul = buslogic.UserLogic{}
 
 	var reservationJson = make(map[string]interface{})
-	reservation, err := sl.MakeReservationByStudent(reservationId, fullname, gender, birthday, school, grade,
-		currentAddress, familyAddress, mobile, email, experienceTime, experienceLocation, experienceTeacher,
+	reservation, err := sl.MakeReservationByStudent(reservationId, sourceId, startTime, fullname, gender, birthday,
+		school, grade, currentAddress, familyAddress, mobile, email, experienceTime, experienceLocation, experienceTeacher,
 		fatherAge, fatherJob, fatherEdu, motherAge, motherJob, motherEdu, parentMarriage, siginificant, problem,
 		userId, userType)
 	if err != nil {
@@ -106,7 +111,9 @@ func MakeReservationByStudent(w http.ResponseWriter, r *http.Request, userId str
 	}
 	reservationJson["start_time"] = reservation.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
 	reservationJson["end_time"] = reservation.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
-	reservationJson["teacher_fullname"] = reservation.TeacherFullname
+	if teacher, err := ul.GetTeacherById(reservation.TeacherId); err == nil {
+		reservationJson["teacher_fullname"] = teacher.Fullname
+	}
 	result["reservation"] = reservationJson
 
 	return result
@@ -114,12 +121,13 @@ func MakeReservationByStudent(w http.ResponseWriter, r *http.Request, userId str
 
 func GetFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	reservationId := r.PostFormValue("reservation_id")
+	sourceId := r.PostFormValue("source_id")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var sl = buslogic.StudentLogic{}
 
 	var feedbackJson = make(map[string]interface{})
-	reservation, err := sl.GetFeedbackByStudent(reservationId, userId, userType)
+	reservation, err := sl.GetFeedbackByStudent(reservationId, sourceId, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -132,13 +140,14 @@ func GetFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string,
 
 func SubmitFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	reservationId := r.PostFormValue("reservation_id")
+	sourceId := r.PostFormValue("source_id")
 	r.ParseForm()
 	scores := []string(r.Form["scores"])
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var sl = buslogic.StudentLogic{}
 
-	_, err := sl.SubmitFeedbackByStudent(reservationId, scores, userId, userType)
+	_, err := sl.SubmitFeedbackByStudent(reservationId, sourceId, scores, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil

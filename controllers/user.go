@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/shudiwsh2009/reservation_thxl_go/buslogic"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"net/http"

@@ -303,34 +303,26 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId strin
 }
 
 // 管理员查看学生信息
-func (al *AdminLogic) GetStudentInfoByAdmin(reservationId string, sourceId string,
+func (al *AdminLogic) GetStudentInfoByAdmin(studentId string,
 	userId string, userType models.UserType) (*models.Student, []*models.Reservation, error) {
 	if len(userId) == 0 {
-		return nil, nil, errors.New("请先登录")
+	return nil, nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
-		return nil, nil, errors.New("权限不足")
-	} else if len(reservationId) == 0 {
-		return nil, nil, errors.New("咨询已下架")
-	} else if strings.EqualFold(reservationId, sourceId) {
-		return nil, nil, errors.New("咨询未被预约，无法查看")
+	return nil, nil, errors.New("权限不足")
+	} else if len(studentId) == 0 {
+	return nil, nil, errors.New("咨询未被预约，不能查看")
 	}
 	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
-		return nil, nil, errors.New("管理员账户出错,请联系技术支持")
+	return nil, nil, errors.New("管理员账户出错,请联系技术支持")
 	}
-	reservation, err := models.GetReservationById(reservationId)
-	if err != nil || reservation.Status == models.DELETED {
-		return nil, nil, errors.New("咨询已下架")
-	} else if reservation.Status == models.AVAILABLE {
-		return nil, nil, errors.New("咨询未被预约,无法查看")
-	}
-	student, err := models.GetStudentById(reservation.StudentId)
+	student, err := models.GetStudentById(studentId)
 	if err != nil {
-		return nil, nil, errors.New("咨询已失效")
+	return nil, nil, errors.New("学生未注册")
 	}
 	reservations, err := models.GetReservationsByStudentId(student.Id.Hex())
 	if err != nil {
-		return nil, nil, errors.New("获取数据失败")
+	return nil, nil, errors.New("获取数据失败")
 	}
 	return student, reservations, nil
 }

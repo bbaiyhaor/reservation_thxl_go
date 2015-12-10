@@ -29,7 +29,7 @@ func (ul *UserLogic) StudentLogin(username string, password string) (*models.Stu
 	return nil, errors.New("用户名或密码不正确")
 }
 
-// 咨询师及管理员登录
+// 咨询师登录
 func (ul *UserLogic) TeacherLogin(username string, password string) (*models.Teacher, error) {
 	if len(username) == 0 {
 		return nil, errors.New("用户名为空")
@@ -38,9 +38,23 @@ func (ul *UserLogic) TeacherLogin(username string, password string) (*models.Tea
 	}
 	teacher, err := models.GetTeacherByUsername(username)
 	if err == nil && (strings.EqualFold(password, teacher.Password) ||
-		(teacher.UserType == models.ADMIN && strings.EqualFold(password, AdminDefaultPassword)) ||
 		(teacher.UserType == models.TEACHER && strings.EqualFold(password, TeacherDefaultPassword))) {
 		return teacher, nil
+	}
+	return nil, errors.New("用户名或密码不正确")
+}
+
+// 管理员登录
+func (ul *UserLogic) AdminLogin(username string, password string) (*models.Admin, error) {
+	if len(username) == 0 {
+		return nil, errors.New("用户名为空")
+	} else if len(password) == 0 {
+		return nil, errors.New("密码为空")
+	}
+	admin, err := models.GetAdminByUsername(username)
+	if err == nil && (strings.EqualFold(password, admin.Password) ||
+		(admin.UserType == models.ADMIN && strings.EqualFold(password, AdminDefaultPassword))) {
+		return admin, nil
 	}
 	return nil, errors.New("用户名或密码不正确")
 }
@@ -77,7 +91,7 @@ func (ul *UserLogic) GetStudentById(userId string) (*models.Student, error) {
 	return student, nil
 }
 
-// 获取咨询师或管理员
+// 获取咨询师
 func (ul *UserLogic) GetTeacherByUsername(username string) (*models.Teacher, error) {
 	if len(username) == 0 {
 		return nil, errors.New("请先登录")
@@ -89,7 +103,7 @@ func (ul *UserLogic) GetTeacherByUsername(username string) (*models.Teacher, err
 	return teacher, nil
 }
 
-// 获取咨询师或管理员
+// 获取咨询师
 func (ul *UserLogic) GetTeacherById(userId string) (*models.Teacher, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
@@ -99,4 +113,16 @@ func (ul *UserLogic) GetTeacherById(userId string) (*models.Teacher, error) {
 		return nil, errors.New("请先登录")
 	}
 	return teacher, nil
+}
+
+// 获取管理员
+func (ul *UserLogic) GetAdminById(userId string) (*models.Admin, error) {
+	if len(userId) == 0 {
+		return nil, errors.New("请先登录")
+	}
+	admin, err := models.GetAdminById(userId)
+	if err != nil {
+		return nil, errors.New("请先登录")
+	}
+	return admin, nil
 }

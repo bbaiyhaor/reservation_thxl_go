@@ -27,3 +27,12 @@ func ConcatTime(date time.Time, clock time.Time) time.Time {
 		clock.In(Location).Hour(), clock.In(Location).Minute(), clock.In(Location).Second(),
 		clock.In(Location).Nanosecond(), Location)
 }
+
+func GetToday() time.Time {
+	now := time.Now().In(Location)
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, Location)
+}
+
+func GetNow() time.Time {
+	return time.Now().In(Location)
+}

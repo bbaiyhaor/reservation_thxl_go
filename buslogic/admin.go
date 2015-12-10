@@ -112,7 +112,7 @@ func (al *AdminLogic) EditReservationByAdmin(reservationId string, sourceId stri
 	}
 	if start.After(end) {
 		return nil, errors.New("开始时间不能晚于结束时间")
-	} else if end.Before(time.Now().In(utils.Location)) {
+	} else if start.Before(utils.GetNow()) {
 		return nil, errors.New("不能编辑已过期咨询")
 	}
 	teacher, err := models.GetTeacherByUsername(teacherUsername)
@@ -197,7 +197,7 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 			// 1、Source为ADD，无SourceId：置为AVAILABLE
 			// 2、Source为TIMETABLE且已预约：置为DELETED并去除timed
 			if reservation, err := models.GetReservationById(reservationId); err == nil &&
-				reservation.Status == models.RESERVATED && reservation.StartTime.After(time.Now().In(utils.Location)) {
+				reservation.Status == models.RESERVATED && reservation.StartTime.After(utils.GetNow()) {
 				if reservation.Source != models.TIMETABLE {
 					// 1
 					reservation.Status = models.AVAILABLE
@@ -243,7 +243,7 @@ func (al *AdminLogic) GetFeedbackByAdmin(reservationId string, sourceId string,
 	reservation, err := models.GetReservationById(reservationId)
 	if err != nil || reservation.Status == models.DELETED {
 		return nil, errors.New("咨询已下架")
-	} else if reservation.StartTime.After(time.Now().Local()) {
+	} else if reservation.StartTime.After(utils.GetNow()) {
 		return nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == models.AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
@@ -279,7 +279,7 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId strin
 	reservation, err := models.GetReservationById(reservationId)
 	if err != nil || reservation.Status == models.DELETED {
 		return nil, errors.New("咨询已下架")
-	} else if reservation.StartTime.After(time.Now().Local()) {
+	} else if reservation.StartTime.After(utils.GetNow()) {
 		return nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == models.AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
@@ -348,7 +348,7 @@ func (al *AdminLogic) ExportStudentByAdmin(studentId string, userId string, user
 	if err != nil {
 		return "", errors.New("学生未注册")
 	}
-	filename := "student_" + student.Username + "_" + time.Now().In(utils.Location).Format(utils.DATE_PATTERN) + utils.ExcelSuffix
+	filename := "student_" + student.Username + "_" + utils.GetNow().Format(utils.DATE_PATTERN) + utils.ExcelSuffix
 	if err = utils.ExportStudent(student, filename); err != nil {
 		return "", err
 	}

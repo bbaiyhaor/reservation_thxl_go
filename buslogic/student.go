@@ -92,8 +92,7 @@ func (sl *StudentLogic) MakeReservationByStudent(reservationId string, sourceId 
 		} else if len(student.BindedTeacherId) != 0 && !strings.EqualFold(student.BindedTeacherId, timedReservation.TeacherId) {
 			return nil, errors.New("只能预约匹配咨询师")
 		}
-		end := time.Date(start.Year(), start.Month(), start.Day(), timedReservation.EndTime.In(utils.Location).Hour(),
-			timedReservation.EndTime.In(utils.Location).Minute(), 0, 0, utils.Location)
+		end := utils.ConcatTime(start, timedReservation.EndTime)
 		reservation, err = models.AddReservation(start, end, models.TIMETABLE, timedReservation.Id, timedReservation.TeacherId)
 		if err != nil {
 			return nil, errors.New("获取数据失败")

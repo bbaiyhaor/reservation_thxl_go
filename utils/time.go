@@ -21,3 +21,9 @@ const (
 var (
 	Location *time.Location
 )
+
+func ConcatTime(date time.Time, clock time.Time) time.Time {
+	return time.Date(date.In(Location).Year(), date.In(Location).Month(), date.In(Location).Day(),
+		clock.In(Location).Hour(), clock.In(Location).Minute(), clock.In(Location).Second(),
+		clock.In(Location).Nanosecond(), Location)
+}

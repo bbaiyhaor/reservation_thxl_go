@@ -52,8 +52,10 @@ func (sf StudentFeedback) IsEmpty() bool {
 }
 
 type TeacherFeedback struct {
-	Problem string `bson:"problem"`
-	Record  string `bson:"record"`
+	Category     string `bson:"category"`
+	Participants []int  `bson:"participants"`
+	Problem      string `bson:"problem"`
+	Record       string `bson:"record"`
 }
 
 func (tf TeacherFeedback) IsEmpty() bool {
@@ -61,14 +63,14 @@ func (tf TeacherFeedback) IsEmpty() bool {
 }
 
 type Reservation struct {
-	Id bson.ObjectId `bson:"_id"`
-	// Indexed
-	StartTime       time.Time         `bson:"start_time"`
+	Id              bson.ObjectId     `bson:"_id"`
+	StartTime       time.Time         `bson:"start_time"` // indexed
 	EndTime         time.Time         `bson:"end_time"`
 	Status          ReservationStatus `bson:"status"`
 	Source          ReservationSource `bson:"source"`
-	TeacherId       string            `bson:"teacher_id"`
-	StudentId       string            `bson:"student_id"`
+	SourceId        string            `bson:"source_id"`
+	TeacherId       string            `bson:"teacher_id"` // indexed
+	StudentId       string            `bson:"student_id"` // indexed
 	StudentFeedback StudentFeedback   `bson:"student_feedback"`
 	TeacherFeedback TeacherFeedback   `bson:"teacher_feedback"`
 }

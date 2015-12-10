@@ -31,7 +31,7 @@ func (al *AdminLogic) AddReservationByAdmin(startTime string, endTime string, te
 	} else if !utils.IsMobile(teacherMobile) {
 		return nil, errors.New("咨询师手机号格式不正确")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
@@ -48,8 +48,7 @@ func (al *AdminLogic) AddReservationByAdmin(startTime string, endTime string, te
 	}
 	teacher, err := models.GetTeacherByUsername(teacherUsername)
 	if err != nil {
-		if teacher, err = models.AddFullTeacher(teacherUsername, TeacherDefaultPassword, teacherFullname,
-			teacherMobile); err != nil {
+		if teacher, err = models.AddTeacher(teacherUsername, TeacherDefaultPassword, teacherFullname, teacherMobile); err != nil {
 			return nil, errors.New("获取数据失败")
 		}
 	} else if teacher.UserType != models.TEACHER {
@@ -57,13 +56,13 @@ func (al *AdminLogic) AddReservationByAdmin(startTime string, endTime string, te
 	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
-		if err = models.UpsertTeacher(teacher); err != nil {
-			return nil, errors.New("数据获取失败")
+		if models.UpsertTeacher(teacher) != nil {
+			return nil, errors.New("获取数据失败")
 		}
 	}
-	reservation, err := models.AddReservation(start, end, teacher.Fullname, teacher.Username, teacher.Mobile)
+	reservation, err := models.AddReservation(start, end, models.ADMIN_ADD, teacher.Id)
 	if err != nil {
-		return nil, errors.New("数据获取失败")
+		return nil, errors.New("获取数据失败")
 	}
 	return reservation, nil
 }
@@ -91,13 +90,13 @@ func (al *AdminLogic) EditReservationByAdmin(reservationId string, startTime str
 	} else if !utils.IsMobile(teacherMobile) {
 		return nil, errors.New("咨询师手机号格式不正确")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	reservation, err := models.GetReservationById(reservationId)
 	if err != nil || reservation.Status == models.DELETED {
-		return nil, errors.New("咨询已下架")
+		return nil, errors.New("请在安排表中编辑预设咨询")
 	} else if reservation.Status == models.RESERVATED {
 		return nil, errors.New("不能编辑已被预约的咨询")
 	}
@@ -116,8 +115,7 @@ func (al *AdminLogic) EditReservationByAdmin(reservationId string, startTime str
 	}
 	teacher, err := models.GetTeacherByUsername(teacherUsername)
 	if err != nil {
-		if teacher, err = models.AddFullTeacher(teacherUsername, TeacherDefaultPassword, teacherFullname,
-			teacherMobile); err != nil {
+		if teacher, err = models.AddTeacher(teacherUsername, TeacherDefaultPassword, teacherFullname, teacherMobile); err != nil {
 			return nil, errors.New("获取数据失败")
 		}
 	} else if teacher.UserType != models.TEACHER {
@@ -125,69 +123,107 @@ func (al *AdminLogic) EditReservationByAdmin(reservationId string, startTime str
 	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
-		if err = models.UpsertTeacher(teacher); err != nil {
-			return nil, errors.New("数据获取失败")
+		if models.UpsertTeacher(teacher) != nil {
+			return nil, errors.New("获取数据失败")
 		}
 	}
 	reservation.StartTime = start
 	reservation.EndTime = end
-	reservation.TeacherUsername = teacher.Username
-	reservation.TeacherFullname = teacher.Fullname
-	reservation.TeacherMobile = teacher.Mobile
+	reservation.TeacherId = teacher.Id
 	if err = models.UpsertReservation(reservation); err != nil {
-		return nil, errors.New("数据获取失败")
+		return nil, errors.New("获取数据失败")
 	}
 	return reservation, nil
 }
 
+// TODO 管理员编辑预设咨询
+//func (al *AdminLogic) EditTimedReservationByAdmin(timedReservationId string, originalStartTime string,
+//	startTime string, endTime string, teacherUsername string, teacherFullname string, teacherMobile string,
+//	userId string, userType models.UserType) (*models.Reservation, error) {
+//
+//}
+
 // 管理员删除咨询
-func (al *AdminLogic) RemoveReservationsByAdmin(reservationIds []string, userId string, userType models.UserType) (int, error) {
+func (al *AdminLogic) RemoveReservationsByAdmin(reservationIds []string, timedReservationIds []string, startTimes []string,
+	userId string, userType models.UserType) (int, error) {
 	if len(userId) == 0 {
 		return 0, errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return 0, errors.New("权限不足")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return 0, errors.New("管理员账户出错,请联系技术支持")
 	}
 	removed := 0
-	for _, reservationId := range reservationIds {
-		if reservation, err := models.GetReservationById(reservationId); err == nil {
-			reservation.Status = models.DELETED
-			models.UpsertReservation(reservation)
-			removed++
+	for index, reservationId := range reservationIds {
+		if len(timedReservationIds[index]) == 0 {
+			// Source为ADD，无SourceId：直接置为DELETED（TODO 目前不能删除已预约咨询）
+			if reservation, err := models.GetReservationById(reservationId); err == nil && reservation.Status != models.RESERVATED {
+				reservation.Status = models.DELETED
+				if models.UpsertReservation(reservation) == nil {
+					removed++
+				}
+			}
+		} else if strings.EqualFold(reservationId, timedReservationIds[index]) {
+			// Source为TIMETABLE且未预约，rId=sourceId：加入exception
+			if timedReservation, err := models.GetTimedReservationById(timedReservationIds[index]); err == nil {
+				if time, err := time.ParseInLocation(utils.TIME_PATTERN, startTimes[index], utils.Location); err == nil {
+					date := time.Format(utils.DATE_PATTERN)
+					timedReservation.Exceptions[date] = true
+					if models.UpsertTimedReservation(timedReservation) == nil {
+						removed++
+					}
+				}
+			}
+		} else {
+			// Source为TIMETABLE且已预约
+			// TODO 目前不能删除已预约咨询
 		}
 	}
 	return removed, nil
 }
 
 // 管理员取消预约
-func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, userId string, userType models.UserType) (int, error) {
+func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, timedReservationIds []string,
+	userId string, userType models.UserType) (int, error) {
 	if len(userId) == 0 {
 		return 0, errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return 0, errors.New("权限不足")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return 0, errors.New("管理员账户出错,请联系技术支持")
 	}
 	removed := 0
-	for _, reservationId := range reservationIds {
-		reseravtion, err := models.GetReservationById(reservationId)
-		if err != nil || reseravtion.Status == models.DELETED {
-			continue
-		}
-		if reseravtion.Status == models.RESERVATED && reseravtion.StartTime.After(time.Now().Local()) {
-			reseravtion.Status = models.AVAILABLE
-			reseravtion.StudentUsername = ""
-			reseravtion.StudentFullname = ""
-			reseravtion.StudentMobile = ""
-			reseravtion.StudentFeedback = models.StudentFeedback{}
-			reseravtion.TeacherFeedback = models.TeacherFeedback{}
-			models.UpsertReservation(reseravtion)
-			removed++
+	for index, reservationId := range reservationIds {
+		if !strings.EqualFold(reservationId, timedReservationIds[index]) {
+			// 1、Source为ADD，无SourceId：置为AVAILABLE
+			// 2、Source为TIMETABLE且已预约：置为DELETED并去除timed
+			if reservation, err := models.GetReservationById(reservationId); err == nil &&
+				reservation.Status == models.RESERVATED && reservation.StartTime.After(time.Now().In(utils.Location)) {
+				if reservation.Source != models.TIMETABLE {
+					// 1
+					reservation.Status = models.AVAILABLE
+					reservation.StudentId = ""
+					reservation.StudentFeedback = models.StudentFeedback{}
+					reservation.TeacherFeedback = models.TeacherFeedback{}
+					if models.UpsertReservation(reservation) == nil {
+						removed++
+					}
+				} else {
+					// 2
+					reservation.Status = models.DELETED
+					if timedReservation, err := models.GetTimedReservationById(timedReservationIds[index]); err == nil {
+						date := reservation.StartTime.Format(utils.DATE_PATTERN)
+						delete(timedReservation, date)
+						if models.UpsertReservation(reservation) == nil && models.UpsertTimedReservation(timedReservation) == nil {
+							removed++
+						}
+					}
+				}
+			}
 		}
 	}
 	return removed, nil
@@ -202,7 +238,7 @@ func (al *AdminLogic) GetFeedbackByAdmin(reservationId string, userId string, us
 	} else if len(reservationId) == 0 {
 		return nil, errors.New("咨询已下架")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
@@ -218,20 +254,24 @@ func (al *AdminLogic) GetFeedbackByAdmin(reservationId string, userId string, us
 }
 
 // 管理员提交反馈
-func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, problem string, record string,
-	userId string, userType models.UserType) (*models.Reservation, error) {
+func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, category string, participants []int, problem string,
+	record string, userId string, userType models.UserType) (*models.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return nil, errors.New("权限不足")
 	} else if len(reservationId) == 0 {
 		return nil, errors.New("咨询已下架")
+	} else if len(category) == 0 {
+		return nil, errors.New("评估分类为空")
+	} else if len(participants) != 4 {
+		return nil, errors.New("咨询参与者为空")
 	} else if len(problem) == 0 {
 		return nil, errors.New("问题评估为空")
 	} else if len(record) == 0 {
 		return nil, errors.New("咨询记录为空")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
@@ -245,56 +285,63 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, problem string
 	}
 	sendFeedbackSMS := reservation.TeacherFeedback.IsEmpty() && reservation.StudentFeedback.IsEmpty()
 	reservation.TeacherFeedback = models.TeacherFeedback{
-		Problem: problem,
-		Record:  record,
+		Category:     category,
+		Participants: participants,
+		Problem:      problem,
+		Record:       record,
 	}
 	if err = models.UpsertReservation(reservation); err != nil {
-		return nil, errors.New("数据获取失败")
+		return nil, errors.New("获取数据失败")
 	}
-	if sendFeedbackSMS {
+	if sendFeedbackSMS && participants[0] > 0 {
 		utils.SendFeedbackSMS(reservation)
 	}
 	return reservation, nil
 }
 
 // 管理员查看学生信息
-func (al *AdminLogic) GetStudentInfoByAdmin(reservationId string, userId string, userType models.UserType) (*models.Student, error) {
+func (al *AdminLogic) GetStudentInfoByAdmin(reservationId string,
+	userId string, userType models.UserType) (*models.Student, []*models.Reservation, error) {
 	if len(userId) == 0 {
-		return nil, errors.New("请先登录")
+		return nil, nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
-		return nil, errors.New("权限不足")
+		return nil, nil, errors.New("权限不足")
 	} else if len(reservationId) == 0 {
-		return nil, errors.New("咨询已下架")
+		return nil, nil, errors.New("咨询已下架")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
-		return nil, errors.New("管理员账户出错,请联系技术支持")
+		return nil, nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	reservation, err := models.GetReservationById(reservationId)
 	if err != nil || reservation.Status == models.DELETED {
-		return nil, errors.New("咨询已下架")
+		return nil, nil, errors.New("咨询已下架")
 	} else if reservation.Status == models.AVAILABLE {
-		return nil, errors.New("咨询未被预约,无法查看")
+		return nil, nil, errors.New("咨询未被预约,无法查看")
 	}
-	student, err := models.GetStudentByUsername(reservation.StudentUsername)
+	student, err := models.GetStudentById(reservation.StudentId)
 	if err != nil {
-		return nil, errors.New("咨询已失效")
+		return nil, nil, errors.New("咨询已失效")
 	}
-	return student, nil
+	reservations, err := models.GetReservationsByStudentId(student.Id)
+	if err != nil {
+		return nil, nil, errors.New("获取数据失败")
+	}
+	return student, reservations, nil
 }
 
 // 管理员导出学生信息
-func (al *AdminLogic) ExportStudentByAdmin(studentUsername string, userId string, userType models.UserType) (string, error) {
+func (al *AdminLogic) ExportStudentByAdmin(studentId string, userId string, userType models.UserType) (string, error) {
 	if len(userId) == 0 {
 		return "", errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return "", errors.New("权限不足")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return "", errors.New("管理员账户出错,请联系技术支持")
 	}
-	student, err := models.GetStudentByUsername(studentUsername)
+	student, err := models.GetStudentById(studentId)
 	if err != nil {
 		return "", errors.New("学生未注册")
 	}
@@ -306,21 +353,21 @@ func (al *AdminLogic) ExportStudentByAdmin(studentUsername string, userId string
 }
 
 // 管理员解绑学生的匹配咨询师
-func (al *AdminLogic) UnbindStudentByAdmin(studentUsername string, userId string, userType models.UserType) (*models.Student, error) {
+func (al *AdminLogic) UnbindStudentByAdmin(studentId string, userId string, userType models.UserType) (*models.Student, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return nil, errors.New("权限不足")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
-	student, err := models.GetStudentByUsername(studentUsername)
+	student, err := models.GetStudentById(studentId)
 	if err != nil {
 		return nil, errors.New("学生未注册")
 	}
-	student.BindedTeacher = ""
+	student.BindedTeacherId = ""
 	if err = models.UpsertStudent(student); err != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -328,18 +375,18 @@ func (al *AdminLogic) UnbindStudentByAdmin(studentUsername string, userId string
 }
 
 // 管理员绑定学生的匹配咨询师
-func (al *AdminLogic) BindStudentByAdmin(studentUsername string, teacherUsername string,
+func (al *AdminLogic) BindStudentByAdmin(studentId string, teacherUsername string,
 	userId string, userType models.UserType) (*models.Student, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return nil, errors.New("权限不足")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
-	student, err := models.GetStudentByUsername(studentUsername)
+	student, err := models.GetStudentById(studentId)
 	if err != nil {
 		return nil, errors.New("学生未注册")
 	}
@@ -347,7 +394,7 @@ func (al *AdminLogic) BindStudentByAdmin(studentUsername string, teacherUsername
 	if err != nil {
 		return nil, errors.New("咨询师未注册")
 	}
-	student.BindedTeacher = teacher.Username
+	student.BindedTeacherId = teacher.Id
 	if err = models.UpsertStudent(student); err != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -355,23 +402,28 @@ func (al *AdminLogic) BindStudentByAdmin(studentUsername string, teacherUsername
 }
 
 // 管理员查询学生信息
-func (al *AdminLogic) QueryStudentInfoByAdmin(studentUsername string, userId string, userType models.UserType) (*models.Student, error) {
+func (al *AdminLogic) QueryStudentInfoByAdmin(studentUsername string,
+	userId string, userType models.UserType) (*models.Student, []*models.Reservation, error) {
 	if len(userId) == 0 {
-		return nil, errors.New("请先登录")
+		return nil, nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
-		return nil, errors.New("权限不足")
+		return nil, nil, errors.New("权限不足")
 	} else if len(studentUsername) == 0 {
-		return nil, errors.New("学号为空")
+		return nil, nil, errors.New("学号为空")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
-		return nil, errors.New("管理员账户出错,请联系技术支持")
+		return nil, nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := models.GetStudentByUsername(studentUsername)
 	if err != nil {
-		return nil, errors.New("学生未注册")
+		return nil, nil, errors.New("学生未注册")
 	}
-	return student, nil
+	reservations, err := models.GetReservationsByStudentId(student.Id)
+	if err != nil {
+		return nil, nil, errors.New("获取数据失败")
+	}
+	return student, reservations, nil
 }
 
 // 管理员导出一周时间表
@@ -381,7 +433,7 @@ func (al *AdminLogic) ExportReservationTimetable(fromTime string, userId string,
 	} else if userType != models.ADMIN {
 		return "", errors.New("权限不足")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return "", errors.New("管理员账户出错,请联系技术支持")
 	}
@@ -392,7 +444,7 @@ func (al *AdminLogic) ExportReservationTimetable(fromTime string, userId string,
 	to := from.AddDate(0, 0, 7)
 	reservations, err := models.GetReservatedReservationsBetweenTime(from, to)
 	if err != nil {
-		return "", errors.New("数据获取失败")
+		return "", errors.New("获取数据失败")
 	}
 	filename := "timetable_" + fromTime + utils.ExcelSuffix
 	if len(reservations) == 0 {
@@ -406,13 +458,14 @@ func (al *AdminLogic) ExportReservationTimetable(fromTime string, userId string,
 
 // 查找咨询师
 // 查找顺序:全名 > 工号 > 手机号
-func (al *AdminLogic) SearchTeacherByAdmin(teacherFullname string, teacherUsername string, teacherMobile string, userId string, userType models.UserType) (*models.Teacher, error) {
+func (al *AdminLogic) SearchTeacherByAdmin(teacherFullname string, teacherUsername string, teacherMobile string,
+	userId string, userType models.UserType) (*models.Teacher, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return nil, errors.New("权限不足")
 	}
-	admin, err := models.GetTeacherById(userId)
+	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
@@ -436,3 +489,9 @@ func (al *AdminLogic) SearchTeacherByAdmin(teacherFullname string, teacherUserna
 	}
 	return nil, errors.New("用户不存在")
 }
+
+// TODO 管理员统计咨询师工作量
+
+// TODO 管理员导出月报
+
+// TODO 管理员指定某次预约的学生

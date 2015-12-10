@@ -62,7 +62,7 @@ func (sl *StudentLogic) MakeReservationByStudent(reservationId string, fullname 
 	}
 	studentReservations, err := models.GetReservationsByStudentUsername(student.Username)
 	if err != nil {
-		return nil, errors.New("数据获取失败")
+		return nil, errors.New("获取数据失败")
 	}
 	for _, r := range studentReservations {
 		if r.Status == models.RESERVATED && r.StartTime.After(time.Now().In(utils.Location)) {
@@ -170,7 +170,7 @@ func (sl *StudentLogic) SubmitFeedbackByStudent(reservationId string, scores []s
 		Scores: scores,
 	}
 	if err = models.UpsertReservation(reservation); err != nil {
-		return nil, errors.New("数据获取失败")
+		return nil, errors.New("获取数据失败")
 	}
 	return reservation, nil
 }

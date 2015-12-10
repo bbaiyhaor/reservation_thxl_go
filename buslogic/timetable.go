@@ -1,15 +1,16 @@
 package buslogic
+
 import (
-	"time"
-	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"errors"
-"github.com/shudiwsh2009/reservation_thxl_go/utils"
+	"github.com/shudiwsh2009/reservation_thxl_go/models"
+	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"strings"
+	"time"
 )
 
 // 管理员添加时间表
-func (al *AdminLogic) AddTimedReservationByAdmin(weekday time.Weekday, startTime string, endTime string,
-	teacherUsername string,	teacherFullname string, teacherMobile string,
+func (al *AdminLogic) AddTimetableByAdmin(weekday time.Weekday, startTime string, endTime string,
+	teacherUsername string, teacherFullname string, teacherMobile string,
 	userId string, userType models.UserType) (*models.TimedReservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
@@ -64,7 +65,8 @@ func (al *AdminLogic) AddTimedReservationByAdmin(weekday time.Weekday, startTime
 	return timedReservation, nil
 }
 
-func (al *AdminLogic) EditTimedReservationByAdmin(timedReservationId string, weekday time.Weekday,
+// 管理员编辑时间表
+func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday time.Weekday,
 	startTime string, endTime string, teacherUsername string, teacherFullname string, teacherMobile string,
 	userId string, userType models.UserType) (*models.TimedReservation, error) {
 	if len(userId) == 0 {
@@ -129,7 +131,8 @@ func (al *AdminLogic) EditTimedReservationByAdmin(timedReservationId string, wee
 	return timedReservation, nil
 }
 
-func (al *AdminLogic) RemoveTimedReservationsByAdmin(timedReservationIds []string, userId string, userType models.UserType) (int, error) {
+// 管理员删除时间表
+func (al *AdminLogic) RemoveTimetablesByAdmin(timedReservationIds []string, userId string, userType models.UserType) (int, error) {
 	if len(userId) == 0 {
 		return 0, errors.New("请先登录")
 	} else if userType != models.ADMIN {

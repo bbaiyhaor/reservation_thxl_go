@@ -10,6 +10,8 @@ var (
 	Mongo *mgo.Database
 )
 
+// 为保证一致性，models中不用冗余存储，采用给字段构建索引的办法加快查询速度，以观后效
+
 /**
 Student
 */
@@ -17,11 +19,10 @@ Student
 func AddStudent(username string, password string) (*Student, error) {
 	collection := Mongo.C("student")
 	newStudent := &Student{
-		Id:             bson.NewObjectId(),
-		Username:       username,
-		Password:       password,
-		UserType:       STUDENT,
-		ReservationIds: make(map[string]bool),
+		Id:       bson.NewObjectId(),
+		Username: username,
+		Password: password,
+		UserType: STUDENT,
 	}
 	if err := collection.Insert(newStudent); err != nil {
 		return nil, err
@@ -60,14 +61,12 @@ Teacher
 func AddTeacher(username string, password string, fullname string, mobile string) (*Teacher, error) {
 	collection := Mongo.C("teacher")
 	newTeacher := &Teacher{
-		Id:                 bson.NewObjectId(),
-		Username:           username,
-		Password:           password,
-		Fullname:           fullname,
-		Mobile:             mobile,
-		UserType:           TEACHER,
-		ReservationIdMap:   make(map[string]bool),
-		BindedStudentIdMap: make(map[string]bool),
+		Id:       bson.NewObjectId(),
+		Username: username,
+		Password: password,
+		Fullname: fullname,
+		Mobile:   mobile,
+		UserType: TEACHER,
 	}
 	if err := collection.Insert(newTeacher); err != nil {
 		return nil, err
@@ -150,19 +149,28 @@ func GetAdminById(adminId string) (*Admin, error) {
 	return admin, nil
 }
 
+func GetAdminByUsername(username string) (*Admin, error) {
+	collection := Mongo.C("admin")
+	admin := &Admin{}
+	if err := collection.Find(bson.M{"username": username}).One(admin); err != nil {
+		return nil, err
+	}
+	return admin, nil
+}
+
 /**
 Reservation
 */
 
-func AddReservation(startTime time.Time, endTime time.Time,source ReservationSource, teacherId string) (*Reservation, error) {
+func AddReservation(startTime time.Time, endTime time.Time, source ReservationSource, teacherId string) (*Reservation, error) {
 	collection := Mongo.C("reservation")
 	newReservation := &Reservation{
 		Id:              bson.NewObjectId(),
 		StartTime:       startTime,
 		EndTime:         endTime,
 		Status:          AVAILABLE,
-		Source:source,
-		TeacherId: teacherId,
+		Source:          source,
+		TeacherId:       teacherId,
 		StudentFeedback: StudentFeedback{},
 		TeacherFeedback: TeacherFeedback{},
 	}
@@ -185,6 +193,16 @@ func GetReservationById(id string) (*Reservation, error) {
 		return nil, err
 	}
 	return reservation, nil
+}
+
+func GetReservationsByStudentId(studentId string) ([]*Reservation, error) {
+	collection := Mongo.C("reservation")
+	var reservations []*Reservation
+	if err := collection.Find(bson.M{"student_id": studentId,
+		"status": bson.M{"$ne": DELETED}}).Sort("start_time").All(&reservations); err != nil {
+		return nil, err
+	}
+	return reservations, nil
 }
 
 func GetReservationsBetweenTime(from time.Time, to time.Time) ([]*Reservation, error) {
@@ -219,17 +237,17 @@ func GetReservationsAfterTime(from time.Time) ([]*Reservation, error) {
 
 /**
 TimedReservation
- */
+*/
 
 func AddTimedReservation(weekday time.Weekday, startTime time.Time, endTime time.Time, teacherId string) (*TimedReservation, error) {
 	collection := Mongo.C("timetable")
 	timedReservation := &TimedReservation{
-		Id: bson.NewObjectId(),
-		Weekday:weekday,
-		StartTime:startTime,
-		EndTime:endTime,
-		Status:AVAILABLE,
-		TeacherId:teacherId,
+		Id:         bson.NewObjectId(),
+		Weekday:    weekday,
+		StartTime:  startTime,
+		EndTime:    endTime,
+		Status:     AVAILABLE,
+		TeacherId:  teacherId,
 		Exceptions: make(map[string]bool),
 	}
 	if err := collection.Insert(timedReservation); err != nil {

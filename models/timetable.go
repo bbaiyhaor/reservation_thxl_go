@@ -13,4 +13,5 @@ type TimedReservation struct {
 	Status     ReservationStatus `bson:"status"`
 	TeacherId  string            `bson:"teacher_id"`
 	Exceptions map[string]bool   `bson:"exception_map"` // exceptional dates
+	Timed      map[string]bool   `bson:"timed_map"`     // timed dates
 }

@@ -162,7 +162,8 @@ func GetAdminByUsername(username string) (*Admin, error) {
 Reservation
 */
 
-func AddReservation(startTime time.Time, endTime time.Time, source ReservationSource, teacherId string) (*Reservation, error) {
+func AddReservation(startTime time.Time, endTime time.Time, source ReservationSource, sourceId string,
+	teacherId string) (*Reservation, error) {
 	collection := Mongo.C("reservation")
 	newReservation := &Reservation{
 		Id:              bson.NewObjectId(),
@@ -170,6 +171,7 @@ func AddReservation(startTime time.Time, endTime time.Time, source ReservationSo
 		EndTime:         endTime,
 		Status:          AVAILABLE,
 		Source:          source,
+		SourceId:		sourceId,
 		TeacherId:       teacherId,
 		StudentFeedback: StudentFeedback{},
 		TeacherFeedback: TeacherFeedback{},

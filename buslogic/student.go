@@ -12,11 +12,12 @@ type StudentLogic struct {
 }
 
 // 学生预约咨询
-func (sl *StudentLogic) MakeReservationByStudent(reservationId string, fullname string, gender string, birthday string,
-	school string, grade string, currentAddress string, familyAddress string, mobile string, email string,
-	experienceTime string, experienceLocation string, experienceTeacher string, fatherAge string, fatherJob string,
-	fatherEdu string, motherAge string, motherJob string, motherEdu string, parentMarriage string, siginificant string,
-	problem string, userId string, userType models.UserType) (*models.Reservation, error) {
+func (sl *StudentLogic) MakeReservationByStudent(reservationId string, timedReservationsId string, startTime string,
+	fullname string, gender string, birthday string, school string, grade string, currentAddress string,
+	familyAddress string, mobile string, email string, experienceTime string, experienceLocation string,
+	experienceTeacher string, fatherAge string, fatherJob string, fatherEdu string, motherAge string, motherJob string,
+	motherEdu string, parentMarriage string, siginificant string, problem string,
+	userId string, userType models.UserType) (*models.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.STUDENT {

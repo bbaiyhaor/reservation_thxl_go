@@ -258,7 +258,7 @@ func AddTimedReservation(weekday time.Weekday, startTime time.Time, endTime time
 	return timedReservation, nil
 }
 
-func UpsertTimedReservation(timedReservation TimedReservation) error {
+func UpsertTimedReservation(timedReservation *TimedReservation) error {
 	collection := Mongo.C("timetable")
 	_, err := collection.UpsertId(timedReservation.Id, timedReservation)
 	return err

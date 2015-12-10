@@ -1,4 +1,4 @@
-package utils
+package excel
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"github.com/tealeg/xlsx"
 	"path/filepath"
 	"strconv"
+	"github.com/shudiwsh2009/reservation_thxx_go/utils"
 )
 
 const (
@@ -128,7 +129,7 @@ func ExportStudent(student *models.Student, filename string) error {
 	cell.SetString(student.Problem)
 
 	row = sheet.Rows[16]
-	bindedTeacher, err := models.GetTeacherByUsername(student.BindedTeacher)
+	bindedTeacher, err := models.GetTeacherById(student.BindedTeacherId)
 	if err != nil {
 		cell = row.AddCell()
 		cell.SetString("无")
@@ -144,8 +145,12 @@ func ExportStudent(student *models.Student, filename string) error {
 
 	//咨询小结
 	row = sheet.AddRow()
-	if reservations, err := models.GetReservationsByStudentUsername(student.Username); err == nil {
+	if reservations, err := models.GetReservationsByStudentId(student.Id.Hex()); err == nil {
 		for i, r := range reservations {
+			teacher, err := models.GetTeacherById(r.TeacherId)
+			if err != nil {
+				continue
+			}
 			row = sheet.AddRow()
 			cell = row.AddCell()
 			cell.SetString("咨询小结" + strconv.Itoa(i+1))
@@ -160,13 +165,13 @@ func ExportStudent(student *models.Student, filename string) error {
 			cell = row.AddCell()
 			cell.SetString("咨询师")
 			cell = row.AddCell()
-			cell.SetString(r.TeacherFullname)
+			cell.SetString(teacher.Fullname)
 
 			row = sheet.AddRow()
 			cell = row.AddCell()
 			cell.SetString("咨询日期")
 			cell = row.AddCell()
-			cell.SetString(r.StartTime.In(Location).Format(DATE_PATTERN))
+			cell.SetString(r.StartTime.In(utils.Location).Format(utils.DATE_PATTERN))
 
 			row = sheet.AddRow()
 			cell = row.AddCell()
@@ -204,13 +209,17 @@ func ExportReservationTimetable(reservations []*models.Reservation, filename str
 	var cell *xlsx.Cell
 
 	for _, r := range reservations {
+		teacher, err := models.GetTeacherById(r.TeacherId)
+		if err != nil {
+			return nil
+		}
 		row = sheet.AddRow()
 		cell = row.AddCell()
-		cell.SetString(r.StartTime.In(Location).Format(TIME_PATTERN))
+		cell.SetString(r.StartTime.In(utils.Location).Format(utils.TIME_PATTERN))
 		cell = row.AddCell()
-		cell.SetString(r.EndTime.In(Location).Format(TIME_PATTERN))
+		cell.SetString(r.EndTime.In(utils.Location).Format(utils.TIME_PATTERN))
 		cell = row.AddCell()
-		cell.SetString(r.TeacherFullname)
+		cell.SetString(teacher.Fullname)
 	}
 
 	err = xl.Save(filepath.FromSlash(ExportFolder + filename))

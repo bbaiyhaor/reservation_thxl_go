@@ -6,6 +6,7 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"strings"
 	"time"
+	"github.com/shudiwsh2009/reservation_thxl_go/sms"
 )
 
 type StudentLogic struct {
@@ -51,7 +52,7 @@ func (sl *StudentLogic) MakeReservationByStudent(reservationId string, sourceId 
 	} else if student.UserType != models.STUDENT {
 		return nil, errors.New("请重新登录")
 	}
-	studentReservations, err := models.GetReservationsByStudentId(student.Id)
+	studentReservations, err := models.GetReservationsByStudentId(student.Id.Hex())
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -60,7 +61,7 @@ func (sl *StudentLogic) MakeReservationByStudent(reservationId string, sourceId 
 			return nil, errors.New("你好！你已有一个咨询预约，请完成这次咨询后再预约下一次，或致电62782007取消已有预约。")
 		}
 	}
-	reservation := *models.Reservation{}
+	reservation := &models.Reservation{}
 	if len(sourceId) == 0 {
 		// Source为ADD，无SourceId：直接预约
 		reservation, err := models.GetReservationById(reservationId)
@@ -93,7 +94,7 @@ func (sl *StudentLogic) MakeReservationByStudent(reservationId string, sourceId 
 			return nil, errors.New("只能预约匹配咨询师")
 		}
 		end := utils.ConcatTime(start, timedReservation.EndTime)
-		reservation, err = models.AddReservation(start, end, models.TIMETABLE, timedReservation.Id, timedReservation.TeacherId)
+		reservation, err = models.AddReservation(start, end, models.TIMETABLE, timedReservation.Id.Hex(), timedReservation.TeacherId)
 		if err != nil {
 			return nil, errors.New("获取数据失败")
 		}
@@ -131,13 +132,13 @@ func (sl *StudentLogic) MakeReservationByStudent(reservationId string, sourceId 
 		return nil, errors.New("获取数据失败")
 	}
 	// 更新咨询信息
-	reservation.StudentId = student.Id
+	reservation.StudentId = student.Id.Hex()
 	reservation.Status = models.RESERVATED
 	if models.UpsertReservation(reservation) != nil {
 		return nil, errors.New("获取数据失败")
 	}
 	// send success sms
-	utils.SendSuccessSMS(reservation)
+	sms.SendSuccessSMS(reservation)
 	return reservation, nil
 }
 
@@ -166,7 +167,7 @@ func (sl *StudentLogic) GetFeedbackByStudent(reservationId string, sourceId stri
 		return nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == models.AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
-	} else if !strings.EqualFold(reservation.StudentId, student.Id) {
+	} else if !strings.EqualFold(reservation.StudentId, student.Id.Hex()) {
 		return nil, errors.New("只能反馈本人预约的咨询")
 	}
 	return reservation, nil
@@ -199,7 +200,7 @@ func (sl *StudentLogic) SubmitFeedbackByStudent(reservationId string, sourceId s
 		return nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == models.AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
-	} else if !strings.EqualFold(reservation.StudentId, student.Id) {
+	} else if !strings.EqualFold(reservation.StudentId, student.Id.Hex()) {
 		return nil, errors.New("只能反馈本人预约的咨询")
 	}
 	reservation.StudentFeedback = models.StudentFeedback{

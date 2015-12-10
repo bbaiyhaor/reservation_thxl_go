@@ -54,11 +54,11 @@ func (al *AdminLogic) AddTimetableByAdmin(weekday time.Weekday, startTime string
 	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
-		if err = models.UpsertTeacher(teacherFullname); err != nil {
+		if err = models.UpsertTeacher(teacher); err != nil {
 			return nil, errors.New("获取数据失败")
 		}
 	}
-	timedReservation, err := models.AddTimedReservation(weekday, start, end, teacher.Id)
+	timedReservation, err := models.AddTimedReservation(weekday, start, end, teacher.Id.Hex())
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -117,14 +117,14 @@ func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday ti
 	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
-		if err = models.UpsertTeacher(teacherFullname); err != nil {
+		if err = models.UpsertTeacher(teacher); err != nil {
 			return nil, errors.New("获取数据失败")
 		}
 	}
 	timedReservation.Weekday = weekday
 	timedReservation.StartTime = start
 	timedReservation.EndTime = end
-	timedReservation.TeacherId = teacher.Id
+	timedReservation.TeacherId = teacher.Id.Hex()
 	if err = models.UpsertTimedReservation(timedReservation); err != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -140,7 +140,7 @@ func (al *AdminLogic) RemoveTimetablesByAdmin(timedReservationIds []string, user
 	}
 	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
-		return nil, errors.New("管理员账户出错，请联系技术支持")
+		return 0, errors.New("管理员账户出错，请联系技术支持")
 	}
 	removed := 0
 	for _, id := range timedReservationIds {

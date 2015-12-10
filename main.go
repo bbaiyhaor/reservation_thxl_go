@@ -17,11 +17,11 @@ import (
 
 var needUserPath = regexp.MustCompile("^(/reservation/(student|teacher|admin)$|/(user/logout|(student|teacher|admin)/))")
 var redirectStudentPath = regexp.MustCompile("^(/reservation/student$|/student/)")
-var redirectTeacherPath = regexp.MustCompile("^(/reservation/(teacher|admin)$|/(teacher|admin)/)")
+var redirectTeacherPath = regexp.MustCompile("^(/reservation/teacher$|/teacher/)")
+var redirectAdminPath = regexp.MustCompile("^(/reservation/admin|/admin/)")
 
 func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, models.UserType) interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// check url to see whether there is "/teacher/" or "/admin/" or "/logout"
 		if !needUserPath.MatchString(r.URL.Path) {
 			if result := fn(w, r, "", 0); result != nil {
 				if data, err := json.Marshal(result); err == nil {
@@ -36,6 +36,8 @@ func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, models
 			redirectUrl = "/reservation/student/login"
 		} else if redirectTeacherPath.MatchString(r.URL.Path) {
 			redirectUrl = "/reservation/teacher/login"
+		} else if redirectAdminPath.MatchString(r.URL.Path) {
+			redirectUrl = "/reservation/admin/login"
 		}
 		var userId string
 		var userType models.UserType
@@ -97,13 +99,15 @@ func main() {
 	pageRouter.HandleFunc("/student/login", handleWithCookie(controllers.StudentLoginPage))
 	pageRouter.HandleFunc("/student/register", handleWithCookie(controllers.StudentRegisterPage))
 	pageRouter.HandleFunc("/teacher", handleWithCookie(controllers.TeacherPage))
-	pageRouter.HandleFunc("/admin", handleWithCookie(controllers.AdminPage))
 	pageRouter.HandleFunc("/teacher/login", handleWithCookie(controllers.TeacherLoginPage))
+	pageRouter.HandleFunc("/admin", handleWithCookie(controllers.AdminPage))
+	pageRouter.HandleFunc("/admin/login", handleWithCookie(controllers.AdminLoginPage))
 	// 加载动态处理器
 	userRouter := router.PathPrefix("/user").Subrouter()
 	userRouter.HandleFunc("/student/login", handleWithCookie(controllers.StudentLogin)).Methods("POST")
 	userRouter.HandleFunc("/student/register", handleWithCookie(controllers.StudentRegister)).Methods("POST")
 	userRouter.HandleFunc("/teacher/login", handleWithCookie(controllers.TeacherLogin)).Methods("POST")
+	userRouter.HandleFunc("/admin/login", handleWithCookie(controllers.AdminLogin)).Methods("POST")
 	userRouter.HandleFunc("/logout", handleWithCookie(controllers.Logout)).Methods("GET")
 	studentRouter := router.PathPrefix("/student").Subrouter()
 	studentRouter.HandleFunc("/reservation/view", handleWithCookie(controllers.ViewReservationsByStudent)).Methods("GET")

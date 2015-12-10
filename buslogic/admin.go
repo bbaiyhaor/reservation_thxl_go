@@ -6,6 +6,8 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"strings"
 	"time"
+	"github.com/shudiwsh2009/reservation_thxl_go/sms"
+	"github.com/shudiwsh2009/reservation_thxl_go/excel"
 )
 
 type AdminLogic struct {
@@ -60,7 +62,7 @@ func (al *AdminLogic) AddReservationByAdmin(startTime string, endTime string, te
 			return nil, errors.New("获取数据失败")
 		}
 	}
-	reservation, err := models.AddReservation(start, end, models.ADMIN_ADD, "", teacher.Id)
+	reservation, err := models.AddReservation(start, end, models.ADMIN_ADD, "", teacher.Id.String())
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -131,7 +133,7 @@ func (al *AdminLogic) EditReservationByAdmin(reservationId string, sourceId stri
 	}
 	reservation.StartTime = start
 	reservation.EndTime = end
-	reservation.TeacherId = teacher.Id
+	reservation.TeacherId = teacher.Id.Hex()
 	if err = models.UpsertReservation(reservation); err != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -212,7 +214,7 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 					reservation.Status = models.DELETED
 					if timedReservation, err := models.GetTimedReservationById(sourceIds[index]); err == nil {
 						date := reservation.StartTime.Format(utils.DATE_PATTERN)
-						delete(timedReservation, date)
+						delete(timedReservation.Timed, date)
 						if models.UpsertReservation(reservation) == nil && models.UpsertTimedReservation(timedReservation) == nil {
 							removed++
 						}
@@ -295,7 +297,7 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId strin
 		return nil, errors.New("获取数据失败")
 	}
 	if sendFeedbackSMS && participants[0] > 0 {
-		utils.SendFeedbackSMS(reservation)
+		sms.SendFeedbackSMS(reservation)
 	}
 	return reservation, nil
 }
@@ -326,7 +328,7 @@ func (al *AdminLogic) GetStudentInfoByAdmin(reservationId string, sourceId strin
 	if err != nil {
 		return nil, nil, errors.New("咨询已失效")
 	}
-	reservations, err := models.GetReservationsByStudentId(student.Id)
+	reservations, err := models.GetReservationsByStudentId(student.Id.Hex())
 	if err != nil {
 		return nil, nil, errors.New("获取数据失败")
 	}
@@ -348,11 +350,11 @@ func (al *AdminLogic) ExportStudentByAdmin(studentId string, userId string, user
 	if err != nil {
 		return "", errors.New("学生未注册")
 	}
-	filename := "student_" + student.Username + "_" + utils.GetNow().Format(utils.DATE_PATTERN) + utils.ExcelSuffix
-	if err = utils.ExportStudent(student, filename); err != nil {
+	filename := "student_" + student.Username + "_" + utils.GetNow().Format(utils.DATE_PATTERN) + excel.ExcelSuffix
+	if err = excel.ExportStudent(student, filename); err != nil {
 		return "", err
 	}
-	return "/" + utils.ExportFolder + filename, nil
+	return "/" + excel.ExportFolder + filename, nil
 }
 
 // 管理员解绑学生的匹配咨询师
@@ -397,7 +399,7 @@ func (al *AdminLogic) BindStudentByAdmin(studentId string, teacherUsername strin
 	if err != nil {
 		return nil, errors.New("咨询师未注册")
 	}
-	student.BindedTeacherId = teacher.Id
+	student.BindedTeacherId = teacher.Id.Hex()
 	if err = models.UpsertStudent(student); err != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -422,7 +424,7 @@ func (al *AdminLogic) QueryStudentInfoByAdmin(studentUsername string,
 	if err != nil {
 		return nil, nil, errors.New("学生未注册")
 	}
-	reservations, err := models.GetReservationsByStudentId(student.Id)
+	reservations, err := models.GetReservationsByStudentId(student.Id.Hex())
 	if err != nil {
 		return nil, nil, errors.New("获取数据失败")
 	}
@@ -449,14 +451,14 @@ func (al *AdminLogic) ExportReservationTimetable(fromTime string, userId string,
 	if err != nil {
 		return "", errors.New("获取数据失败")
 	}
-	filename := "timetable_" + fromTime + utils.ExcelSuffix
+	filename := "timetable_" + fromTime + excel.ExcelSuffix
 	if len(reservations) == 0 {
 		return "", nil
 	}
-	if err = utils.ExportReservationTimetable(reservations, filename); err != nil {
+	if err = excel.ExportReservationTimetable(reservations, filename); err != nil {
 		return "", err
 	}
-	return "/" + utils.ExportFolder + filename, nil
+	return "/" + excel.ExportFolder + filename, nil
 }
 
 // 查找咨询师

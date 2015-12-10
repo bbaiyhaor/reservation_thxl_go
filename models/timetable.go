@@ -4,6 +4,7 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"gopkg.in/mgo.v2/bson"
 	"time"
+	"fmt"
 )
 
 type TimedReservation struct {
@@ -24,7 +25,7 @@ func (tr TimedReservation) ToReservation(date time.Time) *Reservation {
 		EndTime:         utils.ConcatTime(date, tr.EndTime),
 		Status:          AVAILABLE,
 		Source:          TIMETABLE,
-		SourceId:        tr.Id,
+		SourceId:        fmt.Sprintf("%x", string(tr.Id)),
 		TeacherId:       tr.TeacherId,
 		StudentId:       "",
 		StudentFeedback: StudentFeedback{},

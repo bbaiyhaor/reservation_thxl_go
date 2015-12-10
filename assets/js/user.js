@@ -75,6 +75,26 @@ function teacherLogin() {
 	});
 }
 
+function adminLogin() {
+	$.ajax({
+		type: "POST",
+		async: false,
+		url: "/user/admin/login",
+		data: {
+			username: $("#username").val(),
+			password: $("#password").val(),
+		},
+		dataType: "json",
+		success: function(data) {
+			if (data.state === "SUCCESS") {
+				window.location.href = data.url;
+			} else {
+				alert(data.message);
+			}
+		}
+	});
+}
+
 function logout() {
 	$.ajax({
 		type: "GET",

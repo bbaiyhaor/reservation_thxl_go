@@ -75,6 +75,15 @@ func TeacherPage(w http.ResponseWriter, r *http.Request, userId string, userType
 	return nil
 }
 
+func AdminLoginPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	t := template.Must(template.ParseFiles("templates/admin_login.html"))
+	err := t.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func AdminPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	if userType == models.STUDENT {
 		http.Redirect(w, r, "/reservation/student", http.StatusFound)

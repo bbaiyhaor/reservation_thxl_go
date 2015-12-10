@@ -22,7 +22,7 @@ func StudentRegister(w http.ResponseWriter, r *http.Request, userId string, user
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:    "user_id",
-		Value:   fmt.Sprintf("%x", string(student.Id)),
+		Value:   student.Id.Hex(),
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
@@ -36,7 +36,7 @@ func StudentRegister(w http.ResponseWriter, r *http.Request, userId string, user
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:    "user_type",
-		Value:   fmt.Sprintf("%d", student.UserType),
+		Value:   student.UserType.IntStr(),
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
@@ -60,7 +60,7 @@ func StudentLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:    "user_id",
-		Value:   fmt.Sprintf("%x", string(student.Id)),
+		Value:   student.Id.Hex(),
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
@@ -74,7 +74,7 @@ func StudentLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:    "user_type",
-		Value:   fmt.Sprintf("%d", student.UserType),
+		Value:   student.UserType.IntStr(),
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
@@ -98,7 +98,7 @@ func TeacherLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:    "user_id",
-		Value:   fmt.Sprintf("%x", string(teacher.Id)),
+		Value:   teacher.Id.Hex(),
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
@@ -112,16 +112,57 @@ func TeacherLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:    "user_type",
-		Value:   fmt.Sprintf("%d", teacher.UserType),
+		Value:   teacher.UserType.IntStr(),
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
 	})
 	switch teacher.UserType {
-	case models.ADMIN:
-		result["url"] = "/reservation/admin"
 	case models.TEACHER:
 		result["url"] = "/reservation/teacher"
+	default:
+		result["url"] = "/reservation/entry"
+	}
+
+	return result
+}
+
+func AdminLogin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	username := r.PostFormValue("username")
+	password := r.PostFormValue("password")
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var ul = buslogic.UserLogic{}
+
+	admin, err := ul.AdminLogin(username, password)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:    "user_id",
+		Value:   admin.Id.Hex(),
+		Path:    "/",
+		Expires: time.Now().Local().AddDate(1, 0, 0),
+		MaxAge:  365 * 24 * 60 * 60,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:    "username",
+		Value:   admin.Username,
+		Path:    "/",
+		Expires: time.Now().Local().AddDate(1, 0, 0),
+		MaxAge:  365 * 24 * 60 * 60,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:    "user_type",
+		Value:   admin.UserType.IntStr(),
+		Path:    "/",
+		Expires: time.Now().Local().AddDate(1, 0, 0),
+		MaxAge:  365 * 24 * 60 * 60,
+	})
+	switch admin.UserType {
+	case models.ADMIN:
+		result["url"] = "/reservation/admin"
 	default:
 		result["url"] = "/reservation/entry"
 	}

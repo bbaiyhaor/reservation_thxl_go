@@ -5,7 +5,7 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"strings"
-	"time"
+	"github.com/shudiwsh2009/reservation_thxl_go/sms"
 )
 
 type TeacherLogic struct {
@@ -36,7 +36,7 @@ func (tl *TeacherLogic) GetFeedbackByTeacher(reservationId string, sourceId stri
 		return nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == models.AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
-	} else if !strings.EqualFold(reservation.TeacherId, teacher.Id) {
+	} else if !strings.EqualFold(reservation.TeacherId, teacher.Id.Hex()) {
 		return nil, errors.New("只能反馈本人开设的咨询")
 	}
 	return reservation, nil
@@ -76,11 +76,11 @@ func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId s
 		return nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == models.AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
-	} else if !strings.EqualFold(reservation.TeacherId, teacher.Id) {
+	} else if !strings.EqualFold(reservation.TeacherId, teacher.Id.Hex()) {
 		return nil, errors.New("只能反馈本人开设的咨询")
 	}
 	if reservation.TeacherFeedback.IsEmpty() && reservation.StudentFeedback.IsEmpty() {
-		utils.SendFeedbackSMS(reservation)
+		sms.SendFeedbackSMS(reservation)
 	}
 	sendFeedbackSMS := reservation.TeacherFeedback.IsEmpty() && reservation.StudentFeedback.IsEmpty()
 	reservation.TeacherFeedback = models.TeacherFeedback{
@@ -93,7 +93,7 @@ func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId s
 		return nil, errors.New("获取数据失败")
 	}
 	if sendFeedbackSMS && participants[0] > 0 {
-		utils.SendFeedbackSMS(reservation)
+		sms.SendFeedbackSMS(reservation)
 	}
 	return reservation, nil
 }
@@ -121,17 +121,17 @@ func (tl *TeacherLogic) GetStudentInfoByTeacher(reservationId string, sourceId s
 		return nil, nil, errors.New("咨询已下架")
 	} else if reservation.Status == models.AVAILABLE {
 		return nil, nil, errors.New("咨询未被预约,无法查看")
-	} else if !strings.EqualFold(reservation.TeacherId, teacher.Id) {
+	} else if !strings.EqualFold(reservation.TeacherId, teacher.Id.Hex()) {
 		return nil, nil, errors.New("只能查看本人开设的咨询")
 	}
 	student, err := models.GetStudentById(reservation.StudentId)
 	if err != nil {
 		return nil, nil, errors.New("咨询已失效")
 	}
-	if !strings.EqualFold(student.BindedTeacherId, teacher.Id) {
+	if !strings.EqualFold(student.BindedTeacherId, teacher.Id.Hex()) {
 		return nil, nil, errors.New("只能查看本人绑定的学生")
 	}
-	reservations, err := models.GetReservationsByStudentId(student.Id)
+	reservations, err := models.GetReservationsByStudentId(student.Id.Hex())
 	if err != nil {
 		return nil, nil, errors.New("获取数据失败")
 	}
@@ -158,10 +158,10 @@ func (tl *TeacherLogic) QueryStudentInfoByTeacher(studentUsername string,
 	if err != nil {
 		return nil, nil, errors.New("学生未注册")
 	}
-	if !strings.EqualFold(student.BindedTeacherId, teacher.Id) {
+	if !strings.EqualFold(student.BindedTeacherId, teacher.Id.Hex()) {
 		return nil, nil, errors.New("只能查看本人绑定的学生")
 	}
-	reservations, err := models.GetReservationsByStudentId(student.Id)
+	reservations, err := models.GetReservationsByStudentId(student.Id.Hex())
 	if err != nil {
 		return nil, nil, errors.New("获取数据失败")
 	}

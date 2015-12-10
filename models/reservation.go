@@ -3,7 +3,6 @@ package models
 import (
 	"gopkg.in/mgo.v2/bson"
 	"time"
-	"github.com/shudiwsh2009/reservation_thxx_go/utils"
 	"strings"
 )
 
@@ -91,6 +90,6 @@ func (rs ReservationSlice) Less(i, j int) bool {
 	if rs[i].StartTime.Before(rs[j].StartTime) {
 		return true
 	} else {
-		return strings.Compare(rs[i].TeacherId, rs[j].TeacherId)
+		return strings.Compare(rs[i].TeacherId, rs[j].TeacherId) < 0
 	}
 }

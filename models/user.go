@@ -2,6 +2,7 @@ package models
 
 import (
 	"gopkg.in/mgo.v2/bson"
+	"fmt"
 )
 
 type UserType int
@@ -22,6 +23,10 @@ var userTypes = [...]string{
 
 func (ut UserType) String() string {
 	return userTypes[ut]
+}
+
+func (ut UserType) IntStr() string {
+	return fmt.Sprintf("%d", ut)
 }
 
 type Experience struct {

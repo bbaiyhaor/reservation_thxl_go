@@ -35,7 +35,7 @@ func (rl *ReservationLogic) GetReservationsByStudent(userId string, userType mod
 	for _, r := range reservations {
 		if r.Status == models.AVAILABLE && r.StartTime.Before(utils.GetNow()) {
 			continue
-		} else if strings.EqualFold(r.StudentId, student.Id) {
+		} else if strings.EqualFold(r.StudentId, student.Id.Hex()) {
 			if !r.TeacherFeedback.IsEmpty() && r.TeacherFeedback.Participants[0] == 0 {
 				// 学生未参与的咨询不展示给学生（家长、老师或者辅导员参加）
 				continue
@@ -56,7 +56,7 @@ func (rl *ReservationLogic) GetReservationsByStudent(userId string, userType mod
 		if len(student.BindedTeacherId) != 0 && !strings.EqualFold(student.BindedTeacherId, tr.TeacherId) {
 			continue
 		}
-		minusWeekday := tr.Weekday - today.Weekday()
+		minusWeekday := int(tr.Weekday - today.Weekday())
 		if minusWeekday < 0 {
 			minusWeekday = 7 - minusWeekday
 		}
@@ -64,11 +64,11 @@ func (rl *ReservationLogic) GetReservationsByStudent(userId string, userType mod
 		if utils.ConcatTime(date, tr.StartTime).Before(utils.GetNow()) {
 			date = today.AddDate(0, 0, 7)
 		}
-		if !tr.Exceptions[date] && !tr.Timed[date] {
+		if !tr.Exceptions[date.Format(utils.DATE_PATTERN)] && !tr.Timed[date.Format(utils.DATE_PATTERN)] {
 			result = append(result, tr.ToReservation(date))
 		}
 	}
-	sort.Sort(result)
+	sort.Sort(models.ReservationSlice(result))
 	return result, nil
 }
 
@@ -94,7 +94,7 @@ func (rl *ReservationLogic) GetReservationsByTeacher(userId string, userType mod
 	for _, r := range reservations {
 		if r.Status == models.AVAILABLE && r.StartTime.Before(utils.GetNow()) {
 			continue
-		} else if strings.EqualFold(r.TeacherId, teacher.Id) {
+		} else if strings.EqualFold(r.TeacherId, teacher.Id.Hex()) {
 			result = append(result, r)
 		}
 	}
@@ -130,7 +130,7 @@ func (rl *ReservationLogic) GetReservationsByAdmin(userId string, userType model
 	}
 	today := utils.GetToday()
 	for _, tr := range timedReservations {
-		minusWeekday := tr.Weekday - today.Weekday()
+		minusWeekday := int(tr.Weekday - today.Weekday())
 		if minusWeekday < 0 {
 			minusWeekday = 7 - minusWeekday
 		}
@@ -138,19 +138,19 @@ func (rl *ReservationLogic) GetReservationsByAdmin(userId string, userType model
 		if utils.ConcatTime(date, tr.StartTime).Before(utils.GetNow()) {
 			date = today.AddDate(0, 0, 7)
 		}
-		if tr.Exceptions[date] || tr.Timed[date] {
+		if tr.Exceptions[date.Format(utils.DATE_PATTERN)] || tr.Timed[date.Format(utils.DATE_PATTERN)] {
 			result = append(result, tr.ToReservation(date))
 		}
 		for i := 1; i <= 3; i++ {
 			// 改变i的上阈值可以改变预设咨询的查看范围
 			date = date.AddDate(0, 0, 7)
-			if tr.Exceptions[date] || tr.Timed[date] {
+			if tr.Exceptions[date.Format(utils.DATE_PATTERN)] || tr.Timed[date.Format(utils.DATE_PATTERN)] {
 				result = append(result, tr.ToReservation(date))
 			}
 			result = append(result, tr.ToReservation(date.AddDate(0, 0, 7)))
 		}
 	}
-	sort.Sort(result)
+	sort.Sort(models.ReservationSlice(result))
 	return result, nil
 }
 

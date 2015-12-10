@@ -171,7 +171,7 @@ func AddReservation(startTime time.Time, endTime time.Time, source ReservationSo
 		EndTime:         endTime,
 		Status:          AVAILABLE,
 		Source:          source,
-		SourceId:		sourceId,
+		SourceId:        sourceId,
 		TeacherId:       teacherId,
 		StudentFeedback: StudentFeedback{},
 		TeacherFeedback: TeacherFeedback{},
@@ -273,11 +273,30 @@ func GetTimedReservationById(timedReservtionId string) (*TimedReservation, error
 	return timedReservation, nil
 }
 
+func GetTimedReservationsAll() ([]*TimedReservation, error) {
+	collection := Mongo.C("timetable")
+	var timedReservations []*TimedReservation
+	if err := collection.Find(bson.M{"status": bson.M{"$ne": DELETED}}).All(&timedReservations); err != nil {
+		return nil, err
+	}
+	return timedReservations, nil
+}
+
 func GetTimedReservationsByWeekday(weekday time.Weekday) ([]*TimedReservation, error) {
 	collection := Mongo.C("timetable")
 	var timedReservations []*TimedReservation
 	if err := collection.Find(bson.M{"weekday": weekday,
 		"status": bson.M{"$ne": DELETED}}).Sort("start_time").All(&timedReservations); err != nil {
+		return nil, err
+	}
+	return timedReservations, nil
+}
+
+func GetTimedReservationsByTeacherId(teacherId string) ([]*TimedReservation, error) {
+	collection := Mongo.C("timetable")
+	var timedReservations []*TimedReservation
+	if err := collection.Find(bson.M{"teacher_id": teacherId,
+		"status": bson.M{"$ne": DELETED}}).All(&timedReservations); err != nil {
 		return nil, err
 	}
 	return timedReservations, nil

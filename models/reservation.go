@@ -3,6 +3,8 @@ package models
 import (
 	"gopkg.in/mgo.v2/bson"
 	"time"
+	"github.com/shudiwsh2009/reservation_thxx_go/utils"
+	"strings"
 )
 
 type ReservationStatus int
@@ -59,7 +61,7 @@ type TeacherFeedback struct {
 }
 
 func (tf TeacherFeedback) IsEmpty() bool {
-	return len(tf.Problem) == 0 || len(tf.Record) == 0
+	return len(tf.Category) == 0 || tf.Participants == nil || len(tf.Problem) == 0 || len(tf.Record) == 0
 }
 
 type Reservation struct {
@@ -73,4 +75,22 @@ type Reservation struct {
 	StudentId       string            `bson:"student_id"` // indexed
 	StudentFeedback StudentFeedback   `bson:"student_feedback"`
 	TeacherFeedback TeacherFeedback   `bson:"teacher_feedback"`
+}
+
+type ReservationSlice []*Reservation
+
+func (rs ReservationSlice) Len() int {
+	return len(rs)
+}
+
+func (rs ReservationSlice) Swap(i, j int) {
+	rs[i], rs[j] = rs[j], rs[i]
+}
+
+func (rs ReservationSlice) Less(i, j int) bool {
+	if rs[i].StartTime.Before(rs[j].StartTime) {
+		return true
+	} else {
+		return strings.Compare(rs[i].TeacherId, rs[j].TeacherId)
+	}
 }

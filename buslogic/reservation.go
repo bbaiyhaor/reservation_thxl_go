@@ -58,7 +58,7 @@ func (rl *ReservationLogic) GetReservationsByStudent(userId string, userType mod
 		}
 		minusWeekday := int(tr.Weekday - today.Weekday())
 		if minusWeekday < 0 {
-			minusWeekday = 7 - minusWeekday
+			minusWeekday += 7
 		}
 		date := today.AddDate(0, 0, minusWeekday)
 		if utils.ConcatTime(date, tr.StartTime).Before(utils.GetNow()) {
@@ -132,22 +132,21 @@ func (rl *ReservationLogic) GetReservationsByAdmin(userId string, userType model
 	for _, tr := range timedReservations {
 		minusWeekday := int(tr.Weekday - today.Weekday())
 		if minusWeekday < 0 {
-			minusWeekday = 7 - minusWeekday
+			minusWeekday += 7
 		}
 		date := today.AddDate(0, 0, minusWeekday)
 		if utils.ConcatTime(date, tr.StartTime).Before(utils.GetNow()) {
 			date = today.AddDate(0, 0, 7)
 		}
-		if tr.Exceptions[date.Format(utils.DATE_PATTERN)] || tr.Timed[date.Format(utils.DATE_PATTERN)] {
+		if !tr.Exceptions[date.Format(utils.DATE_PATTERN)] && !tr.Timed[date.Format(utils.DATE_PATTERN)] {
 			result = append(result, tr.ToReservation(date))
 		}
 		for i := 1; i <= 3; i++ {
 			// 改变i的上阈值可以改变预设咨询的查看范围
 			date = date.AddDate(0, 0, 7)
-			if tr.Exceptions[date.Format(utils.DATE_PATTERN)] || tr.Timed[date.Format(utils.DATE_PATTERN)] {
+			if !tr.Exceptions[date.Format(utils.DATE_PATTERN)] && !tr.Timed[date.Format(utils.DATE_PATTERN)] {
 				result = append(result, tr.ToReservation(date))
 			}
-			result = append(result, tr.ToReservation(date.AddDate(0, 0, 7)))
 		}
 	}
 	sort.Sort(models.ReservationSlice(result))

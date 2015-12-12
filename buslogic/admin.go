@@ -62,7 +62,7 @@ func (al *AdminLogic) AddReservationByAdmin(startTime string, endTime string, te
 			return nil, errors.New("获取数据失败")
 		}
 	}
-	reservation, err := models.AddReservation(start, end, models.ADMIN_ADD, "", teacher.Id.String())
+	reservation, err := models.AddReservation(start, end, models.ADMIN_ADD, "", teacher.Id.Hex())
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"gopkg.in/mgo.v2/bson"
 	"time"
@@ -25,7 +24,7 @@ func (tr TimedReservation) ToReservation(date time.Time) *Reservation {
 		EndTime:         utils.ConcatTime(date, tr.EndTime),
 		Status:          AVAILABLE,
 		Source:          TIMETABLE,
-		SourceId:        fmt.Sprintf("%x", string(tr.Id)),
+		SourceId:        tr.Id.Hex(),
 		TeacherId:       tr.TeacherId,
 		StudentId:       "",
 		StudentFeedback: StudentFeedback{},

@@ -211,39 +211,39 @@ function optimize(t) {
 
 function addReservation() {
 	$("#cell_time_add")[0].onclick = "";
-	$("#cell_time_add")[0].innerHTML = "<input type='text' id='input_date' style='width: 80px'/>日，"
-		+ "<input style='width:20px' id='start_hour'/>时<input style='width:20px' id='start_minute'/>分"
-		+ "至<input style='width:20px' id='end_hour'/>时<input style='width:20px' id='end_minute'/>分";
-	$("#cell_teacher_fullname_add")[0].innerHTML = "<input id='teacher_fullname' style='width:60px'/>"
+	$("#cell_time_add")[0].innerHTML = "<input type='text' id='input_date_add' style='width: 80px'/>日，"
+		+ "<input style='width:20px' id='start_hour_add'/>时<input style='width:20px' id='start_minute_add'/>分"
+		+ "至<input style='width:20px' id='end_hour_add'/>时<input style='width:20px' id='end_minute_add'/>分";
+	$("#cell_teacher_fullname_add")[0].innerHTML = "<input id='teacher_fullname_add' style='width:60px'/>"
 		+ "<button type='button' onclick='searchTeacher();'>搜索</button>";
-	$("#cell_teacher_username_add")[0].innerHTML = "<input id='teacher_username' style='width:120px'/>";
-	$("#cell_teacher_mobile_add")[0].innerHTML = "<input id='teacher_mobile' style='width:120px'/>";
+	$("#cell_teacher_username_add")[0].innerHTML = "<input id='teacher_username_add' style='width:120px'/>";
+	$("#cell_teacher_mobile_add")[0].innerHTML = "<input id='teacher_mobile_add' style='width:120px'/>";
 	$("#cell_status_add")[0].innerHTML = "<button type='button' onclick='addReservationConfirm();'>确认</button>";
 	$("#cell_student_add")[0].innerHTML = "<button type='button' onclick='window.location.reload();'>取消</button>";
-	$("#input_date").DatePicker({
+	$("#input_date_add").DatePicker({
 		format: "YY-m-dd",
-		date: $("#input_date").val(),
-		current: $("#input_date").val(),
+		date: $("#input_date_add").val(),
+		current: $("#input_date_add").val(),
 		starts: 1,
 		position: "r",
 		onBeforeShow: function() {
-			$("#input_date").DatePickerSetDate($("#input_date").val(), true);
+			$("#input_date_add").DatePickerSetDate($("#input_date_add").val(), true);
 		},
 		onChange: function(formated, dates) {
-			$("#input_date").val(formated);
-			$("#input_date").val($("#input_date").val().substr(4, 10));
-			$("#input_date").DatePickerHide();
+			$("#input_date_add").val(formated);
+			$("#input_date_add").val($("#input_date_add").val().substr(4, 10));
+			$("#input_date_add").DatePickerHide();
 		},
 	});
 	optimize();
 }
 
 function addReservationConfirm() {
-	var startHour = $("#start_hour").val();
-	var startMinute = $("#start_minute").val();
-	var endHour = $("#end_hour").val();
-	var endMinute = $("#end_minute").val();
-	var startTime = $("#input_date").val() + " " + (startHour.length < 2 ? "0" : "") + startHour + ":";
+	var startHour = $("#start_hour_add").val();
+	var startMinute = $("#start_minute_add").val();
+	var endHour = $("#end_hour_add").val();
+	var endMinute = $("#end_minute_add").val();
+	var startTime = $("#input_date_add").val() + " " + (startHour.length < 2 ? "0" : "") + startHour + ":";
 	if (startMinute.length == 0) {
 		startTime += "00";
 	} else if (startMinute.length == 1) {
@@ -251,7 +251,7 @@ function addReservationConfirm() {
 	} else {
 		startTime += startMinute;
 	}
-	var endTime = $("#input_date").val() + " " + (endHour.length < 2 ? "0" : "") + endHour + ":";
+	var endTime = $("#input_date_add").val() + " " + (endHour.length < 2 ? "0" : "") + endHour + ":";
 	if (endMinute.length == 0) {
 		endTime += "00";
 	} else if (endMinute.length == 1) {
@@ -262,9 +262,9 @@ function addReservationConfirm() {
 	var payload = {
 		start_time: startTime,
 		end_time: endTime,
-		teacher_username: $("#teacher_username").val(),
-		teacher_fullname: $("#teacher_fullname").val(),
-		teacher_mobile: $("#teacher_mobile").val(),
+		teacher_username: $("#teacher_username_add").val(),
+		teacher_fullname: $("#teacher_fullname_add").val(),
+		teacher_mobile: $("#teacher_mobile_add").val(),
 	};
 	console.log(payload);
 	$.ajax({
@@ -285,42 +285,42 @@ function addReservationConfirm() {
 
 function editReservation(index) {
 	$("#cell_time_" + index)[0].onclick = "";
-	$("#cell_time_" + index)[0].innerHTML = "<input type='text' id='input_date' style='width: 80px'/>日，"
-		+ "<input style='width:20px' id='start_hour'/>时<input style='width:20px' id='start_minute'/>分"
-		+ "至<input style='width:20px' id='end_hour'/>时<input style='width:20px' id='end_minute'/>分";
-	$("#cell_teacher_fullname_" + index)[0].innerHTML = "<input id='teacher_fullname" + index + "' style='width:60px' "
+	$("#cell_time_" + index)[0].innerHTML = "<input type='text' id='input_date_" + index + "' style='width: 80px'/>日，"
+		+ "<input style='width:20px' id='start_hour_" + index + "'/>时<input style='width:20px' id='start_minute_" + index + "'/>分"
+		+ "至<input style='width:20px' id='end_hour_" + index + "'/>时<input style='width:20px' id='end_minute_" + index + "'/>分";
+	$("#cell_teacher_fullname_" + index)[0].innerHTML = "<input id='teacher_fullname_" + index + "' style='width:60px' "
 		+ "value='" + reservations[index].teacher_fullname + "''></input>"
 		+ "<button type='button' onclick='searchTeacher();'>搜索</button>";
-	$("#cell_teacher_username_" + index)[0].innerHTML = "<input id='teacher_username" + index + "' style='width:120px' "
+	$("#cell_teacher_username_" + index)[0].innerHTML = "<input id='teacher_username_" + index + "' style='width:120px' "
 		+ "value='" + reservations[index].teacher_username + "'/>";
-	$("#cell_teacher_mobile_" + index)[0].innerHTML = "<input id='teacher_mobile" + index + "' style='width:120px' "
+	$("#cell_teacher_mobile_" + index)[0].innerHTML = "<input id='teacher_mobile_" + index + "' style='width:120px' "
 		+ "value='" + reservations[index].teacher_mobile + "'/>";
 	$("#cell_status_" + index)[0].innerHTML = "<button type='button' onclick='editReservationConfirm(" + index + ");'>确认</button>";
 	$("#cell_student_" + index)[0].innerHTML = "<button type='button' onclick='window.location.reload();'>取消</button>";
-	$("#input_date").DatePicker({
+	$("#input_date_" + index).DatePicker({
 		format: "YY-m-dd",
-		date: $("#input_date").val(),
-		current: $("#input_date").val(),
+		date: $("#input_date_" + index).val(),
+		current: $("#input_date_" + index).val(),
 		starts: 1,
 		position: "r",
 		onBeforeShow: function() {
-			$("#input_date").DatePickerSetDate($("#input_date").val(), true);
+			$("#input_date_" + index).DatePickerSetDate($("#input_date_" + index).val(), true);
 		},
 		onChange: function(formated, dates) {
-			$("#input_date").val(formated);
-			$("#input_date").val($("#input_date").val().substr(4, 10));
-			$("#input_date").DatePickerHide();
+			$("#input_date_" + index).val(formated);
+			$("#input_date_" + index).val($("#input_date_" + index).val().substr(4, 10));
+			$("#input_date_" + index).DatePickerHide();
 		},
 	});
 	optimize();
 }
 
 function editReservationConfirm(index) {
-	var startHour = $("#start_hour").val();
-	var startMinute = $("#start_minute").val();
-	var endHour = $("#end_hour").val();
-	var endMinute = $("#end_minute").val();
-	var startTime = $("#input_date").val() + " " + (startHour.length < 2 ? "0" : "") + startHour + ":";
+	var startHour = $("#start_hour_" + index).val();
+	var startMinute = $("#start_minute_" + index).val();
+	var endHour = $("#end_hour_" + index).val();
+	var endMinute = $("#end_minute_" + index).val();
+	var startTime = $("#input_date_" + index).val() + " " + (startHour.length < 2 ? "0" : "") + startHour + ":";
 	if (startMinute.length == 0) {
 		startTime += "00";
 	} else if (startMinute.length == 1) {
@@ -328,7 +328,7 @@ function editReservationConfirm(index) {
 	} else {
 		startTime += startMinute;
 	}
-	var endTime = $("#input_date").val() + " " + (endHour.length < 2 ? "0" : "") + endHour + ":";
+	var endTime = $("#input_date_" + index).val() + " " + (endHour.length < 2 ? "0" : "") + endHour + ":";
 	if (endMinute.length == 0) {
 		endTime += "00";
 	} else if (endMinute.length == 1) {
@@ -340,9 +340,9 @@ function editReservationConfirm(index) {
 		reservation_id: reservations[index].reservation_id,
 		start_time: startTime,
 		end_time: endTime,
-		teacher_username: $("#teacher_username" + index).val(),
-		teacher_fullname: $("#teacher_fullname" + index).val(),
-		teacher_mobile: $("#teacher_mobile" + index).val(),
+		teacher_username: $("#teacher_username_" + index).val(),
+		teacher_fullname: $("#teacher_fullname_" + index).val(),
+		teacher_mobile: $("#teacher_mobile_" + index).val(),
 	};
 	console.log(payload);
 	$.ajax({
@@ -363,9 +363,9 @@ function editReservationConfirm(index) {
 
 function searchTeacher(index) {
 	var payload = {
-		teacher_username: $("#teacher_username" + (index === undefined ? "" : index)).val(),
-		teacher_fullname: $("#teacher_fullname" + (index === undefined ? "" : index)).val(),
-		teacher_mobile: $("#teacher_mobile" + (index === undefined ? "" : index)).val(),
+		teacher_username: $("#teacher_username_" + (index === undefined ? "add" : index)).val(),
+		teacher_fullname: $("#teacher_fullname_" + (index === undefined ? "add" : index)).val(),
+		teacher_mobile: $("#teacher_mobile_" + (index === undefined ? "add" : index)).val(),
 	};
 	$.ajax({
 		type: "POST",
@@ -375,9 +375,9 @@ function searchTeacher(index) {
 		dataType: "json",
 		success: function(data) {
 			if (data.state === "SUCCESS") {
-				$("#teacher_username" + (index === undefined ? "" : index)).val(data.teacher.teacher_username);
-				$("#teacher_fullname" + (index === undefined ? "" : index)).val(data.teacher.teacher_fullname);
-				$("#teacher_mobile" + (index === undefined ? "" : index)).val(data.teacher.teacher_mobile);
+				$("#teacher_username_" + (index === undefined ? "add" : index)).val(data.teacher.teacher_username);
+				$("#teacher_fullname_" + (index === undefined ? "add" : index)).val(data.teacher.teacher_fullname);
+				$("#teacher_mobile_" + (index === undefined ? "add" : index)).val(data.teacher.teacher_mobile);
 			}
 		}
 	});
@@ -397,13 +397,19 @@ function removeReservations() {
 
 function removeReservationsConfirm() {
 	var reservationIds = [];
+	var sourceIds = [];
+	var startTimes = [];
 	for (var i = 0; i < reservations.length; ++i) {
 		if ($("#cell_checkbox_" + i)[0].checked) {
 			reservationIds.push(reservations[i].reservation_id);
+			sourceIds.push(reservations[i].source_id);
+			startTimes.push(reservations[i].start_time)
 		}
 	}
 	var payload = {
 		reservation_ids: reservationIds,
+		source_ids: sourceIds,
+		start_times: startTimes,
 	};
 	$.ajax({
 		type: "POST",

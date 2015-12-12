@@ -235,6 +235,8 @@ func GetFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, u
 		ErrorHandler(w, r, err)
 		return nil
 	}
+	feedback["category"] = reservation.TeacherFeedback.Category
+	feedback["participants"] = reservation.TeacherFeedback.Participants
 	feedback["problem"] = reservation.TeacherFeedback.Problem
 	feedback["record"] = reservation.TeacherFeedback.Record
 	result["feedback"] = feedback
@@ -247,7 +249,7 @@ func SubmitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	sourceId := r.PostFormValue("source_id")
 	category := r.PostFormValue("category")
 	r.ParseForm()
-	participants := []string(r.Form["reservation_ids"])
+	participants := []string(r.Form["participants"])
 	problem := r.PostFormValue("problem")
 	record := r.PostFormValue("record")
 

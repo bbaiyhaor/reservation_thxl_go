@@ -1,6 +1,8 @@
 var width = $(window).width();
 var height = $(window).height();
 var reservations;
+var firstCategory;
+var secondCategory;
 
 function viewReservations() {
 	$.ajax({
@@ -476,6 +478,7 @@ function cancelReservationsConfirm() {
 function getFeedback(index) {
 	var payload = {
 		reservation_id: reservations[index].reservation_id,
+		source_id: reservations[index].source_id,
 	};
 	$.ajax({
 		type: "POST",
@@ -495,26 +498,97 @@ function getFeedback(index) {
 
 function showFeedback(index, feedback) {
 	$("body").append("\
-		<div class='fankui_tch' id='feedback_table_" + index + "' style='text-align:left; top:100px; height:300px; width:400px; left:100px'>\
+		<div class='fankui_tch' id='feedback_table_" + index + "' style='font-size:11px;text-align:left;top:100px;height:400;width:400px;left:100px'>\
 			咨询师反馈表<br>\
+			评估分类：<br>\
+			<select id='category_first_" + index + "' onchange='showSecondCategory(" + index + ")'><option value=''>请选择</option></select><br>\
+			<select id='category_second_" + index + "'></select><br>\
+			出席人员：<br>\
+			<input id='participant_student_" + index + "' type='checkbox'>学生</input><input id='participant_parents_" + index + "' type='checkbox'>家长</input>\
+			<input id='participant_teacher_" + index + "' type='checkbox'>教师</input><input id='participant_instructor_" + index + "' type='checkbox'>辅导员</input><br>\
 			问题评估：<br>\
-			<textarea id='problem' style='width:350px;height:80px'></textarea><br>\
+			<textarea id='problem_" + index + "' style='width:180px;height:80px'></textarea><br>\
 			咨询记录：<br>\
-			<textarea id='record' style='width:350px;height:80px'></textarea><br>\
+			<textarea id='record_" + index + "' style='width:180px;height:80px'></textarea><br>\
 			<button type='button' onclick='submitFeedback(" + index + ");'>提交</button>\
 			<button type='button' onclick='$(\".fankui_tch\").remove();'>取消</button>\
 		</div>\
 	");
-	$("#problem").val(feedback.problem);
-	$("#record").val(feedback.record);
+	getFeedbackCategories();
+	showFirstCategory(index);
+	if (feedback.category.length > 0) {
+		$("#category_first_" + index).val(feedback.category.charAt(0));
+		showSecondCategory(index);
+		$("#category_second_" + index).val(feedback.category);
+	}
+	if (feedback.participants.length > 0) {
+		$("#participant_student_" + index)[0].checked = feedback.participants[0] > 0;
+		$("#participant_parents_" + index)[0].checked = feedback.participants[1] > 0;
+		$("#participant_teacher_" + index)[0].checked = feedback.participants[2] > 0;
+		$("#participant_instructor_" + index)[0].checked = feedback.participants[3] > 0;
+	}
+	$("#problem_" + index).val(feedback.problem);
+	$("#record_" + index).val(feedback.record);
 	optimize(".fankui_tch");
 }
 
+function getFeedbackCategories() {
+	$.ajax({
+		type: "GET",
+		async: false,
+		url: "/category/feedback",
+		dateType: "json",
+		success: function(data) {
+			if (data.state === "SUCCESS") {
+				firstCategory = data.first_category;
+				secondCategory = data.second_category;
+			}
+		}
+	});
+}
+
+function showFirstCategory(index) {
+	for (var name in firstCategory) {
+		if (firstCategory.hasOwnProperty(name)) {
+			$("#category_first_" + index).append($('<option>', {
+				value: name,
+				text: firstCategory[name],
+			}));
+		}
+	}
+}
+
+function showSecondCategory(index) {
+	var first = $("#category_first_" + index).val();
+	$("#category_second_" + index).find('option').remove().end().append("<option value=''>请选择</option>").val("");
+	if ($("#category_first_" + index).selectedIndex === 0) {
+		return;
+	}
+	if (secondCategory.hasOwnProperty(first)) {
+		for (var name in secondCategory[first]) {
+			if (secondCategory[first].hasOwnProperty(name)) {
+				var option = new Option(name, secondCategory[first][name]);
+				$("#category_second_" + index).append($('<option>', {
+					value: name,
+					text: secondCategory[first][name],
+				}));
+			}
+		}
+	}
+}
+
 function submitFeedback(index) {
+	var participants = [];
+	participants.push($("#participant_student_" + index)[0].checked ? 1 : 0);
+	participants.push($("#participant_parents_" + index)[0].checked ? 1 : 0);
+	participants.push($("#participant_teacher_" + index)[0].checked ? 1 : 0);
+	participants.push($("#participant_instructor_" + index)[0].checked ? 1 : 0);
 	var payload = {
 		reservation_id: reservations[index].reservation_id,
-		problem: $("#problem").val(),
-		record: $("#record").val(),
+		category: $("#category_second_" + index).val(),
+		participants: participants,
+		problem: $("#problem_" + index).val(),
+		record: $("#record_" + index).val(),
 	};
 	$.ajax({
 		type: "POST",
@@ -522,6 +596,7 @@ function submitFeedback(index) {
 		url: "/admin/reservation/feedback/submit",
 		data: payload,
 		dataType: "json",
+		traditional: true,
 		success: function(data) {
 			if (data.state === "SUCCESS") {
 				successFeedback();

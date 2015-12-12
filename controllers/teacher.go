@@ -32,9 +32,11 @@ func ViewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId st
 	var array = make([]interface{}, 0)
 	for _, res := range reservations {
 		resJson := make(map[string]interface{})
-		resJson["reservation_id"] = res.Id
+		resJson["reservation_id"] = res.Id.Hex()
 		resJson["start_time"] = res.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
 		resJson["end_time"] = res.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		resJson["source"] = res.Source
+		resJson["source_id"] = res.SourceId
 		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
 			resJson["teacher_fullname"] = teacher.Fullname
 			resJson["teacher_mobile"] = teacher.Mobile
@@ -66,8 +68,10 @@ func GetFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string,
 		ErrorHandler(w, r, err)
 		return nil
 	}
+	feedback["category"] = reservation.TeacherFeedback.Category
+	feedback["participants"] = reservation.TeacherFeedback.Participants
 	feedback["problem"] = reservation.TeacherFeedback.Problem
-	feedback["solution"] = reservation.TeacherFeedback.Record
+	feedback["record"] = reservation.TeacherFeedback.Record
 	result["feedback"] = feedback
 
 	return result
@@ -78,7 +82,7 @@ func SubmitFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 	sourceId := r.PostFormValue("source_id")
 	category := r.PostFormValue("category")
 	r.ParseForm()
-	participants := []string(r.Form["reservation_ids"])
+	participants := []string(r.Form["participants"])
 	problem := r.PostFormValue("problem")
 	record := r.PostFormValue("record")
 

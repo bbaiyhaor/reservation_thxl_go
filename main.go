@@ -27,6 +27,8 @@ func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, models
 				if data, err := json.Marshal(result); err == nil {
 					w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 					w.Write(data)
+				} else {
+					fmt.Errorf("%v", err)
 				}
 			}
 			return
@@ -67,7 +69,7 @@ func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, models
 				w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 				w.Write(data)
 			} else {
-				fmt.Println(err)
+				fmt.Errorf("%v", err)
 			}
 		}
 	}
@@ -151,6 +153,8 @@ func main() {
 	adminRouter.HandleFunc("/student/bind", handleWithCookie(controllers.BindStudentByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/student/query", handleWithCookie(controllers.QueryStudentInfoByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/teacher/search", handleWithCookie(controllers.SearchTeacherByAdmin)).Methods("POST")
+	categoryRouter := router.PathPrefix("/category").Subrouter()
+	categoryRouter.HandleFunc("/feedback", handleWithCookie(controllers.GetFeedbackCategories)).Methods("GET")
 	// http加载处理器
 	http.Handle("/", router)
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets/"))))

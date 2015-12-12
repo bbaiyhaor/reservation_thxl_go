@@ -174,7 +174,7 @@ func (sl *StudentLogic) GetFeedbackByStudent(reservationId string, sourceId stri
 }
 
 // 学生反馈
-func (sl *StudentLogic) SubmitFeedbackByStudent(reservationId string, sourceId string, scores []string,
+func (sl *StudentLogic) SubmitFeedbackByStudent(reservationId string, sourceId string, scores []int,
 	userId string, userType models.UserType) (*models.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
@@ -182,8 +182,8 @@ func (sl *StudentLogic) SubmitFeedbackByStudent(reservationId string, sourceId s
 		return nil, errors.New("请重新登录")
 	} else if len(reservationId) == 0 {
 		return nil, errors.New("咨询已下架")
-	} else if len(scores) == 0 {
-		return nil, errors.New("反馈为空")
+	} else if len(scores) != 5 {
+		return nil, errors.New("请完整填写反馈")
 	} else if strings.EqualFold(reservationId, sourceId) {
 		return nil, errors.New("咨询未被预约，不能反馈")
 	}

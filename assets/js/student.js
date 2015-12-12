@@ -141,6 +141,8 @@ function makeReservationData(index) {
 function makeReservationConfirm(index) {
 	var payload = {
 		reservation_id: reservations[index].reservation_id,
+		source_id: reservations[index].source_id,
+		start_time: reservations[index].start_time,
 		student_fullname: $("#student_fullname").val(),
 		student_gender: $("#student_gender").val(),
 		student_birthday: $("#student_birthday").val(),
@@ -197,6 +199,7 @@ function makeReservationSuccess(index) {
 function getFeedback(index) {
 	var payload = {
 		reservation_id: reservations[index].reservation_id,
+		source_id: reservations[index].source_id,
 	};
 	$.ajax({
 		type: "POST",
@@ -271,6 +274,7 @@ function submitFeedback(index) {
 	}
 	var payload = {
 		reservation_id: reservations[index].reservation_id,
+		source_id: reservations[index].source_id,
 		scores: scores,
 	};
 	console.log(payload);

@@ -45,7 +45,7 @@ func (rs ReservationSource) String() string {
 }
 
 type StudentFeedback struct {
-	Scores []string `bson:"scores"`
+	Scores []int `bson:"scores"`
 }
 
 func (sf StudentFeedback) IsEmpty() bool {
@@ -87,9 +87,8 @@ func (rs ReservationSlice) Swap(i, j int) {
 }
 
 func (rs ReservationSlice) Less(i, j int) bool {
-	if rs[i].StartTime.Before(rs[j].StartTime) {
-		return true
-	} else {
+	if rs[i].StartTime.Equal(rs[j].StartTime) {
 		return strings.Compare(rs[i].TeacherId, rs[j].TeacherId) < 0
 	}
+	return rs[i].StartTime.Before(rs[j].StartTime)
 }

@@ -184,7 +184,7 @@ func ExportStudent(student *models.Student, filename string) error {
 			cell.SetString("来访者反馈")
 			for _, s := range r.StudentFeedback.Scores {
 				cell = row.AddCell()
-				cell.SetString(s)
+				cell.SetInt(s)
 			}
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -50,9 +51,11 @@ func ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId st
 	var array = make([]interface{}, 0)
 	for _, res := range reservations {
 		resJson := make(map[string]interface{})
-		resJson["reservation_id"] = res.Id
+		resJson["reservation_id"] = res.Id.Hex()
 		resJson["start_time"] = res.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
 		resJson["end_time"] = res.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		resJson["source"] = res.Source.String()
+		resJson["source_id"] = res.SourceId
 		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
 			resJson["teacher_fullname"] = teacher.Fullname
 		}
@@ -147,7 +150,13 @@ func SubmitFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId stri
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var sl = buslogic.StudentLogic{}
 
-	_, err := sl.SubmitFeedbackByStudent(reservationId, sourceId, scores, userId, userType)
+	scoresInt := []int{}
+	for _, p := range scores {
+		if pi, err := strconv.Atoi(p); err == nil {
+			scoresInt = append(scoresInt, pi)
+		}
+	}
+	_, err := sl.SubmitFeedbackByStudent(reservationId, sourceId, scoresInt, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil

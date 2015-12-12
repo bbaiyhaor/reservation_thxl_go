@@ -442,13 +442,19 @@ function cancelReservations() {
 
 function cancelReservationsConfirm() {
 	var reservationIds = [];
+	var sourceIds = [];
+	var startTimes = [];
 	for (var i = 0; i < reservations.length; ++i) {
 		if ($("#cell_checkbox_" + i)[0].checked) {
 			reservationIds.push(reservations[i].reservation_id);
+			sourceIds.push(reservations[i].source_id);
+			startTimes.push(reservations[i].start_time)
 		}
 	}
 	var payload = {
 		reservation_ids: reservationIds,
+		source_ids: sourceIds,
+		start_times: startTimes,
 	};
 	$.ajax({
 		type: "POST",

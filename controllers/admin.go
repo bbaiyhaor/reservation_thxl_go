@@ -271,6 +271,39 @@ func SubmitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	return result
 }
 
+func SetStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	reservationId := r.PostFormValue("reservation_id")
+	sourceId := r.PostFormValue("source_id")
+	startTime := r.PostFormValue("start_time")
+	studentUsername := r.PostFormValue("student_username")
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var al = buslogic.AdminLogic{}
+	var ul = buslogic.UserLogic{}
+
+	var reservationJson = make(map[string]interface{})
+	reservation, err := al.SetStudentByAdmin(reservationId, sourceId, startTime, studentUsername, userId, userType)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
+	reservationJson["reservation_id"] = reservation.Id
+	reservationJson["start_time"] = reservation.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
+	reservationJson["end_time"] = reservation.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
+	reservationJson["source"] = reservation.Source.String()
+	reservationJson["source_id"] = reservation.SourceId
+	reservationJson["student_id"] = reservation.StudentId
+	reservationJson["teacher_id"] = reservation.TeacherId
+	if teacher, err := ul.GetTeacherById(reservation.TeacherId); err == nil {
+		reservationJson["teacher_username"] = teacher.Username
+		reservationJson["teacher_fullname"] = teacher.Fullname
+		reservationJson["teacher_mobile"] = teacher.Mobile
+	}
+	result["reservation"] = reservationJson
+
+	return result
+}
+
 func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	studentId := r.PostFormValue("student_id")
 

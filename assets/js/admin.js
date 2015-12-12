@@ -126,7 +126,7 @@ function refreshDataTable(reservations) {
 		if (reservations[i].status === "AVAILABLE") {
 			$("#col_status").append("<div class='table_cell' id='cell_status_" + i + "'>未预约</div>");
 			$("#col_student").append("<div class='table_cell' id='cell_student_" + i + "'>" 
-				+ "<button type='button' id='cell_student_view_" + i + "' disabled='true'>查看"
+				+ "<button type='button' id='cell_student_view_" + i + "' onclick='setStudent(" + i + ")'>指定"
 				+ "</button></div>");
 		} else if (reservations[i].status === "RESERVATED") {
 			$("#col_status").append("<div class='table_cell' id='cell_status_" + i + "'>已预约</div>");
@@ -613,6 +613,52 @@ function successFeedback() {
 		<div class='fankui_tch_success'>\
 			您已成功提交反馈！<br>\
 			<button type='button' onclick='$(\".fankui_tch_success\").remove();'>确定</button>\
+		</div>\
+	");
+	optimize(".fankui_tch_success");
+}
+
+function setStudent(index) {
+	$("body").append("\
+		<div class='admin_chakan'>\
+			请输入您要制定的学生学号（必须为已注册学生）：<br>\
+			<input id='student_username_" + index + "'/><br>\
+			<button type='button' onclick='setStudentConfirm(" + index + ");'>确认</button>\
+			<button type='button' style='margin-left:20px' onclick='$(\".admin_chakan\").remove();'>取消</button>\
+		</div>\
+	");
+	optimize(".admin_chakan");
+}
+
+function setStudentConfirm(index) {
+	var payload = {
+		reservation_id: reservations[index].reservation_id,
+		source_id: reservations[index].source_id,
+		start_time: reservations[index].start_time,
+		student_username: $("#student_username_" + index).val(),
+	}
+	$.ajax({
+		type: "POST",
+		async: false,
+		url: "/admin/reservation/student/set",
+		data: payload,
+		dataType: "json",
+		success: function(data) {
+			if (data.state == "SUCCESS") {
+				successSetStudent();
+			} else {
+				alert(data.message);
+			}
+		}
+	});
+}
+
+function successSetStudent() {
+	$(".admin_chakan").remove();
+	$("body").append("\
+		<div class='fankui_tch_success'>\
+			成功指定学生！<br>\
+			<button type='button' onclick='$(\".fankui_tch_success\").remove();window.location.reload();'>确定</button>\
 		</div>\
 	");
 	optimize(".fankui_tch_success");

@@ -302,6 +302,80 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId strin
 	return reservation, nil
 }
 
+// 管理员指定学生
+func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, startTime string, studentUsername string,
+	userId string, userType models.UserType) (*models.Reservation, error) {
+	if len(userId) == 0 {
+		return nil, errors.New("请先登录")
+	} else if userType != models.ADMIN {
+		return nil, errors.New("权限不足")
+	} else if len(reservationId) == 0 {
+		return nil, errors.New("咨询已下架")
+	} else if len(studentUsername) == 0 {
+		return nil, errors.New("学生学号为空")
+	}
+	admin, err := models.GetAdminById(userId)
+	if err != nil || admin.UserType != models.ADMIN {
+		return nil, errors.New("管理员账户出错,请联系技术支持")
+	}
+	student, err := models.GetStudentByUsername(studentUsername)
+	if err != nil {
+		return nil, errors.New("学生未注册")
+	}
+	reservation := &models.Reservation{}
+	if len(sourceId) == 0 {
+		// Source为ADD，无SourceId：直接指定
+		reservation, err := models.GetReservationById(reservationId)
+		if err != nil || reservation.Status == models.DELETED {
+			return nil, errors.New("咨询已下架")
+		} else if reservation.StartTime.Before(utils.GetNow()) {
+			return nil, errors.New("咨询已过期")
+		} else if reservation.Status != models.AVAILABLE {
+			return nil, errors.New("咨询已被预约")
+		}
+	} else if strings.EqualFold(reservationId, sourceId) {
+		// Source为TIMETABLE且未被预约
+		timedReservation, err := models.GetTimedReservationById(sourceId)
+		if err != nil || timedReservation.Status == models.DELETED {
+			return nil, errors.New("咨询已下架")
+		}
+		start, err := time.ParseInLocation(utils.TIME_PATTERN, startTime, utils.Location)
+		if err != nil {
+			return nil, errors.New("开始时间格式错误")
+		} else if start.Before(utils.GetNow()) {
+			return nil, errors.New("咨询已过期")
+		} else if !strings.EqualFold(start.Format(utils.CLOCK_PATTERN),
+			timedReservation.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN)) {
+			return nil, errors.New("开始时间不匹配")
+		} else if timedReservation.Timed[start.Format(utils.DATE_PATTERN)] {
+			return nil, errors.New("咨询已被预约")
+		}
+		end := utils.ConcatTime(start, timedReservation.EndTime)
+		reservation, err = models.AddReservation(start, end, models.TIMETABLE, timedReservation.Id.Hex(),
+			timedReservation.TeacherId)
+		if err != nil {
+			return nil, errors.New("获取数据失败")
+		}
+		timedReservation.Timed[start.Format(utils.DATE_PATTERN)] = true
+		if models.UpsertTimedReservation(timedReservation) != nil {
+			return nil, errors.New("获取数据失败")
+		}
+	} else {
+		return nil, errors.New("咨询已被预约")
+	}
+	student.BindedTeacherId = reservation.TeacherId
+	if models.UpsertStudent(student) != nil {
+		return nil, errors.New("获取数据失败")
+	}
+	// 更新咨询信息
+	reservation.StudentId = student.Id.Hex()
+	reservation.Status = models.RESERVATED
+	if models.UpsertReservation(reservation) != nil {
+		return nil, errors.New("获取数据失败")
+	}
+	return reservation, nil
+}
+
 // 管理员查看学生信息
 func (al *AdminLogic) GetStudentInfoByAdmin(studentId string,
 	userId string, userType models.UserType) (*models.Student, []*models.Reservation, error) {

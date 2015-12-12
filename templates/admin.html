@@ -18,10 +18,10 @@
 		<div id="page_title">
 			学生心理发展指导中心预约系统<br>管理员系统
 		</div>
-		<button onclick="addReservation();">新增</button>
-		<button onclick="removeReservations();">删除</button>
+		<button onclick="removeReservations();">批量删除</button>
 		<button onclick="cancelReservations();">取消预约</button>
-		<button onclick="logout();" style="margin-left:50px">退出登录</button>
+		<button onclick="location.href='/reservation/admin/timetable'" style="margin-left: 50px">编辑预设咨询</button>
+		<button onclick="logout();">退出登录</button>
 		<div style="padding-top:10px">
 			<input type="text" id="query_date" style="width:80px"/>
 			<button onclick="queryReservations();">查询</button>

@@ -468,6 +468,7 @@ func SearchTeacherByAdmin(w http.ResponseWriter, r *http.Request, userId string,
 		ErrorHandler(w, r, err)
 		return nil
 	}
+	teacherJson["teacher_id"] = teacher.Id.Hex()
 	teacherJson["teacher_username"] = teacher.Username
 	teacherJson["teacher_fullname"] = teacher.Fullname
 	teacherJson["teacher_mobile"] = teacher.Mobile

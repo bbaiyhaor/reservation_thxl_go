@@ -66,6 +66,8 @@ func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, models
 			if data, err := json.Marshal(result); err == nil {
 				w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 				w.Write(data)
+			} else {
+				fmt.Println(err)
 			}
 		}
 	}
@@ -88,6 +90,15 @@ func main() {
 	}
 
 	// TODO: Remove the following test codes
+	//	time1, _ := time.ParseInLocation(utils.CLOCK_PATTERN, "13:00", utils.Location)
+	//	time2, _ := time.ParseInLocation(utils.CLOCK_PATTERN, "14:00", utils.Location)
+	//	time3, _ := time.ParseInLocation(utils.CLOCK_PATTERN, "15:00", utils.Location)
+	//	time4, _ := time.ParseInLocation(utils.CLOCK_PATTERN, "16:00", utils.Location)
+	//	teacher, _ := models.AddTeacher("11", "11", "wang", "15101186680")
+	//	models.AddTimedReservation(time.Tuesday, time2, time3, teacher.Id.Hex())
+	//	models.AddTimedReservation(time.Tuesday, time1, time2, teacher.Id.Hex())
+	//	models.AddTimedReservation(time.Monday, time3, time4, teacher.Id.Hex())
+	//	models.AddTimedReservation(time.Monday, time1, time3, teacher.Id.Hex())
 
 	// mux
 	router := mux.NewRouter()
@@ -102,6 +113,7 @@ func main() {
 	pageRouter.HandleFunc("/teacher/login", handleWithCookie(controllers.TeacherLoginPage))
 	pageRouter.HandleFunc("/admin", handleWithCookie(controllers.AdminPage))
 	pageRouter.HandleFunc("/admin/login", handleWithCookie(controllers.AdminLoginPage))
+	pageRouter.HandleFunc("/admin/timetable", handleWithCookie(controllers.AdminTimetablePage))
 	// 加载动态处理器
 	userRouter := router.PathPrefix("/user").Subrouter()
 	userRouter.HandleFunc("/student/login", handleWithCookie(controllers.StudentLogin)).Methods("POST")
@@ -122,6 +134,10 @@ func main() {
 	adminRouter := router.PathPrefix("/admin").Subrouter()
 	adminRouter.HandleFunc("/reservation/view", handleWithCookie(controllers.ViewReservationsByAdmin)).Methods("GET")
 	adminRouter.HandleFunc("/reservation/view/monthly", handleWithCookie(controllers.ViewMonthlyReservationsByAdmin)).Methods("GET")
+	adminRouter.HandleFunc("/timetable/view", handleWithCookie(controllers.ViewTimedReservationsByAdmin)).Methods("GET")
+	adminRouter.HandleFunc("/timetable/add", handleWithCookie(controllers.AddTimedReservationByAdmin)).Methods("POST")
+	adminRouter.HandleFunc("/timetable/edit", handleWithCookie(controllers.EditTimedReservationByAdmin)).Methods("POST")
+	adminRouter.HandleFunc("/timetable/remove", handleWithCookie(controllers.RemoveTimedReservationsByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/reservation/export", handleWithCookie(controllers.ExportReservationsByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/reservation/add", handleWithCookie(controllers.AddReservationByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/reservation/edit", handleWithCookie(controllers.EditReservationByAdmin)).Methods("POST")

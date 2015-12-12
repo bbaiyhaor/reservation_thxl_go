@@ -32,3 +32,20 @@ func (tr TimedReservation) ToReservation(date time.Time) *Reservation {
 		TeacherFeedback: TeacherFeedback{},
 	}
 }
+
+type TimedReservationSlice []*TimedReservation
+
+func (ts TimedReservationSlice) Len() int {
+	return len(ts)
+}
+
+func (ts TimedReservationSlice) Swap(i, j int) {
+	ts[i], ts[j] = ts[j], ts[i]
+}
+
+func (ts TimedReservationSlice) Less(i, j int) bool {
+	if ts[i].Weekday != ts[j].Weekday {
+		return ts[i].Weekday < ts[j].Weekday
+	}
+	return ts[i].StartTime.Before(ts[j].StartTime)
+}

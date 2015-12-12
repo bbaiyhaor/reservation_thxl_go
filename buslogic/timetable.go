@@ -8,8 +8,28 @@ import (
 	"time"
 )
 
+// 管理员查看时间表
+func (al *AdminLogic) ViewTimetableByAdmin(userId string, userType models.UserType) (map[time.Weekday][]*models.TimedReservation, error) {
+	if len(userId) == 0 {
+		return nil, errors.New("请先登录")
+	} else if userType != models.ADMIN {
+		return nil, errors.New("权限不足")
+	}
+	admin, err := models.GetAdminById(userId)
+	if err != nil || admin.UserType != models.ADMIN {
+		return nil, errors.New("管理员账户出错，请联系技术支持")
+	}
+	timedReservations := make(map[time.Weekday][]*models.TimedReservation)
+	for i := time.Sunday; i <= time.Saturday; i++ {
+		if trs, err := models.GetTimedReservationsByWeekday(i); err == nil {
+			timedReservations[i] = trs
+		}
+	}
+	return timedReservations, nil
+}
+
 // 管理员添加时间表
-func (al *AdminLogic) AddTimetableByAdmin(weekday time.Weekday, startTime string, endTime string,
+func (al *AdminLogic) AddTimetableByAdmin(weekday string, startTime string, endTime string,
 	teacherUsername string, teacherFullname string, teacherMobile string,
 	userId string, userType models.UserType) (*models.TimedReservation, error) {
 	if len(userId) == 0 {
@@ -32,6 +52,10 @@ func (al *AdminLogic) AddTimetableByAdmin(weekday time.Weekday, startTime string
 	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错，请联系技术支持")
+	}
+	week, err := utils.StringToWeekday(weekday)
+	if err != nil {
+		return nil, errors.New("星期格式错误")
 	}
 	start, err := time.ParseInLocation(utils.CLOCK_PATTERN, startTime, utils.Location)
 	if err != nil {
@@ -58,7 +82,7 @@ func (al *AdminLogic) AddTimetableByAdmin(weekday time.Weekday, startTime string
 			return nil, errors.New("获取数据失败")
 		}
 	}
-	timedReservation, err := models.AddTimedReservation(weekday, start, end, teacher.Id.Hex())
+	timedReservation, err := models.AddTimedReservation(week, start, end, teacher.Id.Hex())
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -66,7 +90,7 @@ func (al *AdminLogic) AddTimetableByAdmin(weekday time.Weekday, startTime string
 }
 
 // 管理员编辑时间表
-func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday time.Weekday,
+func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday string,
 	startTime string, endTime string, teacherUsername string, teacherFullname string, teacherMobile string,
 	userId string, userType models.UserType) (*models.TimedReservation, error) {
 	if len(userId) == 0 {
@@ -96,6 +120,10 @@ func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday ti
 	if err != nil || timedReservation.Status == models.DELETED {
 		return nil, errors.New("咨询已下架")
 	}
+	week, err := utils.StringToWeekday(weekday)
+	if err != nil {
+		return nil, errors.New("星期格式错误")
+	}
 	start, err := time.ParseInLocation(utils.CLOCK_PATTERN, startTime, utils.Location)
 	if err != nil {
 		return nil, errors.New("开始时间格式错误")
@@ -121,7 +149,7 @@ func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday ti
 			return nil, errors.New("获取数据失败")
 		}
 	}
-	timedReservation.Weekday = weekday
+	timedReservation.Weekday = week
 	timedReservation.StartTime = start
 	timedReservation.EndTime = end
 	timedReservation.TeacherId = teacher.Id.Hex()

@@ -100,6 +100,22 @@ func AdminPage(w http.ResponseWriter, r *http.Request, userId string, userType m
 	return nil
 }
 
+func AdminTimetablePage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	if userType == models.STUDENT {
+		http.Redirect(w, r, "/reservation/student", http.StatusFound)
+		return nil
+	} else if userType == models.TEACHER {
+		http.Redirect(w, r, "/reservation/teacher", http.StatusFound)
+		return nil
+	}
+	t := template.Must(template.ParseFiles("templates/admin_timetable.html"))
+	err := t.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
 type ErrorMsg struct {
 	State   string `json:"state"`
 	Message string `json:"message"`

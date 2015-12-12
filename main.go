@@ -133,6 +133,7 @@ func main() {
 	teacherRouter.HandleFunc("/reservation/feedback/get", handleWithCookie(controllers.GetFeedbackByTeacher)).Methods("POST")
 	teacherRouter.HandleFunc("/reservation/feedback/submit", handleWithCookie(controllers.SubmitFeedbackByTeacher)).Methods("POST")
 	teacherRouter.HandleFunc("/student/get", handleWithCookie(controllers.GetStudentInfoByTeacher)).Methods("POST")
+	teacherRouter.HandleFunc("/student/query", handleWithCookie(controllers.QueryStudentInfoByTeacher)).Methods("POST")
 	adminRouter := router.PathPrefix("/admin").Subrouter()
 	adminRouter.HandleFunc("/timetable/view", handleWithCookie(controllers.ViewTimedReservationsByAdmin)).Methods("GET")
 	adminRouter.HandleFunc("/timetable/add", handleWithCookie(controllers.AddTimedReservationByAdmin)).Methods("POST")

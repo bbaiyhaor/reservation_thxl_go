@@ -378,6 +378,10 @@ func (al *AdminLogic) BindStudentByAdmin(studentId string, teacherUsername strin
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return nil, errors.New("权限不足")
+	} else if len(studentId) == 0 {
+		return nil, errors.New("请先登录")
+	} else if len(teacherUsername) == 0 {
+		return nil, errors.New("咨询师工号为空")
 	}
 	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {

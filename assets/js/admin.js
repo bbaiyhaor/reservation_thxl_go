@@ -620,7 +620,7 @@ function successFeedback() {
 
 function getStudent(index) {
 	var payload = {
-		reservation_id: reservations[index].reservation_id,
+		student_id: reservations[index].student_id,
 	};
 	$.ajax({
 		type: "POST",
@@ -660,20 +660,20 @@ function showStudent(student) {
 			<br>\
 			已绑定的咨询师：<span id='binded_teacher_username'>" + student.student_binded_teacher_username + "</span>&nbsp;\
 				<span id='binded_teacher_fullname'>" + student.student_binded_teacher_fullname + "</span>\
-				<button type='button' onclick='unbindStudent(" + student.student_username + ");'>解绑</button><br>\
+				<button type='button' onclick='unbindStudent(\"" + student.student_id + "\");'>解绑</button><br>\
 			请输入匹配咨询师工号：<input id='teacher_username' type='text'/>\
-			<button type='button' onclick='bindStudent(" + student.student_username + ");'>绑定</button><br>\
+			<button type='button' onclick='bindStudent(\"" + student.student_id + "\");'>绑定</button><br>\
 			<br>\
-			<button type='button' onclick='exportStudent(" + student.student_username + ");'>导出</button>\
+			<button type='button' onclick='exportStudent(\"" + student.student_id + "\");'>导出</button>\
 			<button type='button' onclick='$(\".admin_chakan\").remove();'>关闭</button>\
 		</div>\
 	");
 	optimize(".admin_chakan");
 }
 
-function exportStudent(studentUsername) {
+function exportStudent(studentId) {
 	var payload = {
-		student_username: studentUsername,
+		student_id: studentId,
 	};
 	$.ajax({
 		type: "POST",
@@ -691,9 +691,9 @@ function exportStudent(studentUsername) {
 	});
 }
 
-function unbindStudent(studentUsername) {
+function unbindStudent(studentId) {
 	var payload = {
-		student_username: studentUsername,
+		student_id: studentId,
 	};
 	$.ajax({
 		type: "POST",
@@ -712,9 +712,9 @@ function unbindStudent(studentUsername) {
 	});
 }
 
-function bindStudent(studentUsername) {
+function bindStudent(studentId) {
 	var payload = {
-		student_username: studentUsername,
+		student_id: studentId,
 		teacher_username: $("#teacher_username").val(),
 	};
 	$.ajax({

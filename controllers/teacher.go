@@ -117,6 +117,62 @@ func GetStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 		ErrorHandler(w, r, err)
 		return nil
 	}
+	studentJson["student_id"] = student.Id.Hex()
+	studentJson["student_username"] = student.Username
+	studentJson["student_fullname"] = student.Fullname
+	studentJson["student_gender"] = student.Gender
+	studentJson["student_email"] = student.Email
+	studentJson["student_school"] = student.School
+	studentJson["student_grade"] = student.Grade
+	studentJson["student_current_address"] = student.CurrentAddress
+	studentJson["student_mobile"] = student.Mobile
+	studentJson["student_birthday"] = student.Birthday
+	studentJson["student_family_address"] = student.FamilyAddress
+	if !student.Experience.IsEmpty() {
+		studentJson["student_experience_time"] = student.Experience.Time
+		studentJson["student_experience_location"] = student.Experience.Location
+		studentJson["student_experience_teacher"] = student.Experience.Teacher
+	}
+	studentJson["student_father_age"] = student.FatherAge
+	studentJson["student_father_job"] = student.FatherJob
+	studentJson["student_father_edu"] = student.FatherEdu
+	studentJson["student_mother_age"] = student.MotherAge
+	studentJson["student_mother_job"] = student.MotherJob
+	studentJson["student_mother_edu"] = student.MotherEdu
+	studentJson["student_parent_marriage"] = student.ParentMarriage
+	studentJson["student_significant"] = student.Significant
+	studentJson["student_problem"] = student.Problem
+	if len(student.BindedTeacherId) != 0 {
+		teacher, err := ul.GetTeacherById(student.BindedTeacherId)
+		if err != nil {
+			studentJson["student_binded_teacher_username"] = "无"
+			studentJson["student_binded_teacher_fullname"] = ""
+		}
+		studentJson["student_binded_teacher_username"] = teacher.Username
+		studentJson["student_binded_teacher_fullname"] = teacher.Fullname
+	} else {
+		studentJson["student_binded_teacher_username"] = "无"
+		studentJson["student_binded_teacher_fullname"] = ""
+	}
+	result["student_info"] = studentJson
+
+	return result
+}
+
+func QueryStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	studentUsername := r.PostFormValue("student_username")
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var tl = buslogic.TeacherLogic{}
+	var ul = buslogic.UserLogic{}
+
+	var studentJson = make(map[string]interface{})
+	student, _, err := tl.QueryStudentInfoByTeacher(studentUsername, userId, userType)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
+	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
 	studentJson["student_fullname"] = student.Fullname
 	studentJson["student_gender"] = student.Gender

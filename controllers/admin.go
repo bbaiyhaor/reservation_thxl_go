@@ -284,6 +284,7 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 		ErrorHandler(w, r, err)
 		return nil
 	}
+	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
 	studentJson["student_fullname"] = student.Fullname
 	studentJson["student_gender"] = student.Gender
@@ -342,14 +343,14 @@ func ExportStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string,
 }
 
 func UnbindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	studentUsername := r.PostFormValue("student_username")
+	studentId := r.PostFormValue("student_id")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var al = buslogic.AdminLogic{}
 	var ul = buslogic.UserLogic{}
 
 	var studentJson = make(map[string]interface{})
-	student, err := al.UnbindStudentByAdmin(studentUsername, userId, userType)
+	student, err := al.UnbindStudentByAdmin(studentId, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -372,7 +373,7 @@ func UnbindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string,
 }
 
 func BindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	studentUsername := r.PostFormValue("student_username")
+	studentId := r.PostFormValue("student_id")
 	teacherUsername := r.PostFormValue("teacher_username")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
@@ -380,7 +381,7 @@ func BindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, u
 	var ul = buslogic.UserLogic{}
 
 	var studentJson = make(map[string]interface{})
-	student, err := al.BindStudentByAdmin(studentUsername, teacherUsername, userId, userType)
+	student, err := al.BindStudentByAdmin(studentId, teacherUsername, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -414,6 +415,7 @@ func QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 		ErrorHandler(w, r, err)
 		return nil
 	}
+	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
 	studentJson["student_fullname"] = student.Fullname
 	studentJson["student_gender"] = student.Gender

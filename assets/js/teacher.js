@@ -269,9 +269,29 @@ function successFeedback() {
 	optimize(".fankui_tch_success");
 }
 
+function queryStudent() {
+	var payload = {
+		student_username: $("#query_student").val(),
+	};
+	$.ajax({
+		type: "POST",
+		async: false,
+		url: "/teacher/student/query",
+		data: payload,
+		dataType: "json",
+		success: function(data) {
+			if (data.state === "SUCCESS") {
+				showStudent(data.student_info);
+			} else {
+				alert(data.message);
+			}
+		}
+	});
+}
+
 function getStudent(index) {
 	var payload = {
-		reservation_id: reservations[index].reservation_id,
+		student_id: reservations[index].student_id,
 	};
 	$.ajax({
 		type: "POST",

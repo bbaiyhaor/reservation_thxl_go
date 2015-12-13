@@ -281,7 +281,7 @@ function queryStudent() {
 		dataType: "json",
 		success: function(data) {
 			if (data.state === "SUCCESS") {
-				showStudent(data.student_info);
+				showStudent(data.student_info, data.reservations);
 			} else {
 				alert(data.message);
 			}
@@ -301,7 +301,7 @@ function getStudent(index) {
 		dataType: "json",
 		success: function(data) {
 			if (data.state === "SUCCESS") {
-				showStudent(data.student_info);
+				showStudent(data.student_info, data.reservations);
 			} else {
 				alert(data.message);
 			}
@@ -309,9 +309,9 @@ function getStudent(index) {
 	});
 }
 
-function showStudent(student) {
+function showStudent(student, reservations) {
 	$("body").append("\
-		<div class='admin_chakan' style='text-align: left'>\
+		<div class='admin_chakan' style='text-align: left; position: absolute'>\
 			学号：" + student.student_username + "<br>\
 			姓名：" + student.student_fullname + "<br>\
 			性别：" + student.student_gender + "<br>\
@@ -333,7 +333,28 @@ function showStudent(student) {
 				<span id='binded_teacher_fullname'>" + student.student_binded_teacher_fullname + "</span><br>\
 			<br>\
 			<button type='button' onclick='$(\".admin_chakan\").remove();'>关闭</button>\
+			<div id='student_reservations_" + student.student_id + "' style='width: 100%'>\
+			</div>\
 		</div>\
 	");
+	for (var i = 0; i < reservations.length; i++) {
+		$("#student_reservations_" + student.student_id).append("\
+			<div class='has_children' style='background: " + (reservations[i].status === "FEEDBACK" ? "#555" : "#F00") + "'>\
+				<span>" + reservations[i].start_time + "  " + reservations[i].teacher_fullname + "</span>\
+				<p class='children' style='width:100%;'>学生反馈：" + reservations[i].student_feedback.scores + "</p>\
+				<p class='children' style='width:100%;'>评估分类：" + reservations[i].teacher_feedback.category + "</p>\
+				<p class='children' style='width:100%;'>出席人员：" + reservations[i].teacher_feedback.participants + "</p>\
+				<p class='children' style='width:100%;'>问题评估：" + reservations[i].teacher_feedback.problem + "</p>\
+				<p class='children' style='width:100%;'>咨询记录：" + reservations[i].teacher_feedback.record + "</p>\
+			</div>\
+		");
+	}
+	$(document).ready(function() {
+		$(".admin_chakan").css("top", $(document).scrollTop() + 50);
+		$(".has_children").click(function() {
+			$(this).addClass("highlight").children("p").show().end()
+					.siblings().removeClass("highlight").children("p").hide();
+		});
+	});
 	optimize(".admin_chakan");
 }

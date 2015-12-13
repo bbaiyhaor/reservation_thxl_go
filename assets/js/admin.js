@@ -719,10 +719,13 @@ function showStudent(student, reservations) {
 	");
 	for (var i = 0; i < reservations.length; i++) {
 		$("#student_reservations_" + student.student_id).append("\
-			<div class='has_children'>\
-				<span>" + reservations[i].start_time + " " + reservations[i].teacher_fullname + "</span>\
-				<p class='children'>问题评估：" + reservations[i].feedback.problem + "</p>\
-				<p class='children'>咨询记录：" + reservations[i].feedback.record + "</p>\
+			<div class='has_children' style='background: " + (reservations[i].status === "FEEDBACK" ? "#555" : "#F00") + "'>\
+				<span>" + reservations[i].start_time + " 至 " + reservations[i].end_time + "  " + reservations[i].teacher_fullname + "</span>\
+				<p class='children' style='width: 70%'>学生反馈：" + reservations[i].student_feedback.scores + "</p>\
+				<p class='children' style='width: 70%'>评估分类：" + reservations[i].teacher_feedback.category + "</p>\
+				<p class='children' style='width: 70%'>出席人员：" + reservations[i].teacher_feedback.participants + "</p>\
+				<p class='children' style='width: 70%'>问题评估：" + reservations[i].teacher_feedback.problem + "</p>\
+				<p class='children' style='width: 70%'>咨询记录：" + reservations[i].teacher_feedback.record + "</p>\
 			</div>\
 		");
 	}

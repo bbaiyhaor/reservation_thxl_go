@@ -360,14 +360,23 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	for _, res := range reservations {
 		resJson := make(map[string]interface{})
 		resJson["start_time"] = res.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		resJson["end_time"] = res.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		if res.Status == models.AVAILABLE {
+			resJson["status"] = models.AVAILABLE.String()
+		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now().In(utils.Location)) {
+			resJson["status"] = models.FEEDBACK.String()
+		} else {
+			resJson["status"] = models.RESERVATED.String()
+		}
+		resJson["student_id"] = res.StudentId
+		resJson["teacher_id"] = res.TeacherId
 		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
+			resJson["teacher_username"] = teacher.Username
 			resJson["teacher_fullname"] = teacher.Fullname
+			resJson["teacher_mobile"] = teacher.Mobile
 		}
-		var feedback = map[string]interface{}{
-			"problem": res.TeacherFeedback.Problem,
-			"record":  res.TeacherFeedback.Record,
-		}
-		resJson["feedback"] = feedback
+		resJson["student_feedback"] = res.StudentFeedback.ToJson()
+		resJson["teacher_feedback"] = res.TeacherFeedback.ToJson()
 		reservationJson = append(reservationJson, resJson)
 	}
 	result["reservations"] = reservationJson
@@ -459,7 +468,7 @@ func QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 	var ul = buslogic.UserLogic{}
 
 	var studentJson = make(map[string]interface{})
-	student, _, err := al.QueryStudentInfoByAdmin(studentUsername, userId, userType)
+	student, reservations, err := al.QueryStudentInfoByAdmin(studentUsername, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -502,6 +511,31 @@ func QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 		studentJson["student_binded_teacher_fullname"] = ""
 	}
 	result["student_info"] = studentJson
+
+	var reservationJson = make([]interface{}, 0)
+	for _, res := range reservations {
+		resJson := make(map[string]interface{})
+		resJson["start_time"] = res.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		resJson["end_time"] = res.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		if res.Status == models.AVAILABLE {
+			resJson["status"] = models.AVAILABLE.String()
+		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now().In(utils.Location)) {
+			resJson["status"] = models.FEEDBACK.String()
+		} else {
+			resJson["status"] = models.RESERVATED.String()
+		}
+		resJson["student_id"] = res.StudentId
+		resJson["teacher_id"] = res.TeacherId
+		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
+			resJson["teacher_username"] = teacher.Username
+			resJson["teacher_fullname"] = teacher.Fullname
+			resJson["teacher_mobile"] = teacher.Mobile
+		}
+		resJson["student_feedback"] = res.StudentFeedback.ToJson()
+		resJson["teacher_feedback"] = res.TeacherFeedback.ToJson()
+		reservationJson = append(reservationJson, resJson)
+	}
+	result["reservations"] = reservationJson
 
 	return result
 }

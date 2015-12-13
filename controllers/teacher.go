@@ -114,7 +114,7 @@ func GetStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 	var ul = buslogic.UserLogic{}
 
 	var studentJson = make(map[string]interface{})
-	student, _, err := tl.GetStudentInfoByTeacher(studentId, userId, userType)
+	student, reservations, err := tl.GetStudentInfoByTeacher(studentId, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -157,6 +157,31 @@ func GetStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 		studentJson["student_binded_teacher_fullname"] = ""
 	}
 	result["student_info"] = studentJson
+
+	var reservationJson = make([]interface{}, 0)
+	for _, res := range reservations {
+		resJson := make(map[string]interface{})
+		resJson["start_time"] = res.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		resJson["end_time"] = res.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		if res.Status == models.AVAILABLE {
+			resJson["status"] = models.AVAILABLE.String()
+		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now().In(utils.Location)) {
+			resJson["status"] = models.FEEDBACK.String()
+		} else {
+			resJson["status"] = models.RESERVATED.String()
+		}
+		resJson["student_id"] = res.StudentId
+		resJson["teacher_id"] = res.TeacherId
+		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
+			resJson["teacher_username"] = teacher.Username
+			resJson["teacher_fullname"] = teacher.Fullname
+			resJson["teacher_mobile"] = teacher.Mobile
+		}
+		resJson["student_feedback"] = res.StudentFeedback.ToJson()
+		resJson["teacher_feedback"] = res.TeacherFeedback.ToJson()
+		reservationJson = append(reservationJson, resJson)
+	}
+	result["reservations"] = reservationJson
 
 	return result
 }
@@ -169,7 +194,7 @@ func QueryStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId st
 	var ul = buslogic.UserLogic{}
 
 	var studentJson = make(map[string]interface{})
-	student, _, err := tl.QueryStudentInfoByTeacher(studentUsername, userId, userType)
+	student, reservations, err := tl.QueryStudentInfoByTeacher(studentUsername, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -212,6 +237,31 @@ func QueryStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId st
 		studentJson["student_binded_teacher_fullname"] = ""
 	}
 	result["student_info"] = studentJson
+
+	var reservationJson = make([]interface{}, 0)
+	for _, res := range reservations {
+		resJson := make(map[string]interface{})
+		resJson["start_time"] = res.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		resJson["end_time"] = res.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		if res.Status == models.AVAILABLE {
+			resJson["status"] = models.AVAILABLE.String()
+		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now().In(utils.Location)) {
+			resJson["status"] = models.FEEDBACK.String()
+		} else {
+			resJson["status"] = models.RESERVATED.String()
+		}
+		resJson["student_id"] = res.StudentId
+		resJson["teacher_id"] = res.TeacherId
+		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
+			resJson["teacher_username"] = teacher.Username
+			resJson["teacher_fullname"] = teacher.Fullname
+			resJson["teacher_mobile"] = teacher.Mobile
+		}
+		resJson["student_feedback"] = res.StudentFeedback.ToJson()
+		resJson["teacher_feedback"] = res.TeacherFeedback.ToJson()
+		reservationJson = append(reservationJson, resJson)
+	}
+	result["reservations"] = reservationJson
 
 	return result
 }

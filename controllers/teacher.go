@@ -37,6 +37,8 @@ func ViewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId st
 		resJson["end_time"] = res.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
 		resJson["source"] = res.Source
 		resJson["source_id"] = res.SourceId
+		resJson["student_id"] = res.StudentId
+		resJson["teacher_id"] = res.TeacherId
 		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
 			resJson["teacher_fullname"] = teacher.Fullname
 			resJson["teacher_mobile"] = teacher.Mobile

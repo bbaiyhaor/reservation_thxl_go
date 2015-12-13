@@ -213,7 +213,7 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 					// 2
 					reservation.Status = models.DELETED
 					if timedReservation, err := models.GetTimedReservationById(sourceIds[index]); err == nil {
-						date := reservation.StartTime.Format(utils.DATE_PATTERN)
+						date := reservation.StartTime.In(utils.Location).Format(utils.DATE_PATTERN)
 						delete(timedReservation.Timed, date)
 						if models.UpsertReservation(reservation) == nil && models.UpsertTimedReservation(timedReservation) == nil {
 							removed++

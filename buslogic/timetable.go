@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
+	"sort"
 	"strings"
 	"time"
 )
@@ -22,6 +23,7 @@ func (al *AdminLogic) ViewTimetableByAdmin(userId string, userType models.UserTy
 	timedReservations := make(map[time.Weekday][]*models.TimedReservation)
 	for i := time.Sunday; i <= time.Saturday; i++ {
 		if trs, err := models.GetTimedReservationsByWeekday(i); err == nil {
+			sort.Sort(models.TimedReservationSlice(trs))
 			timedReservations[i] = trs
 		}
 	}
@@ -57,11 +59,11 @@ func (al *AdminLogic) AddTimetableByAdmin(weekday string, startTime string, endT
 	if err != nil {
 		return nil, errors.New("星期格式错误")
 	}
-	start, err := time.ParseInLocation(utils.CLOCK_PATTERN, startTime, utils.Location)
+	start, err := utils.ParseClock(startTime)
 	if err != nil {
 		return nil, errors.New("开始时间格式错误")
 	}
-	end, err := time.ParseInLocation(utils.CLOCK_PATTERN, endTime, utils.Location)
+	end, err := utils.ParseClock(endTime)
 	if err != nil {
 		return nil, errors.New("结束时间格式错误")
 	}
@@ -124,11 +126,11 @@ func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday st
 	if err != nil {
 		return nil, errors.New("星期格式错误")
 	}
-	start, err := time.ParseInLocation(utils.CLOCK_PATTERN, startTime, utils.Location)
+	start, err := utils.ParseClock(startTime)
 	if err != nil {
 		return nil, errors.New("开始时间格式错误")
 	}
-	end, err := time.ParseInLocation(utils.CLOCK_PATTERN, endTime, utils.Location)
+	end, err := utils.ParseClock(endTime)
 	if err != nil {
 		return nil, errors.New("结束时间格式错误")
 	}

@@ -1,6 +1,9 @@
 package utils
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 var Weekdays = [...]string{
 	"日",
@@ -35,4 +38,8 @@ func GetToday() time.Time {
 
 func GetNow() time.Time {
 	return time.Now().In(Location)
+}
+
+func ParseClock(clock string) (time.Time, error) {
+	return time.ParseInLocation(TIME_PATTERN, fmt.Sprintf("%s %s", DATE_PATTERN, clock), Location)
 }

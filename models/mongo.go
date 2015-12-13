@@ -286,7 +286,7 @@ func GetTimedReservationsByWeekday(weekday time.Weekday) ([]*TimedReservation, e
 	collection := Mongo.C("timetable")
 	var timedReservations []*TimedReservation
 	if err := collection.Find(bson.M{"weekday": weekday,
-		"status": bson.M{"$ne": DELETED}}).Sort("start_time").All(&timedReservations); err != nil {
+		"status": bson.M{"$ne": DELETED}}).All(&timedReservations); err != nil {
 		return nil, err
 	}
 	return timedReservations, nil

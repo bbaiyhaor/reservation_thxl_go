@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"gopkg.in/mgo.v2/bson"
+	"strings"
 	"time"
 )
 
@@ -45,6 +46,8 @@ func (ts TimedReservationSlice) Swap(i, j int) {
 func (ts TimedReservationSlice) Less(i, j int) bool {
 	if ts[i].Weekday != ts[j].Weekday {
 		return ts[i].Weekday < ts[j].Weekday
+	} else if !ts[i].StartTime.Equal(ts[j].StartTime) {
+		return ts[i].StartTime.Before(ts[j].StartTime)
 	}
-	return ts[i].StartTime.Before(ts[j].StartTime)
+	return strings.Compare(ts[i].TeacherId, ts[j].TeacherId) < 0
 }

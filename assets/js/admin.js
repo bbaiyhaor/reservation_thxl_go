@@ -76,7 +76,7 @@ function queryStudent() {
 		dataType: "json",
 		success: function(data) {
 			if (data.state === "SUCCESS") {
-				showStudent(data.student_info);
+				showStudent(data.student_info, data.reservations);
 			} else {
 				alert(data.message);
 			}
@@ -676,7 +676,7 @@ function getStudent(index) {
 		dataType: "json",
 		success: function(data) {
 			if (data.state === "SUCCESS") {
-				showStudent(data.student_info);
+				showStudent(data.student_info, data.reservations);
 			} else {
 				alert(data.message);
 			}
@@ -684,7 +684,7 @@ function getStudent(index) {
 	});
 }
 
-function showStudent(student) {
+function showStudent(student, reservations) {
 	$("body").append("\
 		<div class='admin_chakan' style='text-align: left'>\
 			学号：" + student.student_username + "<br>\
@@ -709,11 +709,29 @@ function showStudent(student) {
 				<button type='button' onclick='unbindStudent(\"" + student.student_id + "\");'>解绑</button><br>\
 			请输入匹配咨询师工号：<input id='teacher_username' type='text'/>\
 			<button type='button' onclick='bindStudent(\"" + student.student_id + "\");'>绑定</button><br>\
-			<br>\
-			<button type='button' onclick='exportStudent(\"" + student.student_id + "\");'>导出</button>\
-			<button type='button' onclick='$(\".admin_chakan\").remove();'>关闭</button>\
+			<div style='margin: 10px 0'>\
+				<button type='button' onclick='exportStudent(\"" + student.student_id + "\");'>导出</button>\
+				<button type='button' onclick='$(\".admin_chakan\").remove();'>关闭</button>\
+			</div>\
+			<div id='student_reservations_" + student.student_id + "' style='width: 600px'>\
+			</div>\
 		</div>\
 	");
+	for (var i = 0; i < reservations.length; i++) {
+		$("#student_reservations_" + student.student_id).append("\
+			<div class='has_children'>\
+				<span>" + reservations[i].start_time + " " + reservations[i].teacher_fullname + "</span>\
+				<p class='children'>问题评估：" + reservations[i].feedback.problem + "</p>\
+				<p class='children'>咨询记录：" + reservations[i].feedback.record + "</p>\
+			</div>\
+		");
+	}
+	$(document).ready(function() {
+		$(".has_children").click(function() {
+			$(this).addClass("highlight").children("p").show().end()
+					.siblings().removeClass("highlight").children("p").hide();
+		});
+	});
 	optimize(".admin_chakan");
 }
 

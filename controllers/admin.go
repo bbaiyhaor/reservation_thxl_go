@@ -312,7 +312,7 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	var ul = buslogic.UserLogic{}
 
 	var studentJson = make(map[string]interface{})
-	student, _, err := al.GetStudentInfoByAdmin(studentId, userId, userType)
+	student, reservations, err := al.GetStudentInfoByAdmin(studentId, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -355,6 +355,22 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 		studentJson["student_binded_teacher_fullname"] = ""
 	}
 	result["student_info"] = studentJson
+
+	var reservationJson = make([]interface{}, 0)
+	for _, res := range reservations {
+		resJson := make(map[string]interface{})
+		resJson["start_time"] = res.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
+			resJson["teacher_fullname"] = teacher.Fullname
+		}
+		var feedback = map[string]interface{}{
+			"problem": res.TeacherFeedback.Problem,
+			"record":  res.TeacherFeedback.Record,
+		}
+		resJson["feedback"] = feedback
+		reservationJson = append(reservationJson, resJson)
+	}
+	result["reservations"] = reservationJson
 
 	return result
 }

@@ -154,7 +154,7 @@ func (rl *ReservationLogic) GetReservationsByAdmin(userId string, userType model
 }
 
 // 管理员查看指定日期后30天内的所有咨询（看不到预设咨询）
-func (rl *ReservationLogic) GetReservationsMonthlyByAdmin(from string, userId string, userType models.UserType) ([]*models.Reservation, error) {
+func (rl *ReservationLogic) GetReservationsMonthlyByAdmin(fromDate string, userId string, userType models.UserType) ([]*models.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
@@ -164,12 +164,12 @@ func (rl *ReservationLogic) GetReservationsMonthlyByAdmin(from string, userId st
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
-	fromDate, err := time.ParseInLocation(utils.DATE_PATTERN, from, utils.Location)
+	from, err := time.ParseInLocation(utils.DATE_PATTERN, fromDate, utils.Location)
 	if err != nil {
 		return nil, errors.New("时间格式错误")
 	}
-	toDate := fromDate.AddDate(0, 0, 30)
-	reservations, err := models.GetReservationsBetweenTime(fromDate, toDate)
+	to := from.AddDate(0, 0, 30)
+	reservations, err := models.GetReservationsBetweenTime(from, to)
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}

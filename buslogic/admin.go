@@ -302,7 +302,7 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId strin
 	return reservation, nil
 }
 
-// 管理员指定学生
+// 管理员指定某次预约的学生
 func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, startTime string, studentUsername string,
 	userId string, userType models.UserType) (*models.Reservation, error) {
 	if len(userId) == 0 {
@@ -501,7 +501,7 @@ func (al *AdminLogic) QueryStudentInfoByAdmin(studentUsername string,
 	return student, reservations, nil
 }
 
-// 管理员导出一周时间表
+// TODO 管理员导出一周时间表
 func (al *AdminLogic) ExportReservationTimetable(fromTime string, userId string, userType models.UserType) (string, error) {
 	if len(userId) == 0 {
 		return "", errors.New("请先登录")
@@ -565,8 +565,64 @@ func (al *AdminLogic) SearchTeacherByAdmin(teacherFullname string, teacherUserna
 	return nil, errors.New("用户不存在")
 }
 
+type WorkLoad struct {
+	TeacherId       string          `json:"teacher_id"`
+	TeacherUsername string          `json:"teacher_username"`
+	TeacherFullname string          `json:"teacher_fullname"`
+	TeacherMobile   string          `json:"teacher_mobile"`
+	Students        map[string]bool `json:"students"`
+	Reservations    map[string]bool `json:"reservations"`
+}
+
 // TODO 管理员统计咨询师工作量
+func (al *AdminLogic) GetTeacherWorkloadByAdmin(fromDate string, toDate string,
+	userId string, userType models.UserType) (map[string]WorkLoad, error) {
+	if len(userId) == 0 {
+		return nil, errors.New("请先登录")
+	} else if userType != models.ADMIN {
+		return nil, errors.New("权限不足")
+	} else if len(fromDate) == 0 {
+		return nil, errors.New("开始日期为空")
+	} else if len(toDate) == 0 {
+		return nil, errors.New("结束日期为空")
+	}
+	admin, err := models.GetAdminById(userId)
+	if err != nil || admin.UserType != models.ADMIN {
+		return nil, errors.New("管理员账户出错,请联系技术支持")
+	}
+	from, err := time.ParseInLocation(utils.DATE_PATTERN, fromDate, utils.Location)
+	if err != nil {
+		return nil, errors.New("开始日期格式错误")
+	}
+	to, err := time.ParseInLocation(utils.DATE_PATTERN, toDate, utils.Location)
+	if err != nil {
+		return nil, errors.New("结束日期格式错误")
+	}
+	to = to.AddDate(0, 0, 1)
+	reservations, err := models.GetReservatedReservationsBetweenTime(from, to)
+	if err != nil {
+		return nil, errors.New("获取数据失败")
+	}
+	workload := make(map[string]WorkLoad)
+	for _, r := range reservations {
+		if _, exist := workload[r.TeacherId]; !exist {
+			teacher, err := models.GetTeacherById(r.TeacherId)
+			if err != nil {
+				continue
+			}
+			workload[r.TeacherId] = WorkLoad{
+				TeacherId:       teacher.Id.Hex(),
+				TeacherUsername: teacher.Username,
+				TeacherFullname: teacher.Fullname,
+				TeacherMobile:   teacher.Mobile,
+				Students:        make(map[string]bool),
+				Reservations:    make(map[string]bool),
+			}
+		}
+		workload[r.TeacherId].Students[r.StudentId] = true
+		workload[r.TeacherId].Reservations[r.Id.Hex()] = true
+	}
+	return workload, nil
+}
 
 // TODO 管理员导出月报
-
-// TODO 管理员指定某次预约的学生

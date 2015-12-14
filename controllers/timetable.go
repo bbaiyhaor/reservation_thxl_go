@@ -24,8 +24,8 @@ func ViewTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId
 			trJson := make(map[string]interface{})
 			trJson["timed_reservation_id"] = tr.Id.Hex()
 			trJson["weekday"] = tr.Weekday
-			trJson["start_time"] = tr.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
-			trJson["end_time"] = tr.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
+			trJson["start_clock"] = tr.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
+			trJson["end_clock"] = tr.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
 			trJson["status"] = tr.Status.String()
 			trJson["teacher_id"] = tr.TeacherId
 			if teacher, err := ul.GetTeacherById(tr.TeacherId); err == nil {
@@ -44,8 +44,8 @@ func ViewTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId
 
 func AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	weekday := r.PostFormValue("weekday")
-	startTime := r.PostFormValue("start_time")
-	endTime := r.PostFormValue("end_time")
+	startTime := r.PostFormValue("start_clock")
+	endTime := r.PostFormValue("end_clock")
 	teacherUsername := r.PostFormValue("teacher_username")
 	teacherFullname := r.PostFormValue("teacher_fullname")
 	teacherMobile := r.PostFormValue("teacher_mobile")
@@ -63,8 +63,8 @@ func AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId s
 	}
 	timedReservationJson["timed_reservation_id"] = timedReservation.Id.Hex()
 	timedReservationJson["weekday"] = timedReservation.Weekday
-	timedReservationJson["start_time"] = timedReservation.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
-	timedReservationJson["end_time"] = timedReservation.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
+	timedReservationJson["start_clock"] = timedReservation.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
+	timedReservationJson["end_clock"] = timedReservation.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
 	timedReservationJson["status"] = timedReservation.Status.String()
 	timedReservationJson["teacher_id"] = timedReservation.TeacherId
 	if teacher, err := ul.GetTeacherById(timedReservation.TeacherId); err == nil {
@@ -80,8 +80,8 @@ func AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId s
 func EditTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	timedReservationId := r.PostFormValue("timed_reservation_id")
 	weekday := r.PostFormValue("weekday")
-	startTime := r.PostFormValue("start_time")
-	endTime := r.PostFormValue("end_time")
+	startTime := r.PostFormValue("start_clock")
+	endTime := r.PostFormValue("end_clock")
 	teacherUsername := r.PostFormValue("teacher_username")
 	teacherFullname := r.PostFormValue("teacher_fullname")
 	teacherMobile := r.PostFormValue("teacher_mobile")
@@ -99,8 +99,8 @@ func EditTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId 
 	}
 	timedReservationJson["timed_reservation_id"] = timedReservation.Id.Hex()
 	timedReservationJson["weekday"] = timedReservation.Weekday
-	timedReservationJson["start_time"] = timedReservation.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
-	timedReservationJson["end_time"] = timedReservation.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
+	timedReservationJson["start_clock"] = timedReservation.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
+	timedReservationJson["end_clock"] = timedReservation.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
 	timedReservationJson["status"] = timedReservation.Status.String()
 	timedReservationJson["teacher_id"] = timedReservation.TeacherId
 	if teacher, err := ul.GetTeacherById(timedReservation.TeacherId); err == nil {

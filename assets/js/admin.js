@@ -25,7 +25,7 @@ function viewReservations() {
 
 function queryReservations() {
 	var payload = {
-		from_time: $("#query_date").val(),
+		from_date: $("#query_date").val(),
 	};
 	$.ajax({
 		type: "GET",
@@ -799,4 +799,76 @@ function bindStudent(studentId) {
 			}
 		},
 	});
+}
+
+function getWorkload() {
+	var payload = {
+		from_date: $("#workload_from").val(),
+		to_date: $("#workload_to").val(),
+	}
+	$.ajax({
+		type: "POST",
+		async: false,
+		url: "/admin/teacher/workload",
+		data: payload,
+		dataType: "json",
+		success: function(data) {
+			if (data.state === "SUCCESS") {
+				showWorkload(data.workload);
+			} else {
+				alert(data.message);
+			}
+		}
+	});
+}
+
+function showWorkload(workload) {
+	$("body").append("\
+		<div class='admin_chakan' style='text-align: left; width: 60%'>\
+			咨询师工作量统计\
+			<div id='teacher_workload' style='width: 600px; margin-top: 10px;'>\
+				<div class='table_col' id='col_workload_username'>\
+					<div class='table_head table_cell'>咨询师工号</div>\
+				</div>\
+				<div class='table_col' id='col_workload_fullname'>\
+					<div class='table_head table_cell'>咨询师姓名</div>\
+				</div>\
+				<div class='table_col' id='col_workload_student'>\
+					<div class='table_head table_cell'>咨询人数</div>\
+				</div>\
+				<div class='table_col' id='col_workload_reservation'>\
+					<div class='table_head table_cell'>咨询人次</div>\
+				</div>\
+				<div class='clearfix'></div>\
+			</div>\
+			<div style='margin: 10px 0'>\
+				<button type='button' onclick='$(\".admin_chakan\").remove();'>关闭</button>\
+			</div>\
+		</div>\
+	");
+	$("#col_workload_username").width(100);
+	$("#col_workload_fullname").width(100);
+	$("#col_workload_student").width(80);
+	$("#col_workload_reservation").width(80);
+	for (var i in workload) {
+		if (workload.hasOwnProperty(i)) {
+			$("#col_workload_username").append("<div class='table_cell' id='cell_workload_username_"
+				+ i + "'>" + workload[i].teacher_username + "</div>");
+			$("#col_workload_fullname").append("<div class='table_cell' id='cell_workload_fullname_"
+					+ i + "'>" + workload[i].teacher_fullname + "</div>");
+			$("#col_workload_student").append("<div class='table_cell' id='cell_workload_student_"
+					+ i + "'>" + Object.size(workload[i].students) + "</div>");
+			$("#col_workload_reservation").append("<div class='table_cell' id='cell_workload_reservation_"
+					+ i + "'>" + Object.size(workload[i].reservations) + "</div>");
+		}
+	}
+	optimize(".admin_chakan");
+}
+
+Object.size = function(obj) {
+	var size = 0, key;
+	for (key in obj) {
+		if (obj.hasOwnProperty(key)) size++;
+	}
+	return size;
 }

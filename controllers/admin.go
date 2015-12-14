@@ -52,17 +52,17 @@ func ViewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 
 func ViewMonthlyReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	queryForm, err := url.ParseQuery(r.URL.RawQuery)
-	if err != nil || len(queryForm["from_time"]) == 0 {
+	if err != nil || len(queryForm["from_date"]) == 0 {
 		ErrorHandler(w, r, errors.New("参数错误"))
 		return nil
 	}
-	fromTime := queryForm["from_time"][0]
+	fromDate := queryForm["from_date"][0]
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var rl = buslogic.ReservationLogic{}
 	var ul = buslogic.UserLogic{}
 
-	reservations, err := rl.GetReservationsMonthlyByAdmin(fromTime, userId, userType)
+	reservations, err := rl.GetReservationsMonthlyByAdmin(fromDate, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -560,6 +560,23 @@ func SearchTeacherByAdmin(w http.ResponseWriter, r *http.Request, userId string,
 	teacherJson["teacher_fullname"] = teacher.Fullname
 	teacherJson["teacher_mobile"] = teacher.Mobile
 	result["teacher"] = teacherJson
+
+	return result
+}
+
+func GetTeacherWorkloadByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	fromDate := r.PostFormValue("from_date")
+	toDate := r.PostFormValue("to_date")
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var al = buslogic.AdminLogic{}
+
+	workload, err := al.GetTeacherWorkloadByAdmin(fromDate, toDate, userId, userType)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
+	result["workload"] = workload
 
 	return result
 }

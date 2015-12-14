@@ -155,6 +155,7 @@ func main() {
 	adminRouter.HandleFunc("/student/bind", handleWithCookie(controllers.BindStudentByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/student/query", handleWithCookie(controllers.QueryStudentInfoByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/teacher/search", handleWithCookie(controllers.SearchTeacherByAdmin)).Methods("POST")
+	adminRouter.HandleFunc("/teacher/workload", handleWithCookie(controllers.GetTeacherWorkloadByAdmin)).Methods("POST")
 	categoryRouter := router.PathPrefix("/category").Subrouter()
 	categoryRouter.HandleFunc("/feedback", handleWithCookie(controllers.GetFeedbackCategories)).Methods("GET")
 	// http加载处理器

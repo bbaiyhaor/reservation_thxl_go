@@ -31,16 +31,16 @@ func (al *AdminLogic) ViewTimetableByAdmin(userId string, userType models.UserTy
 }
 
 // 管理员添加时间表
-func (al *AdminLogic) AddTimetableByAdmin(weekday string, startTime string, endTime string,
+func (al *AdminLogic) AddTimetableByAdmin(weekday string, startClock string, endClock string,
 	teacherUsername string, teacherFullname string, teacherMobile string,
 	userId string, userType models.UserType) (*models.TimedReservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return nil, errors.New("权限不足")
-	} else if len(startTime) == 0 {
+	} else if len(startClock) == 0 {
 		return nil, errors.New("开始时间为空")
-	} else if len(endTime) == 0 {
+	} else if len(endClock) == 0 {
 		return nil, errors.New("结束时间为空")
 	} else if len(teacherUsername) == 0 {
 		return nil, errors.New("咨询师工号为空")
@@ -59,11 +59,11 @@ func (al *AdminLogic) AddTimetableByAdmin(weekday string, startTime string, endT
 	if err != nil {
 		return nil, errors.New("星期格式错误")
 	}
-	start, err := utils.ParseClock(startTime)
+	start, err := utils.ParseClock(startClock)
 	if err != nil {
 		return nil, errors.New("开始时间格式错误")
 	}
-	end, err := utils.ParseClock(endTime)
+	end, err := utils.ParseClock(endClock)
 	if err != nil {
 		return nil, errors.New("结束时间格式错误")
 	}
@@ -93,7 +93,7 @@ func (al *AdminLogic) AddTimetableByAdmin(weekday string, startTime string, endT
 
 // 管理员编辑时间表
 func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday string,
-	startTime string, endTime string, teacherUsername string, teacherFullname string, teacherMobile string,
+	startClock string, endClock string, teacherUsername string, teacherFullname string, teacherMobile string,
 	userId string, userType models.UserType) (*models.TimedReservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
@@ -101,9 +101,9 @@ func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday st
 		return nil, errors.New("权限不足")
 	} else if len(timedReservationId) == 0 {
 		return nil, errors.New("咨询已下架")
-	} else if len(startTime) == 0 {
+	} else if len(startClock) == 0 {
 		return nil, errors.New("开始时间为空")
-	} else if len(endTime) == 0 {
+	} else if len(endClock) == 0 {
 		return nil, errors.New("结束时间为空")
 	} else if len(teacherUsername) == 0 {
 		return nil, errors.New("咨询师工号为空")
@@ -126,11 +126,11 @@ func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday st
 	if err != nil {
 		return nil, errors.New("星期格式错误")
 	}
-	start, err := utils.ParseClock(startTime)
+	start, err := utils.ParseClock(startClock)
 	if err != nil {
 		return nil, errors.New("开始时间格式错误")
 	}
-	end, err := utils.ParseClock(endTime)
+	end, err := utils.ParseClock(endClock)
 	if err != nil {
 		return nil, errors.New("结束时间格式错误")
 	}

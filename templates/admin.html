@@ -33,6 +33,12 @@
 			<input type="text" id="query_student" style="width: 100px"/>
 			<button onclick="queryStudent();">查看学生信息</button>
 		</div>
+		<div style="padding-top: 10px">
+			咨询师工作量　
+			起<input type="text" id="workload_from" style="width: 100px"/>
+			止<input type="text" id="workload_to" style="width: 100px"/>
+			<button onclick="getWorkload();">统计</button>
+		</div>
 		<div id="page_maintable">
 			
 		</div>
@@ -71,6 +77,36 @@
 				$("#export_date").val(formated);
 				$("#export_date").val($("#export_date").val().substr(4, 10));
 				$("#export_date").DatePickerHide();
+			},
+		});
+		$("#workload_from").DatePicker({
+			format: "YY-m-dd",
+			date: $("#workload_from").val(),
+			current: $("#workload_from").val(),
+			starts: 1,
+			position: "r",
+			onBeforeShow: function() {
+				$("#workload_from").DatePickerSetDate($("#workload_from").val(), true);
+			},
+			onChange: function(formated, dates) {
+				$("#workload_from").val(formated);
+				$("#workload_from").val($("#workload_from").val().substr(4, 10));
+				$("#workload_from").DatePickerHide();
+			},
+		});
+		$("#workload_to").DatePicker({
+			format: "YY-m-dd",
+			date: $("#workload_to").val(),
+			current: $("#workload_to").val(),
+			starts: 1,
+			position: "r",
+			onBeforeShow: function() {
+				$("#workload_to").DatePickerSetDate($("#workload_to").val(), true);
+			},
+			onChange: function(formated, dates) {
+				$("#workload_to").val(formated);
+				$("#workload_to").val($("#workload_to").val().substr(4, 10));
+				$("#workload_to").DatePickerHide();
 			},
 		});
 	</script>

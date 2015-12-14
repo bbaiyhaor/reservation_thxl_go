@@ -57,7 +57,7 @@ function refreshDataTable(weekday, timedReservations) {
         $("#col_select_" + weekday).append("<div class='table_cell' id='cell_select_" + weekday + "_" + i + "'>"
             + "<input class='checkbox' type='checkbox' id='cell_checkbox_" + weekday + "_" + i + "'></div>");
         $("#col_time_" + weekday).append("<div class='table_cell' id='cell_time_" + weekday + "_" + i + "' onclick='editTimedReservation(\""
-            + weekday + "\"," + i + ")'>" + timedReservations[i].start_time + "　-　" + timedReservations[i].end_time + "</div>");
+            + weekday + "\"," + i + ")'>" + timedReservations[i].start_clock + "　-　" + timedReservations[i].end_clock + "</div>");
         $("#col_teacher_fullname_" + weekday).append("<div class='table_cell' id='cell_teacher_fullname_" + weekday + "_"
             + i + "'>" + timedReservations[i].teacher_fullname + "</div>");
         $("#col_teacher_username_" + weekday).append("<div class='table_cell' id='cell_teacher_username_" + weekday + "_"
@@ -162,28 +162,28 @@ function addTimedReservation(weekday) {
 function addTimedReservationConfirm(weekday) {
     var startHour = $("#start_hour_" + weekday + "_add").val();
     var startMinute = $("#start_minute_" + weekday + "_add").val();
-    var startTime = (startHour.length < 2 ? "0" : "") + startHour + ":";
+    var startClock = (startHour.length < 2 ? "0" : "") + startHour + ":";
     if (startMinute.length == 0) {
-        startTime += "00";
+        startClock += "00";
     } else if (startMinute.length == 1) {
-        startTime += "0" + startMinute;
+        startClock += "0" + startMinute;
     } else {
-        startTime += startMinute;
+        startClock += startMinute;
     }
     var endHour = $("#end_hour_" + weekday + "_add").val();
     var endMinute = $("#end_minute_" + weekday + "_add").val();
-    var endTime = (endHour.length < 2 ? "0" : "") + endHour + ":";
+    var endClock = (endHour.length < 2 ? "0" : "") + endHour + ":";
     if (endMinute.length == 0) {
-        endTime += "00";
+        endClock += "00";
     } else if (endMinute.length == 1) {
-        endTime += "0" + endMinute;
+        endClock += "0" + endMinute;
     } else {
-        endTime += endMinute;
+        endClock += endMinute;
     }
     var payload = {
         weekday: weekday,
-        start_time: startTime,
-        end_time: endTime,
+        start_clock: startClock,
+        end_clock: endClock,
         teacher_username: $("#teacher_username_" + weekday + "_add").val(),
         teacher_fullname: $("#teacher_fullname_" + weekday + "_add").val(),
         teacher_mobile: $("#teacher_mobile_" + weekday + "_add").val(),
@@ -225,29 +225,29 @@ function editTimedReservation(weekday, index) {
 function editTimedReservationConfirm(weekday, index) {
     var startHour = $("#start_hour_" + weekday + "_" + index).val();
     var startMinute = $("#start_minute_" + weekday + "_" + index).val();
-    var startTime = (startHour.length < 2 ? "0" : "") + startHour + ":";
+    var startClock = (startHour.length < 2 ? "0" : "") + startHour + ":";
     if (startMinute.length == 0) {
-        startTime += "00";
+        startClock += "00";
     } else if (startMinute.length == 1) {
-        startTime += "0" + startMinute;
+        startClock += "0" + startMinute;
     } else {
-        startTime += startMinute;
+        startClock += startMinute;
     }
     var endHour = $("#end_hour_" + weekday + "_" + index).val();
     var endMinute = $("#end_minute_" + weekday + "_" + index).val();
-    var endTime = (endHour.length < 2 ? "0" : "") + endHour + ":";
+    var endClock = (endHour.length < 2 ? "0" : "") + endHour + ":";
     if (endMinute.length == 0) {
-        endTime += "00";
+        endClock += "00";
     } else if (endMinute.length == 1) {
-        endTime += "0" + endMinute;
+        endClock += "0" + endMinute;
     } else {
-        endTime += endMinute;
+        endClock += endMinute;
     }
     var payload = {
         timed_reservation_id: timedReservations[weekday][index].timed_reservation_id,
         weekday: weekday,
-        start_time: startTime,
-        end_time: endTime,
+        start_clock: startClock,
+        end_clock: endClock,
         teacher_username: $("#teacher_username_" + weekday + "_" + index).val(),
         teacher_fullname: $("#teacher_fullname_" + weekday + "_" + index).val(),
         teacher_mobile: $("#teacher_mobile_" + weekday + "_" + index).val(),

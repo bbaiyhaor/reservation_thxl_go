@@ -580,3 +580,19 @@ func GetTeacherWorkloadByAdmin(w http.ResponseWriter, r *http.Request, userId st
 
 	return result
 }
+
+func ExportMonthlyReportByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	monthlyDate := r.PostFormValue("monthly_date")
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var al = buslogic.AdminLogic{}
+
+	url, err := al.ExportMonthlyReportByAdmin(monthlyDate, userId, userType)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
+	result["url"] = url
+
+	return result
+}

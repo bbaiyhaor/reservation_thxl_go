@@ -2,6 +2,7 @@ package buslogic
 
 import (
 	"errors"
+	"fmt"
 	"github.com/shudiwsh2009/reservation_thxl_go/excel"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/shudiwsh2009/reservation_thxl_go/sms"
@@ -574,7 +575,7 @@ type WorkLoad struct {
 	Reservations    map[string]bool `json:"reservations"`
 }
 
-// TODO 管理员统计咨询师工作量
+// 管理员统计咨询师工作量
 func (al *AdminLogic) GetTeacherWorkloadByAdmin(fromDate string, toDate string,
 	userId string, userType models.UserType) (map[string]WorkLoad, error) {
 	if len(userId) == 0 {
@@ -625,4 +626,35 @@ func (al *AdminLogic) GetTeacherWorkloadByAdmin(fromDate string, toDate string,
 	return workload, nil
 }
 
-// TODO 管理员导出月报
+// 管理员导出月报
+func (al *AdminLogic) ExportMonthlyReportByAdmin(monthlyDate string, userId string, userType models.UserType) (string, error) {
+	if len(userId) == 0 {
+		return "", errors.New("请先登录")
+	} else if userType != models.ADMIN {
+		return "", errors.New("权限不足")
+	} else if len(monthlyDate) == 0 {
+		return "", errors.New("日期为空")
+	}
+	admin, err := models.GetAdminById(userId)
+	if err != nil || admin.UserType != models.ADMIN {
+		return "", errors.New("管理员账户出错,请联系技术支持")
+	}
+	date, err := time.ParseInLocation(utils.DATE_PATTERN, monthlyDate, utils.Location)
+	if err != nil {
+		return "", errors.New("日期格式错误")
+	}
+	from := time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, utils.Location)
+	to := from.AddDate(0, 1, 0)
+	reservations, err := models.GetReservatedReservationsBetweenTime(from, to)
+	if err != nil {
+		return "", errors.New("获取数据失败")
+	}
+	filename := fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), excel.CsvSuffix)
+	if len(reservations) == 0 {
+		return "", nil
+	}
+	if err = excel.ExportMonthlyReport(reservations, filename); err != nil {
+		return "", err
+	}
+	return "/" + excel.ExportFolder + filename, nil
+}

@@ -27,6 +27,8 @@
 			<button onclick="queryReservations();">查询</button>
 			<input type="text" id="export_date" style="width:80px;margin-left:50px"/>
 			<button onclick="exportReservations();">导出一周时间表</button>
+			<input type="text" id="monthly_report_date" style="width:80px;margin-left:50px"/>
+			<button onclick="exportMonthlyReport();">导出月报</button>
 		</div>
 		<div style="padding-top:10px">
 			请输入学生学号
@@ -77,6 +79,21 @@
 				$("#export_date").val(formated);
 				$("#export_date").val($("#export_date").val().substr(4, 10));
 				$("#export_date").DatePickerHide();
+			},
+		});
+		$("#monthly_report_date").DatePicker({
+			format: "YY-m-dd",
+			date: $("#monthly_report_date").val(),
+			current: $("#monthly_report_date").val(),
+			starts: 1,
+			position: "r",
+			onBeforeShow: function() {
+				$("#monthly_report_date").DatePickerSetDate($("#monthly_report_date").val(), true);
+			},
+			onChange: function(formated, dates) {
+				$("#monthly_report_date").val(formated);
+				$("#monthly_report_date").val($("#monthly_report_date").val().substr(4, 10));
+				$("#monthly_report_date").DatePickerHide();
 			},
 		});
 		$("#workload_from").DatePicker({

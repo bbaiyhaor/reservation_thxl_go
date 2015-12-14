@@ -872,3 +872,23 @@ Object.size = function(obj) {
 	}
 	return size;
 }
+
+function exportMonthlyReport() {
+	var payload = {
+		monthly_date: $("#monthly_report_date").val(),
+	};
+	$.ajax({
+		type: "POST",
+		async: false,
+		url: "/admin/reservation/export/report/monthly",
+		data: payload,
+		dataType: "json",
+		success: function(data) {
+			if (data.state === "SUCCESS") {
+				window.open(data.url);
+			} else {
+				alert(data.message);
+			}
+		}
+	});
+}

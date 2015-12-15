@@ -158,7 +158,7 @@ func ExportMonthlyReport(reservations []*models.Reservation, filename string) er
 			}
 			switch string(student.Username[4]) {
 			case "0":
-				grade := student.Username[2:4]
+				grade := student.Username[2:4] + "级"
 				if _, exist := report[category].UnderGraduate[grade]; !exist {
 					report[category].UnderGraduate[grade] = 0
 				}

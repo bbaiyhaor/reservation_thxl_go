@@ -686,7 +686,7 @@ function getStudent(index) {
 
 function showStudent(student, reservations) {
 	$("body").append("\
-		<div class='admin_chakan' style='text-align: left'>\
+		<div class='admin_chakan' style='text-align: left; width: 60%;'>\
 			学号：" + student.student_username + "<br>\
 			姓名：" + student.student_fullname + "<br>\
 			性别：" + student.student_gender + "<br>\

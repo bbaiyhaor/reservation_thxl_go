@@ -385,12 +385,12 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 }
 
 func ExportStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	studentUsername := r.PostFormValue("student_username")
+	studentId := r.PostFormValue("student_id")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var al = buslogic.AdminLogic{}
 
-	url, err := al.ExportStudentByAdmin(studentUsername, userId, userType)
+	url, err := al.ExportStudentByAdmin(studentId, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil

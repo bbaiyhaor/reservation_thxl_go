@@ -1,210 +1,95 @@
-package excel
+package export
 
 import (
-	"encoding/csv"
 	"errors"
 	"fmt"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxx_go/utils"
+	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"github.com/tealeg/xlsx"
-	"golang.org/x/text/encoding/simplifiedchinese"
-	"golang.org/x/text/transform"
-	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
 )
 
-const (
-	DefaultStudentExportExcelFilename   = "student_export_template.xlsx"
-	DefaultTimetableExportExcelFilename = "timetable_export_template.xlsx"
-	ExportFolder                        = "assets/export/"
-	ExcelSuffix                         = ".xlsx"
-	CsvSuffix                           = ".csv"
-)
-
-func ExportStudent(student *models.Student, filename string) error {
-	xl, err := xlsx.OpenFile(filepath.FromSlash(ExportFolder + DefaultStudentExportExcelFilename))
-	if err != nil {
-		return errors.New("导出失败：打开模板文件失败")
-	}
-	sheet := xl.Sheet["export"]
-	if sheet == nil {
-		return errors.New("导出失败：打开工作表失败")
-	}
-	var row *xlsx.Row
-	var cell *xlsx.Cell
-
+func ExportStudentInfo(student *models.Student, filename string) error {
+	data := make([][]string, 0)
 	// 学生基本信息
-	row = sheet.Rows[0]
-	cell = row.AddCell()
-	cell.SetString(student.Username)
-
-	row = sheet.Rows[1]
-	cell = row.AddCell()
-	cell.SetString(student.Fullname)
-
-	row = sheet.Rows[2]
-	cell = row.AddCell()
-	cell.SetString(student.Gender)
-
-	row = sheet.Rows[3]
-	cell = row.AddCell()
-	cell.SetString(student.Birthday)
-
-	row = sheet.Rows[4]
-	cell = row.AddCell()
-	cell.SetString(student.School)
-
-	row = sheet.Rows[5]
-	cell = row.AddCell()
-	cell.SetString(student.Grade)
-
-	row = sheet.Rows[6]
-	cell = row.AddCell()
-	cell.SetString(student.CurrentAddress)
-
-	row = sheet.Rows[7]
-	cell = row.AddCell()
-	cell.SetString(student.FamilyAddress)
-
-	row = sheet.Rows[8]
-	cell = row.AddCell()
-	cell.SetString(student.Mobile)
-
-	row = sheet.Rows[9]
-	cell = row.AddCell()
-	cell.SetString(student.Email)
-
-	row = sheet.Rows[10]
+	data = append(data, []string{"学号", student.Username})
+	data = append(data, []string{"姓名", student.Fullname})
+	data = append(data, []string{"性别", student.Gender})
+	data = append(data, []string{"出生日期", student.Birthday})
+	data = append(data, []string{"系别", student.School})
+	data = append(data, []string{"年级", student.Grade})
+	data = append(data, []string{"现住址", student.CurrentAddress})
+	data = append(data, []string{"家庭住址", student.FamilyAddress})
+	data = append(data, []string{"联系电话", student.Mobile})
+	data = append(data, []string{"Email", student.Email})
 	if !student.Experience.IsEmpty() {
-		cell = row.AddCell()
-		cell.SetString("时间")
-		cell = row.AddCell()
-		cell.SetString(student.Experience.Time)
-		cell = row.AddCell()
-		cell.SetString("地点")
-		cell = row.AddCell()
-		cell.SetString(student.Experience.Location)
-		cell = row.AddCell()
-		cell.SetString("咨询师姓名")
-		cell = row.AddCell()
-		cell.SetString(student.Experience.Teacher)
+		data = append(data, []string{"咨询经历", "时间", student.Experience.Time, "地点", student.Experience.Location,
+			"咨询师姓名", student.Experience.Teacher})
 	} else {
-		cell = row.AddCell()
-		cell.SetString("无")
+		data = append(data, []string{"咨询经历", "无"})
 	}
-
-	row = sheet.Rows[11]
-	cell = row.AddCell()
-	cell.SetString("年龄")
-	cell = row.AddCell()
-	cell.SetString(student.FatherAge)
-	cell = row.AddCell()
-	cell.SetString("职业")
-	cell = row.AddCell()
-	cell.SetString(student.FatherJob)
-	cell = row.AddCell()
-	cell.SetString("学历")
-	cell = row.AddCell()
-	cell.SetString(student.FatherEdu)
-
-	row = sheet.Rows[12]
-	cell = row.AddCell()
-	cell.SetString("年龄")
-	cell = row.AddCell()
-	cell.SetString(student.MotherAge)
-	cell = row.AddCell()
-	cell.SetString("职业")
-	cell = row.AddCell()
-	cell.SetString(student.MotherJob)
-	cell = row.AddCell()
-	cell.SetString("学历")
-	cell = row.AddCell()
-	cell.SetString(student.MotherEdu)
-
-	row = sheet.Rows[13]
-	cell = row.AddCell()
-	cell.SetString(student.ParentMarriage)
-
-	row = sheet.Rows[14]
-	cell = row.AddCell()
-	cell.SetString(student.Significant)
-
-	row = sheet.Rows[15]
-	cell = row.AddCell()
-	cell.SetString(student.Problem)
-
-	row = sheet.Rows[16]
+	data = append(data, []string{"父亲", "年龄", student.FatherAge, "职业", student.FatherJob, "学历", student.FatherEdu})
+	data = append(data, []string{"母亲", "年龄", student.MotherAge, "职业", student.MotherJob, "学历", student.MotherEdu})
+	data = append(data, []string{"父母婚姻状况", student.ParentMarriage})
+	data = append(data, []string{"在近三个月里，是否发生了对你有重大意义的事（如亲友的死亡、法律诉讼、失恋等）？", student.Significant})
+	data = append(data, []string{"你现在需要接受帮助的主要问题是什么？", student.Problem})
 	bindedTeacher, err := models.GetTeacherById(student.BindedTeacherId)
 	if err != nil {
-		cell = row.AddCell()
-		cell.SetString("无")
+		data = append(data, []string{"匹配咨询师", "无"})
 	} else {
-		cell = row.AddCell()
-		cell.SetString(bindedTeacher.Username)
-		cell = row.AddCell()
-		cell.SetString(bindedTeacher.Fullname)
+		data = append(data, []string{"匹配咨询师", bindedTeacher.Username, bindedTeacher.Fullname})
 	}
-	row = sheet.AddRow()
-
-	// 特别注意事项
+	data = append(data, []string{""})
+	data = append(data, []string{""})
 
 	//咨询小结
-	row = sheet.AddRow()
 	if reservations, err := models.GetReservationsByStudentId(student.Id.Hex()); err == nil {
 		for i, r := range reservations {
 			teacher, err := models.GetTeacherById(r.TeacherId)
 			if err != nil {
 				continue
 			}
-			row = sheet.AddRow()
-			cell = row.AddCell()
-			cell.SetString("咨询小结" + strconv.Itoa(i+1))
-
-			row = sheet.AddRow()
-			cell = row.AddCell()
-			cell.SetString("问题评估")
-			cell = row.AddCell()
-			cell.SetString(r.TeacherFeedback.Problem)
-
-			row = sheet.AddRow()
-			cell = row.AddCell()
-			cell.SetString("咨询师")
-			cell = row.AddCell()
-			cell.SetString(teacher.Fullname)
-
-			row = sheet.AddRow()
-			cell = row.AddCell()
-			cell.SetString("咨询日期")
-			cell = row.AddCell()
-			cell.SetString(r.StartTime.In(utils.Location).Format(utils.DATE_PATTERN))
-
-			row = sheet.AddRow()
-			cell = row.AddCell()
-			cell.SetString("咨询记录")
-			cell = row.AddCell()
-			cell.SetString(r.TeacherFeedback.Record)
-
-			row = sheet.AddRow()
-			cell = row.AddCell()
-			cell.SetString("来访者反馈")
-			for _, s := range r.StudentFeedback.Scores {
-				cell = row.AddCell()
-				cell.SetInt(s)
+			data = append(data, []string{"咨询小结" + strconv.Itoa(i+1)})
+			data = append(data, []string{"咨询师", teacher.Username, teacher.Fullname})
+			data = append(data, []string{"咨询日期", r.StartTime.In(utils.Location).Format(utils.DATE_PATTERN)})
+			if !r.TeacherFeedback.IsEmpty() {
+				data = append(data, []string{"评估分类", models.FeedbackAllCategory[r.TeacherFeedback.Category]})
+				participants := []string{"出席人员"}
+				if r.TeacherFeedback.Participants[0] > 0 {
+					participants = append(participants, "学生")
+				}
+				if r.TeacherFeedback.Participants[1] > 0 {
+					participants = append(participants, "家长")
+				}
+				if r.TeacherFeedback.Participants[2] > 0 {
+					participants = append(participants, "教师")
+				}
+				if r.TeacherFeedback.Participants[3] > 0 {
+					participants = append(participants, "辅导员")
+				}
+				data = append(data, participants)
+				data = append(data, []string{"问题评估", r.TeacherFeedback.Problem})
+				data = append(data, []string{"咨询记录", r.TeacherFeedback.Record})
+			}
+			if !r.StudentFeedback.IsEmpty() {
+				scores := []string{"来访者反馈"}
+				for _, s := range r.StudentFeedback.Scores {
+					scores = append(scores, strconv.Itoa(s))
+				}
+				data = append(data, scores)
 			}
 		}
 	}
-
-	err = xl.Save(filepath.FromSlash(ExportFolder + filename))
-	if err != nil {
-		return errors.New("导出失败：保存文件失败")
+	if err := utils.WriteToCSV(data, filename); err != nil {
+		return err
 	}
 	return nil
 }
 
 func ExportReservationTimetable(reservations []*models.Reservation, filename string) error {
-	xl, err := xlsx.OpenFile(filepath.FromSlash(ExportFolder + DefaultTimetableExportExcelFilename))
+	xl, err := xlsx.OpenFile(filepath.FromSlash(utils.ExportFolder + utils.DefaultTimetableExportExcelFilename))
 	if err != nil {
 		return errors.New("导出失败：打开模板文件失败")
 	}
@@ -229,14 +114,14 @@ func ExportReservationTimetable(reservations []*models.Reservation, filename str
 		cell.SetString(teacher.Fullname)
 	}
 
-	err = xl.Save(filepath.FromSlash(ExportFolder + filename))
+	err = xl.Save(filepath.FromSlash(utils.ExportFolder + filename))
 	if err != nil {
 		return errors.New("导出失败：保存文件失败")
 	}
 	return nil
 }
 
-type CategoryReport struct {
+type MonthlyReport struct {
 	Category      string
 	UnderGraduate map[string]int
 	Master        int
@@ -250,14 +135,14 @@ type CategoryReport struct {
 }
 
 func ExportMonthlyReport(reservations []*models.Reservation, filename string) error {
-	report := make(map[string]*CategoryReport)
+	report := make(map[string]*MonthlyReport)
 	for index, category := range models.FeedbackAllCategory {
-		report[index] = &CategoryReport{
+		report[index] = &MonthlyReport{
 			Category:      models.FeedbackAllCategory[category],
 			UnderGraduate: make(map[string]int),
 		}
 	}
-	amount := &CategoryReport{
+	amount := &MonthlyReport{
 		UnderGraduate: make(map[string]int),
 	}
 	for _, r := range reservations {
@@ -337,14 +222,15 @@ func ExportMonthlyReport(reservations []*models.Reservation, filename string) er
 	}
 	sort.Sort(sort.StringSlice(categories))
 
+	data := make([][]string, 0)
 	// csv的表头
 	head := []string{""}
 	for _, g := range grades {
 		head = append(head, g)
 	}
 	head = append(head, "硕", "博", "合计（男）", "合计（女）", "家长", "教师", "辅导员", "总计", "百分比")
+	data = append(data, head)
 	// csv的数据
-	data := make([][]string, 0)
 	for _, category := range categories {
 		line := []string{models.FeedbackAllCategory[category]}
 		for _, g := range grades {
@@ -385,6 +271,7 @@ func ExportMonthlyReport(reservations []*models.Reservation, filename string) er
 		line = append(line, fmt.Sprintf("%#.02f%%", float64(report[category].Amount)/(float64(amount.Amount)/float64(100))))
 		data = append(data, line)
 	}
+	// csv的总计行和百分比行
 	amountLine := []string{"总计"}
 	percentLine := []string{"百分比"}
 	for _, g := range grades {
@@ -408,16 +295,8 @@ func ExportMonthlyReport(reservations []*models.Reservation, filename string) er
 	amountLine = append(amountLine, strconv.Itoa(amount.Amount))
 	data = append(data, amountLine)
 	data = append(data, percentLine)
-	// 写入文件
-	fout, err := os.Create(filepath.FromSlash(ExportFolder + filename))
-	if err != nil {
-		return errors.New("建立月报文件失败")
+	if err := utils.WriteToCSV(data, filename); err != nil {
+		return err
 	}
-	defer fout.Close()
-	w := csv.NewWriter(transform.NewWriter(fout, simplifiedchinese.GB18030.NewEncoder()))
-	w.UseCRLF = true
-	w.Write(head)
-	w.WriteAll(data)
-	w.Flush()
 	return nil
 }

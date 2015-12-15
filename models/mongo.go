@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"time"
@@ -17,6 +18,9 @@ Student
 */
 
 func AddStudent(username string, password string) (*Student, error) {
+	if len(username) == 0 || len(password) == 0 {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("student")
 	newStudent := &Student{
 		Id:       bson.NewObjectId(),
@@ -31,12 +35,18 @@ func AddStudent(username string, password string) (*Student, error) {
 }
 
 func UpsertStudent(student *Student) error {
+	if student == nil || !student.Id.Valid() {
+		return errors.New("字段不合法")
+	}
 	collection := Mongo.C("student")
 	_, err := collection.UpsertId(student.Id, student)
 	return err
 }
 
 func GetStudentById(studentId string) (*Student, error) {
+	if len(studentId) == 0 || !bson.IsObjectIdHex(studentId) {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("student")
 	student := &Student{}
 	if err := collection.FindId(bson.ObjectIdHex(studentId)).One(student); err != nil {
@@ -46,6 +56,9 @@ func GetStudentById(studentId string) (*Student, error) {
 }
 
 func GetStudentByUsername(username string) (*Student, error) {
+	if len(username) == 0 {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("student")
 	student := &Student{}
 	if err := collection.Find(bson.M{"username": username}).One(student); err != nil {
@@ -59,6 +72,9 @@ Teacher
 */
 
 func AddTeacher(username string, password string, fullname string, mobile string) (*Teacher, error) {
+	if len(username) == 0 || len(password) == 0 || len(fullname) == 0 || len(mobile) == 0 {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("teacher")
 	newTeacher := &Teacher{
 		Id:       bson.NewObjectId(),
@@ -75,12 +91,18 @@ func AddTeacher(username string, password string, fullname string, mobile string
 }
 
 func UpsertTeacher(teacher *Teacher) error {
+	if teacher == nil || !teacher.Id.Valid() {
+		return errors.New("字段不合法")
+	}
 	collection := Mongo.C("teacher")
 	_, err := collection.UpsertId(teacher.Id, teacher)
 	return err
 }
 
 func GetTeacherById(teacherId string) (*Teacher, error) {
+	if len(teacherId) == 0 || !bson.IsObjectIdHex(teacherId) {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("teacher")
 	teacher := &Teacher{}
 	if err := collection.FindId(bson.ObjectIdHex(teacherId)).One(teacher); err != nil {
@@ -90,6 +112,9 @@ func GetTeacherById(teacherId string) (*Teacher, error) {
 }
 
 func GetTeacherByUsername(username string) (*Teacher, error) {
+	if len(username) == 0 {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("teacher")
 	teacher := &Teacher{}
 	if err := collection.Find(bson.M{"username": username}).One(teacher); err != nil {
@@ -99,6 +124,9 @@ func GetTeacherByUsername(username string) (*Teacher, error) {
 }
 
 func GetTeacherByFullname(fullname string) (*Teacher, error) {
+	if len(fullname) == 0 {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("teacher")
 	teacher := &Teacher{}
 	if err := collection.Find(bson.M{"fullname": fullname}).One(teacher); err != nil {
@@ -108,6 +136,9 @@ func GetTeacherByFullname(fullname string) (*Teacher, error) {
 }
 
 func GetTeacherByMobile(mobile string) (*Teacher, error) {
+	if len(mobile) == 0 {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("teacher")
 	teacher := &Teacher{}
 	if err := collection.Find(bson.M{"mobile": mobile}).One(teacher); err != nil {
@@ -121,6 +152,9 @@ Admin
 */
 
 func AddAdmin(username string, password string) (*Admin, error) {
+	if len(username) == 0 || len(password) == 0 {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("admin")
 	newAdmin := &Admin{
 		Id:       bson.NewObjectId(),
@@ -135,12 +169,18 @@ func AddAdmin(username string, password string) (*Admin, error) {
 }
 
 func UpsertAdmin(admin *Admin) error {
+	if admin == nil || !admin.Id.Valid() {
+		return errors.New("字段不合法")
+	}
 	collection := Mongo.C("admin")
 	_, err := collection.UpsertId(admin.Id, admin)
 	return err
 }
 
 func GetAdminById(adminId string) (*Admin, error) {
+	if len(adminId) == 0 || !bson.IsObjectIdHex(adminId) {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("admin")
 	admin := &Admin{}
 	if err := collection.FindId(bson.ObjectIdHex(adminId)).One(admin); err != nil {
@@ -150,6 +190,9 @@ func GetAdminById(adminId string) (*Admin, error) {
 }
 
 func GetAdminByUsername(username string) (*Admin, error) {
+	if len(username) == 0 {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("admin")
 	admin := &Admin{}
 	if err := collection.Find(bson.M{"username": username}).One(admin); err != nil {
@@ -183,12 +226,18 @@ func AddReservation(startTime time.Time, endTime time.Time, source ReservationSo
 }
 
 func UpsertReservation(reservation *Reservation) error {
+	if reservation == nil || !reservation.Id.Valid() {
+		return errors.New("字段不合法")
+	}
 	collection := Mongo.C("reservation")
 	_, err := collection.UpsertId(reservation.Id, reservation)
 	return err
 }
 
 func GetReservationById(id string) (*Reservation, error) {
+	if len(id) == 0 || !bson.IsObjectIdHex(id) {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("reservation")
 	reservation := &Reservation{}
 	if err := collection.FindId(bson.ObjectIdHex(id)).One(reservation); err != nil {
@@ -198,6 +247,9 @@ func GetReservationById(id string) (*Reservation, error) {
 }
 
 func GetReservationsByStudentId(studentId string) ([]*Reservation, error) {
+	if len(studentId) == 0 || !bson.IsObjectIdHex(studentId) {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("reservation")
 	var reservations []*Reservation
 	if err := collection.Find(bson.M{"student_id": studentId,
@@ -259,12 +311,18 @@ func AddTimedReservation(weekday time.Weekday, startTime time.Time, endTime time
 }
 
 func UpsertTimedReservation(timedReservation *TimedReservation) error {
+	if timedReservation == nil || !timedReservation.Id.Valid() {
+		return errors.New("字段不合法")
+	}
 	collection := Mongo.C("timetable")
 	_, err := collection.UpsertId(timedReservation.Id, timedReservation)
 	return err
 }
 
 func GetTimedReservationById(timedReservtionId string) (*TimedReservation, error) {
+	if len(timedReservtionId) == 0 || !bson.IsObjectIdHex(timedReservtionId) {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("timetable")
 	timedReservation := &TimedReservation{}
 	if err := collection.FindId(bson.ObjectIdHex(timedReservtionId)).One(timedReservation); err != nil {
@@ -293,6 +351,9 @@ func GetTimedReservationsByWeekday(weekday time.Weekday) ([]*TimedReservation, e
 }
 
 func GetTimedReservationsByTeacherId(teacherId string) ([]*TimedReservation, error) {
+	if len(teacherId) == 0 || !bson.IsObjectIdHex(teacherId) {
+		return nil, errors.New("字段不合法")
+	}
 	collection := Mongo.C("timetable")
 	var timedReservations []*TimedReservation
 	if err := collection.Find(bson.M{"teacher_id": teacherId,

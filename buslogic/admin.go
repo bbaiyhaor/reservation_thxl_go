@@ -3,7 +3,7 @@ package buslogic
 import (
 	"errors"
 	"fmt"
-	"github.com/shudiwsh2009/reservation_thxl_go/excel"
+	"github.com/shudiwsh2009/reservation_thxl_go/export"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/shudiwsh2009/reservation_thxl_go/sms"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
@@ -417,11 +417,11 @@ func (al *AdminLogic) ExportStudentByAdmin(studentId string, userId string, user
 	if err != nil {
 		return "", errors.New("学生未注册")
 	}
-	filename := "student_" + student.Username + "_" + utils.GetNow().Format(utils.DATE_PATTERN) + excel.ExcelSuffix
-	if err = excel.ExportStudent(student, filename); err != nil {
+	filename := "student_" + student.Username + "_" + utils.GetNow().Format(utils.DATE_PATTERN) + utils.CsvSuffix
+	if err = export.ExportStudentInfo(student, filename); err != nil {
 		return "", err
 	}
-	return "/" + excel.ExportFolder + filename, nil
+	return "/" + utils.ExportFolder + filename, nil
 }
 
 // 管理员解绑学生的匹配咨询师
@@ -522,14 +522,14 @@ func (al *AdminLogic) ExportReservationTimetable(fromTime string, userId string,
 	if err != nil {
 		return "", errors.New("获取数据失败")
 	}
-	filename := "timetable_" + fromTime + excel.ExcelSuffix
+	filename := "timetable_" + fromTime + utils.ExcelSuffix
 	if len(reservations) == 0 {
 		return "", nil
 	}
-	if err = excel.ExportReservationTimetable(reservations, filename); err != nil {
+	if err = export.ExportReservationTimetable(reservations, filename); err != nil {
 		return "", err
 	}
-	return "/" + excel.ExportFolder + filename, nil
+	return "/" + utils.ExportFolder + filename, nil
 }
 
 // 查找咨询师
@@ -649,12 +649,12 @@ func (al *AdminLogic) ExportMonthlyReportByAdmin(monthlyDate string, userId stri
 	if err != nil {
 		return "", errors.New("获取数据失败")
 	}
-	filename := fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), excel.CsvSuffix)
+	filename := fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), utils.CsvSuffix)
 	if len(reservations) == 0 {
 		return "", nil
 	}
-	if err = excel.ExportMonthlyReport(reservations, filename); err != nil {
+	if err = export.ExportMonthlyReport(reservations, filename); err != nil {
 		return "", err
 	}
-	return "/" + excel.ExportFolder + filename, nil
+	return "/" + utils.ExportFolder + filename, nil
 }

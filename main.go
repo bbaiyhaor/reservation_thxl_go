@@ -139,6 +139,8 @@ func main() {
 	adminRouter.HandleFunc("/timetable/add", handleWithCookie(controllers.AddTimedReservationByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/timetable/edit", handleWithCookie(controllers.EditTimedReservationByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/timetable/remove", handleWithCookie(controllers.RemoveTimedReservationsByAdmin)).Methods("POST")
+	adminRouter.HandleFunc("/timetable/open", handleWithCookie(controllers.OpenTimedReservationsByAdmin)).Methods("POST")
+	adminRouter.HandleFunc("/timetable/close", handleWithCookie(controllers.CloseTimedReservationsByAdmin)).Methods("POST")
 	adminRouter.HandleFunc("/reservation/view", handleWithCookie(controllers.ViewReservationsByAdmin)).Methods("GET")
 	adminRouter.HandleFunc("/reservation/view/monthly", handleWithCookie(controllers.ViewMonthlyReservationsByAdmin)).Methods("GET")
 	adminRouter.HandleFunc("/reservation/export", handleWithCookie(controllers.ExportReservationsByAdmin)).Methods("POST")

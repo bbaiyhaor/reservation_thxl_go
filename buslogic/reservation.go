@@ -53,6 +53,9 @@ func (rl *ReservationLogic) GetReservationsByStudent(userId string, userType mod
 	}
 	today := utils.GetToday()
 	for _, tr := range timedReservations {
+		if tr.Status != models.AVAILABLE {
+			continue
+		}
 		if len(student.BindedTeacherId) != 0 && !strings.EqualFold(student.BindedTeacherId, tr.TeacherId) {
 			continue
 		}
@@ -130,6 +133,9 @@ func (rl *ReservationLogic) GetReservationsByAdmin(userId string, userType model
 	}
 	today := utils.GetToday()
 	for _, tr := range timedReservations {
+		if tr.Status != models.AVAILABLE {
+			continue
+		}
 		minusWeekday := int(tr.Weekday - today.Weekday())
 		if minusWeekday < 0 {
 			minusWeekday += 7

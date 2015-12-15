@@ -154,6 +154,7 @@ func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday st
 	timedReservation.Weekday = week
 	timedReservation.StartTime = start
 	timedReservation.EndTime = end
+	timedReservation.Status = models.CLOSED
 	timedReservation.TeacherId = teacher.Id.Hex()
 	if err = models.UpsertTimedReservation(timedReservation); err != nil {
 		return nil, errors.New("获取数据失败")
@@ -182,4 +183,54 @@ func (al *AdminLogic) RemoveTimetablesByAdmin(timedReservationIds []string, user
 		}
 	}
 	return removed, nil
+}
+
+// 管理员开启时间表
+func (al *AdminLogic) OpenTimetablesByAdmin(timedReservationIds []string, userId string, userType models.UserType) (int, error) {
+	if len(userId) == 0 {
+		return 0, errors.New("请先登录")
+	} else if userType != models.ADMIN {
+		return 0, errors.New("权限不足")
+	}
+	admin, err := models.GetAdminById(userId)
+	if err != nil || admin.UserType != models.ADMIN {
+		return 0, errors.New("管理员账户出错，请联系技术支持")
+	}
+	opened := 0
+	for _, id := range timedReservationIds {
+		if timedReservation, err := models.GetTimedReservationById(id); err == nil {
+			if timedReservation.Status == models.CLOSED {
+				timedReservation.Status = models.AVAILABLE
+				if err = models.UpsertTimedReservation(timedReservation); err == nil {
+					opened++
+				}
+			}
+		}
+	}
+	return opened, nil
+}
+
+// 管理员关闭时间表
+func (al *AdminLogic) CloseTimetablesByAdmin(timedReservationIds []string, userId string, userType models.UserType) (int, error) {
+	if len(userId) == 0 {
+		return 0, errors.New("请先登录")
+	} else if userType != models.ADMIN {
+		return 0, errors.New("权限不足")
+	}
+	admin, err := models.GetAdminById(userId)
+	if err != nil || admin.UserType != models.ADMIN {
+		return 0, errors.New("管理员账户出错，请联系技术支持")
+	}
+	closed := 0
+	for _, id := range timedReservationIds {
+		if timedReservation, err := models.GetTimedReservationById(id); err == nil {
+			if timedReservation.Status == models.AVAILABLE {
+				timedReservation.Status = models.CLOSED
+				if err = models.UpsertTimedReservation(timedReservation); err == nil {
+					closed++
+				}
+			}
+		}
+	}
+	return closed, nil
 }

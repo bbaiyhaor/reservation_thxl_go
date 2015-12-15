@@ -65,14 +65,18 @@ function refreshDataTable(weekday, timedReservations) {
         $("#col_teacher_mobile_" + weekday).append("<div class='table_cell' id='cell_teacher_mobile_" + weekday + "_"
             + i + "'>" + timedReservations[i].teacher_mobile + "</div>");
         if (timedReservations[i].status === "AVAILABLE") {
-            $("#col_status_" + weekday).append("<div class='table_cell' id='cell_status_" + weekday + "_" + i + "'>生效</div>");
+            $("#col_status_" + weekday).append("<div class='table_cell' id='cell_status_" + weekday + "_" + i + "'" +
+                "style='background-color: greenyellow'>生效</div>");
             $("#col_operation_" + weekday).append("<div class='table_cell' id='cell_operation_" + weekday + "_" + + i + "'>"
-                + "<button type='button' id='cell_operation_oper_" + weekday + "_" + + i + "' closeTimedReservation='(" + i + ");' disabled='true'>关闭"
+                + "<button type='button' id='cell_operation_oper_" + weekday + "_" + + i + "' onclick='closeTimedReservation(\""
+                + weekday + "\"," + i + ");'>关闭"
                 + "</button></div>");
         } else {
-            $("#col_status_" + weekday).append("<div class='table_cell' id='cell_status_" + weekday + "_" + i + "'>关闭</div>");
+            $("#col_status_" + weekday).append("<div class='table_cell' id='cell_status_" + weekday + "_" + i + "'" +
+                "style='background-color: red'>关闭</div>");
             $("#col_operation_" + weekday).append("<div class='table_cell' id='cell_operation_" + weekday + "_" + + i + "'>"
-                + "<button type='button' id='cell_operation_oper_" + weekday + "_" + + i + "' openTimedReservation='(" + i + ");' disabled='true'>打开"
+                + "<button type='button' id='cell_operation_oper_" + weekday + "_" + + i + "' onclick='openTimedReservation(\""
+                + weekday + "\"," + i + ");'>打开"
                 + "</button></div>");
         }
     }
@@ -118,7 +122,7 @@ function optimize(weekday, t) {
             $("#cell_teacher_fullname_" + weekday + "_" + i).css("background-color", "white");
             $("#cell_teacher_username_" + weekday + "_" + i).css("background-color", "white");
             $("#cell_teacher_mobile_" + weekday + "_" + i).css("background-color", "white");
-            $("#cell_status_" + weekday + "_" + i).css("background-color", "white");
+            //$("#cell_status_" + weekday + "_" + i).css("background-color", "white");
             $("#cell_operation_" + weekday + "_" + i).css("background-color", "white");
         } else {
             $("#cell_select_" + weekday + "_" + i).css("background-color", "#f3f3ff");
@@ -126,7 +130,7 @@ function optimize(weekday, t) {
             $("#cell_teacher_fullname_" + weekday + "_" + i).css("background-color", "#f3f3ff");
             $("#cell_teacher_username_" + weekday + "_" + i).css("background-color", "#f3f3ff");
             $("#cell_teacher_mobile_" + weekday + "_" + i).css("background-color", "#f3f3ff");
-            $("#cell_status_" + weekday + "_" + i).css("background-color", "#f3f3ff");
+            //$("#cell_status_" + weekday + "_" + i).css("background-color", "#f3f3ff");
             $("#cell_operation_" + weekday + "_" + i).css("background-color", "#f3f3ff");
         }
     }
@@ -320,6 +324,138 @@ function removeReservationsConfirm() {
         type: "POST",
         async: false,
         url: "/admin/timetable/remove",
+        data: payload,
+        traditional: true,
+        dataType: "json",
+        success: function(data) {
+            if (data.state === "SUCCESS") {
+                viewTimedReservations();
+            } else {
+                alert(data.message);
+            }
+        }
+    });
+}
+
+function openTimedReservations() {
+    $("body").append("\
+		<div class='delete_admin_pre'>\
+			确认打开选中的预设咨询？\
+			<br>\
+			<button type='button' onclick='$(\".delete_admin_pre\").remove();openReservationsConfirm();'>确认</button>\
+			<button type='button' onclick='$(\".delete_admin_pre\").remove();'>取消</button>\
+		</div>\
+	");
+    optimize("Monday", ".delete_admin_pre");
+}
+
+function openReservationsConfirm() {
+    var timedReservationIds = [];
+    for (var weekday in timedReservations) {
+        if (timedReservations.hasOwnProperty(weekday)) {
+            for (var i = 0; i < timedReservations[weekday].length; ++i) {
+                if ($("#cell_checkbox_" + weekday + "_" + i)[0].checked) {
+                    timedReservationIds.push(timedReservations[weekday][i].timed_reservation_id);
+                }
+            }
+        }
+    }
+    var payload = {
+        timed_reservation_ids: timedReservationIds,
+    };
+    $.ajax({
+        type: "POST",
+        async: false,
+        url: "/admin/timetable/open",
+        data: payload,
+        traditional: true,
+        dataType: "json",
+        success: function(data) {
+            if (data.state === "SUCCESS") {
+                viewTimedReservations();
+            } else {
+                alert(data.message);
+            }
+        }
+    });
+}
+
+function closeTimedReservations() {
+    $("body").append("\
+		<div class='delete_admin_pre'>\
+			确认关闭选中的预设咨询？\
+			<br>\
+			<button type='button' onclick='$(\".delete_admin_pre\").remove();closeReservationsConfirm();'>确认</button>\
+			<button type='button' onclick='$(\".delete_admin_pre\").remove();'>取消</button>\
+		</div>\
+	");
+    optimize("Monday", ".delete_admin_pre");
+}
+
+function closeReservationsConfirm() {
+    var timedReservationIds = [];
+    for (var weekday in timedReservations) {
+        if (timedReservations.hasOwnProperty(weekday)) {
+            for (var i = 0; i < timedReservations[weekday].length; ++i) {
+                if ($("#cell_checkbox_" + weekday + "_" + i)[0].checked) {
+                    timedReservationIds.push(timedReservations[weekday][i].timed_reservation_id);
+                }
+            }
+        }
+    }
+    var payload = {
+        timed_reservation_ids: timedReservationIds,
+    };
+    $.ajax({
+        type: "POST",
+        async: false,
+        url: "/admin/timetable/close",
+        data: payload,
+        traditional: true,
+        dataType: "json",
+        success: function(data) {
+            if (data.state === "SUCCESS") {
+                viewTimedReservations();
+            } else {
+                alert(data.message);
+            }
+        }
+    });
+}
+
+function openTimedReservation(weekday, index) {
+    var timedReservationIds = [];
+    timedReservationIds.push(timedReservations[weekday][index].timed_reservation_id);
+    var payload = {
+        timed_reservation_ids: timedReservationIds,
+    };
+    $.ajax({
+        type: "POST",
+        async: false,
+        url: "/admin/timetable/open",
+        data: payload,
+        traditional: true,
+        dataType: "json",
+        success: function(data) {
+            if (data.state === "SUCCESS") {
+                viewTimedReservations();
+            } else {
+                alert(data.message);
+            }
+        }
+    });
+}
+
+function closeTimedReservation(weekday, index) {
+    var timedReservationIds = [];
+    timedReservationIds.push(timedReservations[weekday][index].timed_reservation_id);
+    var payload = {
+        timed_reservation_ids: timedReservationIds,
+    };
+    $.ajax({
+        type: "POST",
+        async: false,
+        url: "/admin/timetable/close",
         data: payload,
         traditional: true,
         dataType: "json",

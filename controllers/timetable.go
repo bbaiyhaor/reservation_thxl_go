@@ -129,3 +129,37 @@ func RemoveTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, user
 
 	return result
 }
+
+func OpenTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	r.ParseForm()
+	timedReservationIds := []string(r.Form["timed_reservation_ids"])
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var al = buslogic.AdminLogic{}
+
+	opened, err := al.OpenTimetablesByAdmin(timedReservationIds, userId, userType)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
+	result["opened_count"] = opened
+
+	return result
+}
+
+func CloseTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	r.ParseForm()
+	timedReservationIds := []string(r.Form["timed_reservation_ids"])
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var al = buslogic.AdminLogic{}
+
+	closed, err := al.CloseTimetablesByAdmin(timedReservationIds, userId, userType)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
+	result["closed_count"] = closed
+
+	return result
+}

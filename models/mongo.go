@@ -300,7 +300,7 @@ func AddTimedReservation(weekday time.Weekday, startTime time.Time, endTime time
 		Weekday:    weekday,
 		StartTime:  startTime,
 		EndTime:    endTime,
-		Status:     AVAILABLE,
+		Status:     CLOSED,
 		TeacherId:  teacherId,
 		Exceptions: make(map[string]bool),
 	}

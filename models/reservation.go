@@ -14,6 +14,7 @@ const (
 	RESERVATED
 	FEEDBACK
 	DELETED
+	CLOSED
 )
 
 var reservationStatuses = [...]string{
@@ -21,6 +22,7 @@ var reservationStatuses = [...]string{
 	"RESERVATED",
 	"FEEDBACK",
 	"DELETED",
+	"CLOSED",
 }
 
 func (rs ReservationStatus) String() string {

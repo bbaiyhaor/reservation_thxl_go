@@ -303,7 +303,7 @@ func AddTimedReservation(weekday time.Weekday, startTime time.Time, endTime time
 		Status:     CLOSED,
 		TeacherId:  teacherId,
 		Exceptions: make(map[string]bool),
-		Timed: make(map[string]bool),
+		Timed:      make(map[string]bool),
 	}
 	if err := collection.Insert(timedReservation); err != nil {
 		return nil, err

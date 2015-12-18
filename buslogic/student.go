@@ -3,8 +3,8 @@ package buslogic
 import (
 	"errors"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxl_go/workflow"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
+	"github.com/shudiwsh2009/reservation_thxl_go/workflow"
 	"strings"
 	"time"
 )

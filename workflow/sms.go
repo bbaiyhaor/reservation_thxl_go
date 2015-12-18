@@ -88,16 +88,14 @@ func sendSMS(mobile string, content string) error {
 		return errors.New("手机号格式不正确")
 	}
 	appEnv := os.Getenv("RESERVATION_THXL_ENV")
-	uid := os.Getenv("RESERVATION_THXL_SMS_UID")
-	key := os.Getenv("RESERVATION_THXL_SMS_KEY")
-	if !strings.EqualFold(appEnv, "ONLINE") || len(uid) == 0 || len(key) == 0 {
+	if !strings.EqualFold(appEnv, "ONLINE") {
 		fmt.Printf("Send SMS: \"%s\" to %s.\n", content, mobile)
 		return nil
 	}
 	requestUrl := "http://utf8.sms.webchinese.cn"
 	payload := url.Values{
-		"Uid":     {uid},
-		"Key":     {key},
+		"Uid":     {utils.SMS_UID},
+		"Key":     {utils.SMS_KEY},
 		"smsMob":  {mobile},
 		"smsText": {content},
 	}

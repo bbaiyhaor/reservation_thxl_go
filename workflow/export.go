@@ -1,12 +1,9 @@
-package export
+package workflow
 
 import (
-	"errors"
 	"fmt"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
-	"github.com/tealeg/xlsx"
-	"path/filepath"
 	"sort"
 	"strconv"
 )
@@ -88,35 +85,25 @@ func ExportStudentInfo(student *models.Student, filename string) error {
 	return nil
 }
 
-func ExportReservationTimetable(reservations []*models.Reservation, filename string) error {
-	xl, err := xlsx.OpenFile(filepath.FromSlash(utils.ExportFolder + utils.DefaultTimetableExportExcelFilename))
-	if err != nil {
-		return errors.New("导出失败：打开模板文件失败")
-	}
-	sheet := xl.Sheet["export"]
-	if sheet == nil {
-		return errors.New("导出失败：打开工作表失败")
-	}
-	var row *xlsx.Row
-	var cell *xlsx.Cell
-
+func ExportTodayReservationTimetable(reservations []*models.Reservation, filename string) error {
+	data := make([][]string, 0)
+	today := utils.GetToday()
+	data = append(data, []string{today.Format(utils.DATE_PATTERN)})
+	data = append(data, []string{"时间", "咨询师", "学生姓名", "联系方式"})
 	for _, r := range reservations {
 		teacher, err := models.GetTeacherById(r.TeacherId)
 		if err != nil {
-			return nil
+			continue
 		}
-		row = sheet.AddRow()
-		cell = row.AddCell()
-		cell.SetString(r.StartTime.In(utils.Location).Format(utils.TIME_PATTERN))
-		cell = row.AddCell()
-		cell.SetString(r.EndTime.In(utils.Location).Format(utils.TIME_PATTERN))
-		cell = row.AddCell()
-		cell.SetString(teacher.Fullname)
+		student, err := models.GetStudentById(r.StudentId)
+		if err != nil {
+			continue
+		}
+		data = append(data, []string{r.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN) + " - " + r.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN),
+			teacher.Fullname, student.Fullname, student.Mobile})
 	}
-
-	err = xl.Save(filepath.FromSlash(utils.ExportFolder + filename))
-	if err != nil {
-		return errors.New("导出失败：保存文件失败")
+	if err := utils.WriteToCSV(data, filename); err != nil {
+		return err
 	}
 	return nil
 }

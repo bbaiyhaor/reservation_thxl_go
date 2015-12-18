@@ -3,12 +3,12 @@ package buslogic
 import (
 	"errors"
 	"fmt"
-	"github.com/shudiwsh2009/reservation_thxl_go/export"
+	"github.com/shudiwsh2009/reservation_thxl_go/workflow"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxl_go/sms"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"strings"
 	"time"
+	"sort"
 )
 
 type AdminLogic struct {
@@ -298,7 +298,7 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId strin
 		return nil, errors.New("获取数据失败")
 	}
 	if sendFeedbackSMS && participants[0] > 0 {
-		sms.SendFeedbackSMS(reservation)
+		workflow.SendFeedbackSMS(reservation)
 	}
 	return reservation, nil
 }
@@ -418,7 +418,7 @@ func (al *AdminLogic) ExportStudentByAdmin(studentId string, userId string, user
 		return "", errors.New("学生未注册")
 	}
 	filename := "student_" + student.Username + "_" + utils.GetNow().Format(utils.DATE_PATTERN) + utils.CsvSuffix
-	if err = export.ExportStudentInfo(student, filename); err != nil {
+	if err = workflow.ExportStudentInfo(student, filename); err != nil {
 		return "", err
 	}
 	return "/" + utils.ExportFolder + filename, nil
@@ -502,8 +502,8 @@ func (al *AdminLogic) QueryStudentInfoByAdmin(studentUsername string,
 	return student, reservations, nil
 }
 
-// TODO 管理员导出一周时间表
-func (al *AdminLogic) ExportReservationTimetable(fromTime string, userId string, userType models.UserType) (string, error) {
+// 管理员导出当天时间表
+func (al *AdminLogic) ExportTodayReservationTimetableByAdmin(userId string, userType models.UserType) (string, error) {
 	if len(userId) == 0 {
 		return "", errors.New("请先登录")
 	} else if userType != models.ADMIN {
@@ -513,20 +513,26 @@ func (al *AdminLogic) ExportReservationTimetable(fromTime string, userId string,
 	if err != nil || admin.UserType != models.ADMIN {
 		return "", errors.New("管理员账户出错,请联系技术支持")
 	}
-	from, err := time.ParseInLocation(utils.DATE_PATTERN, fromTime, utils.Location)
-	if err != nil {
-		return "", errors.New("开始时间格式错误")
-	}
-	to := from.AddDate(0, 0, 7)
-	reservations, err := models.GetReservatedReservationsBetweenTime(from, to)
+	today := utils.GetToday()
+	tomorrow := today.AddDate(0, 0, 1)
+	reservations, err := models.GetReservationsBetweenTime(today, tomorrow)
 	if err != nil {
 		return "", errors.New("获取数据失败")
 	}
-	filename := "timetable_" + fromTime + utils.ExcelSuffix
-	if len(reservations) == 0 {
-		return "", nil
+	todayDate := today.Format(utils.DATE_PATTERN)
+	if timedReservations, err := models.GetTimedReservationsByWeekday(today.Weekday()); err == nil {
+		for _, tr := range timedReservations {
+			if !tr.Exceptions[todayDate] && !tr.Timed[todayDate] {
+				reservations = append(reservations, tr.ToReservation(today))
+			}
+		}
 	}
-	if err = export.ExportReservationTimetable(reservations, filename); err != nil {
+	sort.Sort(models.ReservationSlice(reservations))
+	filename := "timetable_" + todayDate + utils.CsvSuffix
+	if len(reservations) == 0 {
+		return "", errors.New("今日无咨询")
+	}
+	if err = workflow.ExportTodayReservationTimetable(reservations, filename); err != nil {
 		return "", err
 	}
 	return "/" + utils.ExportFolder + filename, nil
@@ -653,7 +659,7 @@ func (al *AdminLogic) ExportMonthlyReportByAdmin(monthlyDate string, userId stri
 	if len(reservations) == 0 {
 		return "", nil
 	}
-	if err = export.ExportMonthlyReport(reservations, filename); err != nil {
+	if err = workflow.ExportMonthlyReport(reservations, filename); err != nil {
 		return "", err
 	}
 	return "/" + utils.ExportFolder + filename, nil

@@ -44,15 +44,11 @@ function queryReservations() {
 	});
 }
 
-function exportReservations() {
-	var payload = {
-		from_time: $("#export_date").val(),
-	};
+function exportTodayReservations() {
 	$.ajax({
-		type: "POST",
+		type: "GET",
 		async: false,
-		url: "/admin/reservation/export",
-		data: payload,
+		url: "/admin/reservation/export/today",
 		dataType: "json",
 		success: function(data) {
 			if (data.state === "SUCCESS") {

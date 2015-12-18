@@ -3,7 +3,7 @@ package buslogic
 import (
 	"errors"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxl_go/sms"
+	"github.com/shudiwsh2009/reservation_thxl_go/workflow"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"strings"
 	"time"
@@ -138,7 +138,7 @@ func (sl *StudentLogic) MakeReservationByStudent(reservationId string, sourceId 
 		return nil, errors.New("获取数据失败")
 	}
 	// send success sms
-	sms.SendSuccessSMS(reservation)
+	workflow.SendSuccessSMS(reservation)
 	return reservation, nil
 }
 

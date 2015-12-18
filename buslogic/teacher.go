@@ -3,7 +3,7 @@ package buslogic
 import (
 	"errors"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxl_go/sms"
+	"github.com/shudiwsh2009/reservation_thxl_go/workflow"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"strings"
 )
@@ -80,7 +80,7 @@ func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId s
 		return nil, errors.New("只能反馈本人开设的咨询")
 	}
 	if reservation.TeacherFeedback.IsEmpty() && reservation.StudentFeedback.IsEmpty() {
-		sms.SendFeedbackSMS(reservation)
+		workflow.SendFeedbackSMS(reservation)
 	}
 	sendFeedbackSMS := reservation.TeacherFeedback.IsEmpty() && reservation.StudentFeedback.IsEmpty()
 	reservation.TeacherFeedback = models.TeacherFeedback{
@@ -93,7 +93,7 @@ func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId s
 		return nil, errors.New("获取数据失败")
 	}
 	if sendFeedbackSMS && participants[0] > 0 {
-		sms.SendFeedbackSMS(reservation)
+		workflow.SendFeedbackSMS(reservation)
 	}
 	return reservation, nil
 }

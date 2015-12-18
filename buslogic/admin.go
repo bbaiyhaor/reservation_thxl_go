@@ -326,7 +326,7 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 	reservation := &models.Reservation{}
 	if len(sourceId) == 0 {
 		// Source为ADD，无SourceId：直接指定
-		reservation, err := models.GetReservationById(reservationId)
+		reservation, err = models.GetReservationById(reservationId)
 		if err != nil || reservation.Status == models.DELETED {
 			return nil, errors.New("咨询已下架")
 		} else if reservation.StartTime.Before(utils.GetNow()) {
@@ -365,13 +365,13 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 		return nil, errors.New("咨询已被预约")
 	}
 	student.BindedTeacherId = reservation.TeacherId
-	if models.UpsertStudent(student) != nil {
+	if err = models.UpsertStudent(student); err != nil {
 		return nil, errors.New("获取数据失败")
 	}
 	// 更新咨询信息
 	reservation.StudentId = student.Id.Hex()
 	reservation.Status = models.RESERVATED
-	if models.UpsertReservation(reservation) != nil {
+	if err = models.UpsertReservation(reservation); err != nil {
 		return nil, errors.New("获取数据失败")
 	}
 	return reservation, nil

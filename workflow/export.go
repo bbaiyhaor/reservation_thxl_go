@@ -95,12 +95,13 @@ func ExportTodayReservationTimetable(reservations []*models.Reservation, filenam
 		if err != nil {
 			continue
 		}
-		student, err := models.GetStudentById(r.StudentId)
-		if err != nil {
-			continue
+		if student, err := models.GetStudentById(r.StudentId); err == nil {
+			data = append(data, []string{r.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN) + " - " + r.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN),
+				teacher.Fullname, student.Fullname, student.Mobile})
+		} else {
+			data = append(data, []string{r.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN) + " - " + r.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN),
+				teacher.Fullname, "", ""})
 		}
-		data = append(data, []string{r.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN) + " - " + r.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN),
-			teacher.Fullname, student.Fullname, student.Mobile})
 	}
 	if err := utils.WriteToCSV(data, filename); err != nil {
 		return err

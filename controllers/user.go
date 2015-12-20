@@ -25,6 +25,7 @@ func StudentRegister(w http.ResponseWriter, r *http.Request, userId string, user
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
+		HttpOnly: true,
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:    "username",
@@ -32,6 +33,7 @@ func StudentRegister(w http.ResponseWriter, r *http.Request, userId string, user
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
+		HttpOnly: true,
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:    "user_type",
@@ -39,6 +41,7 @@ func StudentRegister(w http.ResponseWriter, r *http.Request, userId string, user
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
+		HttpOnly: true,
 	})
 	result["url"] = "/reservation/student"
 
@@ -63,6 +66,7 @@ func StudentLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
+		HttpOnly: true,
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:    "username",
@@ -70,6 +74,7 @@ func StudentLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
+		HttpOnly: true,
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:    "user_type",
@@ -77,6 +82,7 @@ func StudentLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
+		HttpOnly: true,
 	})
 	result["url"] = "/reservation/student"
 
@@ -101,6 +107,7 @@ func TeacherLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
+		HttpOnly: true,
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:    "username",
@@ -108,6 +115,7 @@ func TeacherLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
+		HttpOnly: true,
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:    "user_type",
@@ -115,6 +123,7 @@ func TeacherLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
+		HttpOnly: true,
 	})
 	switch teacher.UserType {
 	case models.TEACHER:
@@ -144,6 +153,7 @@ func AdminLogin(w http.ResponseWriter, r *http.Request, userId string, userType 
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
+		HttpOnly: true,
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:    "username",
@@ -151,6 +161,7 @@ func AdminLogin(w http.ResponseWriter, r *http.Request, userId string, userType 
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
+		HttpOnly: true,
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:    "user_type",
@@ -158,6 +169,7 @@ func AdminLogin(w http.ResponseWriter, r *http.Request, userId string, userType 
 		Path:    "/",
 		Expires: time.Now().Local().AddDate(1, 0, 0),
 		MaxAge:  365 * 24 * 60 * 60,
+		HttpOnly: true,
 	})
 	switch admin.UserType {
 	case models.ADMIN:

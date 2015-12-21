@@ -90,20 +90,20 @@ function optimize(t){
 
 function makeReservation(index) {
 	$("body").append("\
-		<div class='yuyue_stu_pre'>\
+		<div class='pop_window' style='70%'>\
 			确定预约后请准确填写个人信息，方便心理咨询中心老师与你取得联系。\
 			<br>\
-			<button type='button' onclick='$(\".yuyue_stu_pre\").remove();makeReservationData(" + index + ");'>\
+			<button type='button' onclick='$(\".pop_window\").remove();makeReservationData(" + index + ");'>\
 				立即预约</button>\
-			<button type='button' onclick='$(\".yuyue_stu_pre\").remove();'>暂不预约</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>暂不预约</button>\
 		</div>\
 	");
-	optimize(".yuyue_stu_pre");
+	optimize(".pop_window");
 }
 
 function makeReservationData(index) {
 	$("body").append("\
-		<div class='yuyue_stu' id='make_reservation_data_" + index + "' style='text-align:left;height:370px;overflow:scroll'>\
+		<div class='pop_window' id='make_reservation_data_" + index + "' style='text-align:left; width: 90%; height: 60%; overflow: auto;'>\
 			<div style='text-align:center;font-size:23px'>学生信息登记表</div><br>\
 			姓　　名：<input id='student_fullname' value='" + student.student_fullname + "'><br>\
 			性　　别：<select id='student_gender'><option value=''>请选择</option><option value='男'>男</option><option value='女'>女</option></select><br>\
@@ -128,14 +128,14 @@ function makeReservationData(index) {
 			你现在需要接受帮助的主要问题是什么？<br>\
 			<textarea id='student_problem'></textarea><br>\
 			<button type='button' onclick='makeReservationConfirm(" + index + ");'>确定</button>\
-			<button type='button' onclick='$(\".yuyue_stu\").remove();'>取消</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
 		</div>\
 	");
 	$("#student_gender").val(student.student_gender);
 	$("#student_parent_marriage").val(student.student_parent_marriage);
 	$("#student_significant").val(student.student_significant);
 	$("#student_problem").val(student.student_problem);
-	optimize(".yuyue_stu");
+	optimize(".pop_window");
 }
 
 function makeReservationConfirm(index) {
@@ -183,17 +183,17 @@ function makeReservationConfirm(index) {
 }
 
 function makeReservationSuccess(index) {
-	$(".yuyue_stu").remove();
+	$(".pop_window").remove();
 	$("#cell_status_b_" + index).attr("disabled", "true");
 	$("#cell_status_b_" + index).text("已预约");
 	$("body").append("\
-		<div class='yuyue_stu_success'>\
+		<div class='pop_window' style='width: 50%'>\
 			你已预约成功，<br>\
 			请关注短信提醒。<br>\
-			<button type='button' onclick='$(\".yuyue_stu_success\").remove();viewReservations();'>确定</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();viewReservations();'>确定</button>\
 		</div>\
 	");
-	optimize(".yuyue_stu_success");
+	optimize(".pop_window");
 }
 
 function getFeedback(index) {
@@ -219,8 +219,8 @@ function getFeedback(index) {
 
 function showFeedback(index, feedback) {
 	$("body").append("\
-		<div class='fankui_stu' id='feedback_table_" + index + "'\
-			style='text-align:left; font-size:8px; position: absolute; height:350px;top:100px;left:5px;'>\
+		<div class='pop_window' id='feedback_table_" + index + "'\
+			style='text-align:left; width: 90%; height: 60%; overflow: auto'>\
 			学生反馈表<br>\
 			1、你是否得到了你所希望的咨询？<br>\
 			<select id='feedback_q1'>\
@@ -258,13 +258,13 @@ function showFeedback(index, feedback) {
 				<option value='1'>肯定不会</option>\
 			</select><br>\
 			<button type='button' onclick='submitFeedback(" + index + ");'>提交</button>\
-			<button type='button' onclick='$(\".fankui_stu\").remove();'>取消</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
 		</div>\
 	");
 	for (var i = 1; i <= feedback.scores.length; ++i) {
 		$("#feedback_q" + i).val(feedback.scores[i - 1]);
 	}
-	optimize(".fankui_stu");
+	optimize(".pop_window");
 }
 
 function submitFeedback(index) {
@@ -296,12 +296,12 @@ function submitFeedback(index) {
 }
 
 function successFeedback() {
-	$(".fankui_stu").remove();
+	$(".pop_window").remove();
 	$("body").append("\
-		<div class='fankui_stu_success'>\
+		<div class='pop_window' style='width: 50%'>\
 			您已成功提交反馈！<br>\
-			<button type='button' onclick='$(\".fankui_stu_success\").remove();'>确定</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>确定</button>\
 		</div>\
 	");
-	optimize(".fankui_stu_success");
+	optimize(".pop_window");
 }

@@ -159,8 +159,8 @@ func (rl *ReservationLogic) GetReservationsByAdmin(userId string, userType model
 	return result, nil
 }
 
-// 管理员查看指定日期后30天内的所有咨询（看不到预设咨询）
-func (rl *ReservationLogic) GetReservationsMonthlyByAdmin(fromDate string, userId string, userType models.UserType) ([]*models.Reservation, error) {
+// 管理员查看指定日期的所有咨询
+func (rl *ReservationLogic) GetReservationsDailyByAdmin(fromDate string, userId string, userType models.UserType) ([]*models.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
@@ -174,17 +174,18 @@ func (rl *ReservationLogic) GetReservationsMonthlyByAdmin(fromDate string, userI
 	if err != nil {
 		return nil, errors.New("时间格式错误")
 	}
-	to := from.AddDate(0, 0, 30)
+	to := from.AddDate(0, 0, 1)
 	reservations, err := models.GetReservationsBetweenTime(from, to)
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
-	var result []*models.Reservation
-	for _, r := range reservations {
-		if r.Status == models.AVAILABLE && r.StartTime.Before(time.Now().In(utils.Location)) {
-			continue
+	if timedReservations, err := models.GetTimedReservationsByWeekday(from.Weekday()); err == nil {
+		for _, tr := range timedReservations {
+			if !tr.Exceptions[fromDate] && !tr.Timed[fromDate] {
+				reservations = append(reservations, tr.ToReservation(from))
+			}
 		}
-		result = append(result, r)
 	}
-	return result, nil
+	sort.Sort(models.ReservationSlice(reservations))
+	return reservations, nil
 }

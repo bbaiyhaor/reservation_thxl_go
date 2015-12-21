@@ -296,14 +296,14 @@ function searchTeacher(weekday, index) {
 
 function removeTimedReservations() {
     $("body").append("\
-		<div class='delete_admin_pre'>\
+		<div class='pop_window' style='width: 50%'>\
 			确认删除选中的预设咨询？\
 			<br>\
-			<button type='button' onclick='$(\".delete_admin_pre\").remove();removeReservationsConfirm();'>确认</button>\
-			<button type='button' onclick='$(\".delete_admin_pre\").remove();'>取消</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();removeReservationsConfirm();'>确认</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
 		</div>\
 	");
-    optimize("Monday", ".delete_admin_pre");
+    optimize("Monday", ".pop_window");
 }
 
 function removeReservationsConfirm() {
@@ -339,14 +339,14 @@ function removeReservationsConfirm() {
 
 function openTimedReservations() {
     $("body").append("\
-		<div class='delete_admin_pre'>\
+		<div class='pop_window' style='width: 50%'>\
 			确认打开选中的预设咨询？\
 			<br>\
-			<button type='button' onclick='$(\".delete_admin_pre\").remove();openReservationsConfirm();'>确认</button>\
-			<button type='button' onclick='$(\".delete_admin_pre\").remove();'>取消</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();openReservationsConfirm();'>确认</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
 		</div>\
 	");
-    optimize("Monday", ".delete_admin_pre");
+    optimize("Monday", ".pop_window");
 }
 
 function openReservationsConfirm() {
@@ -382,14 +382,14 @@ function openReservationsConfirm() {
 
 function closeTimedReservations() {
     $("body").append("\
-		<div class='delete_admin_pre'>\
+		<div class='pop_window' style='width: 50%'>\
 			确认关闭选中的预设咨询？\
 			<br>\
-			<button type='button' onclick='$(\".delete_admin_pre\").remove();closeReservationsConfirm();'>确认</button>\
-			<button type='button' onclick='$(\".delete_admin_pre\").remove();'>取消</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();closeReservationsConfirm();'>确认</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
 		</div>\
 	");
-    optimize("Monday", ".delete_admin_pre");
+    optimize("Monday", ".pop_window");
 }
 
 function closeReservationsConfirm() {

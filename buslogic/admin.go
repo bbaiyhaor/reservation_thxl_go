@@ -329,8 +329,9 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 		reservation, err = models.GetReservationById(reservationId)
 		if err != nil || reservation.Status == models.DELETED {
 			return nil, errors.New("咨询已下架")
-		} else if reservation.StartTime.Before(utils.GetNow()) {
-			return nil, errors.New("咨询已过期")
+//		} else if reservation.StartTime.Before(utils.GetNow()) {
+//			// 允许指定过期咨询，作为补录（网页正常情况不显示过期咨询，要通过查询咨询的方式来补录）
+//			return nil, errors.New("咨询已过期")
 		} else if reservation.Status != models.AVAILABLE {
 			return nil, errors.New("咨询已被预约")
 		}
@@ -343,8 +344,9 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 		start, err := time.ParseInLocation(utils.TIME_PATTERN, startTime, utils.Location)
 		if err != nil {
 			return nil, errors.New("开始时间格式错误")
-		} else if start.Before(utils.GetNow()) {
-			return nil, errors.New("咨询已过期")
+//		} else if start.Before(utils.GetNow()) {
+//			// 允许指定过期咨询，作为补录（网页正常情况不显示过期咨询，要通过查询咨询的方式来补录）
+//			return nil, errors.New("咨询已过期")
 		} else if !strings.EqualFold(start.Format(utils.CLOCK_PATTERN),
 			timedReservation.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN)) {
 			return nil, errors.New("开始时间不匹配")

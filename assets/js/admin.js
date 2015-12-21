@@ -5,6 +5,10 @@ var firstCategory;
 var secondCategory;
 
 function viewReservations() {
+	if ($("#query_date").val() !== "") {
+		queryReservations();
+		return;
+	}
 	$.ajax({
 		type: "GET",
 		async: false,
@@ -30,7 +34,7 @@ function queryReservations() {
 	$.ajax({
 		type: "GET",
 		async: false,
-		url: "/admin/reservation/view/monthly",
+		url: "/admin/reservation/view/daily",
 		data: payload,
 		dataType: "json",
 		success: function(data) {
@@ -203,7 +207,7 @@ function optimize(t) {
 	$(".table_head").height($("#head_select").height());
 	$(t).css("left", (width - $(t).width()) / 2 - 11 + "px");
 	$(t).css("top", (height - $(t).height()) / 2 - 11 + "px");
-	$("#page_maintable").css("margin-left", 0.5 * ($(window).width() 
+	$("#page_maintable").css("margin-left", 0.5 * ($(window).width()
 		- (40 + 405 + 120 + 85 + 85 + 320)) + "px");
 }
 
@@ -383,14 +387,14 @@ function searchTeacher(index) {
 
 function removeReservations() {
 	$("body").append("\
-		<div class='delete_admin_pre'>\
+		<div class='pop_window' style='width: 50%'>\
 			确认删除选中的咨询记录？\
 			<br>\
-			<button type='button' onclick='$(\".delete_admin_pre\").remove();removeReservationsConfirm();'>确认</button>\
-			<button type='button' onclick='$(\".delete_admin_pre\").remove();'>取消</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();removeReservationsConfirm();'>确认</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
 		</div>\
 	");
-	optimize(".delete_admin_pre");
+	optimize(".pop_window");
 }
 
 function removeReservationsConfirm() {
@@ -428,14 +432,14 @@ function removeReservationsConfirm() {
 
 function cancelReservations() {
 	$("body").append("\
-		<div class='cancel_admin_pre'>\
+		<div class='pop_window' style='width: 50%'>\
 			确认取消选中的预约？\
 			<br>\
-			<button type='button' onclick='$(\".cancel_admin_pre\").remove();cancelReservationsConfirm();'>确认</button>\
-			<button type='button' onclick='$(\".cancel_admin_pre\").remove();'>取消</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();cancelReservationsConfirm();'>确认</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
 		</div>\
 	");
-	optimize(".cancel_admin_pre");
+	optimize(".pop_window");
 }
 
 function cancelReservationsConfirm() {
@@ -494,7 +498,7 @@ function getFeedback(index) {
 
 function showFeedback(index, feedback) {
 	$("body").append("\
-		<div class='fankui_tch' id='feedback_table_" + index + "' style='font-size:11px;text-align:left;top:100px;height:400;width:400px;left:100px'>\
+		<div class='pop_window' id='feedback_table_" + index + "' style='text-align: left; width: 50%'>\
 			咨询师反馈表<br>\
 			评估分类：<br>\
 			<select id='category_first_" + index + "' onchange='showSecondCategory(" + index + ")'><option value=''>请选择</option></select><br>\
@@ -503,11 +507,11 @@ function showFeedback(index, feedback) {
 			<input id='participant_student_" + index + "' type='checkbox'>学生</input><input id='participant_parents_" + index + "' type='checkbox'>家长</input>\
 			<input id='participant_teacher_" + index + "' type='checkbox'>教师</input><input id='participant_instructor_" + index + "' type='checkbox'>辅导员</input><br>\
 			问题评估：<br>\
-			<textarea id='problem_" + index + "' style='width:180px;height:80px'></textarea><br>\
+			<textarea id='problem_" + index + "' style='width: 100%; height:80px'></textarea><br>\
 			咨询记录：<br>\
-			<textarea id='record_" + index + "' style='width:180px;height:80px'></textarea><br>\
+			<textarea id='record_" + index + "' style='width: 100%; height:80px'></textarea><br>\
 			<button type='button' onclick='submitFeedback(" + index + ");'>提交</button>\
-			<button type='button' onclick='$(\".fankui_tch\").remove();'>取消</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
 		</div>\
 	");
 	getFeedbackCategories();
@@ -525,7 +529,7 @@ function showFeedback(index, feedback) {
 	}
 	$("#problem_" + index).val(feedback.problem);
 	$("#record_" + index).val(feedback.record);
-	optimize(".fankui_tch");
+	optimize(".pop_window");
 }
 
 function getFeedbackCategories() {
@@ -604,26 +608,26 @@ function submitFeedback(index) {
 }
 
 function successFeedback() {
-	$(".fankui_tch").remove();
+	$(".pop_window").remove();
 	$("body").append("\
-		<div class='fankui_tch_success'>\
+		<div class='pop_window' style='width: 50%;'>\
 			您已成功提交反馈！<br>\
-			<button type='button' onclick='$(\".fankui_tch_success\").remove();'>确定</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>确定</button>\
 		</div>\
 	");
-	optimize(".fankui_tch_success");
+	optimize(".pop_window");
 }
 
 function setStudent(index) {
 	$("body").append("\
-		<div class='admin_chakan'>\
+		<div class='pop_window' style='width: 50%;'>\
 			请输入您要制定的学生学号（必须为已注册学生）：<br>\
 			<input id='student_username_" + index + "'/><br>\
 			<button type='button' onclick='setStudentConfirm(" + index + ");'>确认</button>\
-			<button type='button' style='margin-left:20px' onclick='$(\".admin_chakan\").remove();'>取消</button>\
+			<button type='button' style='margin-left:20px' onclick='$(\".pop_window\").remove();'>取消</button>\
 		</div>\
 	");
-	optimize(".admin_chakan");
+	optimize(".pop_window");
 }
 
 function setStudentConfirm(index) {
@@ -650,14 +654,14 @@ function setStudentConfirm(index) {
 }
 
 function successSetStudent() {
-	$(".admin_chakan").remove();
+	$(".pop_window").remove();
 	$("body").append("\
-		<div class='fankui_tch_success'>\
+		<div class='pop_window' style='width: 50%;'>\
 			成功指定学生！<br>\
-			<button type='button' onclick='$(\".fankui_tch_success\").remove();window.location.reload();'>确定</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();viewReservations();'>确定</button>\
 		</div>\
 	");
-	optimize(".fankui_tch_success");
+	optimize(".pop_window");
 }
 
 function getStudent(index) {
@@ -682,7 +686,7 @@ function getStudent(index) {
 
 function showStudent(student, reservations) {
 	$("body").append("\
-		<div class='admin_chakan' style='text-align: left; width: 60%;'>\
+		<div class='pop_window' style='text-align: left; height: 70%; overflow:auto;'>\
 			学号：" + student.student_username + "<br>\
 			姓名：" + student.student_fullname + "<br>\
 			性别：" + student.student_gender + "<br>\
@@ -707,7 +711,7 @@ function showStudent(student, reservations) {
 			<button type='button' onclick='bindStudent(\"" + student.student_id + "\");'>绑定</button><br>\
 			<div style='margin: 10px 0'>\
 				<button type='button' onclick='exportStudent(\"" + student.student_id + "\");'>导出</button>\
-				<button type='button' onclick='$(\".admin_chakan\").remove();'>关闭</button>\
+				<button type='button' onclick='$(\".pop_window\").remove();'>关闭</button>\
 			</div>\
 			<div id='student_reservations_" + student.student_id + "' style='width: 600px'>\
 			</div>\
@@ -731,7 +735,7 @@ function showStudent(student, reservations) {
 					.siblings().removeClass("highlight").children("p").hide();
 		});
 	});
-	optimize(".admin_chakan");
+	optimize(".pop_window");
 }
 
 function exportStudent(studentId) {
@@ -820,7 +824,7 @@ function getWorkload() {
 
 function showWorkload(workload) {
 	$("body").append("\
-		<div class='admin_chakan' style='text-align: left; width: 60%'>\
+		<div class='pop_window' style='text-align: left; width: 50%; height: 70%; overflow: auto;'>\
 			咨询师工作量统计\
 			<div id='teacher_workload' style='width: 600px; margin-top: 10px;'>\
 				<div class='table_col' id='col_workload_username'>\
@@ -838,7 +842,7 @@ function showWorkload(workload) {
 				<div class='clearfix'></div>\
 			</div>\
 			<div style='margin: 10px 0'>\
-				<button type='button' onclick='$(\".admin_chakan\").remove();'>关闭</button>\
+				<button type='button' onclick='$(\".pop_window\").remove();'>关闭</button>\
 			</div>\
 		</div>\
 	");
@@ -851,14 +855,14 @@ function showWorkload(workload) {
 			$("#col_workload_username").append("<div class='table_cell' id='cell_workload_username_"
 				+ i + "'>" + workload[i].teacher_username + "</div>");
 			$("#col_workload_fullname").append("<div class='table_cell' id='cell_workload_fullname_"
-					+ i + "'>" + workload[i].teacher_fullname + "</div>");
+				+ i + "'>" + workload[i].teacher_fullname + "</div>");
 			$("#col_workload_student").append("<div class='table_cell' id='cell_workload_student_"
-					+ i + "'>" + Object.size(workload[i].students) + "</div>");
+				+ i + "'>" + Object.size(workload[i].students) + "</div>");
 			$("#col_workload_reservation").append("<div class='table_cell' id='cell_workload_reservation_"
-					+ i + "'>" + Object.size(workload[i].reservations) + "</div>");
+				+ i + "'>" + Object.size(workload[i].reservations) + "</div>");
 		}
 	}
-	optimize(".admin_chakan");
+	optimize(".pop_window");
 }
 
 Object.size = function(obj) {

@@ -50,7 +50,7 @@ func ViewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 	return result
 }
 
-func ViewMonthlyReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func ViewDailyReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	queryForm, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil || len(queryForm["from_date"]) == 0 {
 		ErrorHandler(w, r, errors.New("参数错误"))
@@ -62,7 +62,7 @@ func ViewMonthlyReservationsByAdmin(w http.ResponseWriter, r *http.Request, user
 	var rl = buslogic.ReservationLogic{}
 	var ul = buslogic.UserLogic{}
 
-	reservations, err := rl.GetReservationsMonthlyByAdmin(fromDate, userId, userType)
+	reservations, err := rl.GetReservationsDailyByAdmin(fromDate, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil

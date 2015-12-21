@@ -151,33 +151,14 @@ select{
   padding: 10px;
   text-align: center;
 }
-.yuyue_stu_pre, .fankui_stu_pre, .fankui_tch_pre, .tch_login, .delete_admin_pre, .cancel_admin_pre, .delete_teacher_pre, .cancel_teacher_pre{
-	position: fixed;
-	border: 2px solid #777;
-	border-radius: 9px;
-	width:70%;
-	padding: 10px;
-	text-align: center;
-	background-color: rgba(255,255,255,0.9);
-}
-.yuyue_stu_success, .fankui_stu_success, .fankui_tch_success, .admin_chakan{
-	position: fixed;
-	border: 2px solid #777;
-	border-radius: 9px;
-	width:90%;
-	padding: 10px;
-	text-align: center;
-	background-color: rgba(255,255,255,0.9);
-}
-.yuyue_stu, .fankui_stu, .fankui_tch, .fankui_admin{
-	position: fixed;
-	border: 2px solid #777;
-	border-radius: 9px;
-	width:90%;
-	height: 90%;
-	padding: 10px;
-	text-align: center;
-	background-color: rgba(255,255,255,0.95);
+.pop_window {
+    position: fixed;
+    border: 2px solid #777;
+    border-radius: 9px;
+    width: 70%;
+    padding: 10px;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.9);
 }
 .has_children {
   background: #555;

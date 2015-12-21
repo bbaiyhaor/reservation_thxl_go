@@ -149,7 +149,7 @@ function getFeedback(index) {
 
 function showFeedback(index, feedback) {
 	$("body").append("\
-		<div class='fankui_tch' id='feedback_table_" + index + "' style='font-size:11px;text-align:left;top:100px;height:400;left:5px'>\
+		<div class='pop_window' id='feedback_table_" + index + "' style='text-align:left; width: 90%; height: 60%; overflow: auto;'>\
 			咨询师反馈表<br>\
 			评估分类：<br>\
 			<select id='category_first_" + index + "' onchange='showSecondCategory(" + index + ")'><option value=''>请选择</option></select><br>\
@@ -158,11 +158,11 @@ function showFeedback(index, feedback) {
 			<input id='participant_student_" + index + "' type='checkbox'>学生</input><input id='participant_parents_" + index + "' type='checkbox'>家长</input>\
 			<input id='participant_teacher_" + index + "' type='checkbox'>教师</input><input id='participant_instructor_" + index + "' type='checkbox'>辅导员</input><br>\
 			问题评估：<br>\
-			<textarea id='problem_" + index + "' style='width:180px;height:80px'></textarea><br>\
+			<textarea id='problem_" + index + "' style='width: 100%; height:80px''></textarea><br>\
 			咨询记录：<br>\
-			<textarea id='record_" + index + "' style='width:180px;height:80px'></textarea><br>\
+			<textarea id='record_" + index + "' style='width: 100%; height:80px''></textarea><br>\
 			<button type='button' onclick='submitFeedback(" + index + ");'>提交</button>\
-			<button type='button' onclick='$(\".fankui_tch\").remove();'>取消</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
 		</div>\
 	");
 	getFeedbackCategories();
@@ -180,7 +180,7 @@ function showFeedback(index, feedback) {
 	}
 	$("#problem_" + index).val(feedback.problem);
 	$("#record_" + index).val(feedback.record);
-	optimize(".fankui_tch");
+	optimize(".pop_window");
 }
 
 function getFeedbackCategories() {
@@ -259,14 +259,14 @@ function submitFeedback(index) {
 }
 
 function successFeedback() {
-	$(".fankui_tch").remove();
+	$(".pop_window").remove();
 	$("body").append("\
-		<div class='fankui_tch_success'>\
+		<div class='pop_window' style='width: 50%;'>\
 			您已成功提交反馈！<br>\
-			<button type='button' onclick='$(\".fankui_tch_success\").remove();'>确定</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>确定</button>\
 		</div>\
 	");
-	optimize(".fankui_tch_success");
+	optimize(".pop_window");
 }
 
 function queryStudent() {
@@ -311,7 +311,7 @@ function getStudent(index) {
 
 function showStudent(student, reservations) {
 	$("body").append("\
-		<div class='admin_chakan' style='text-align: left; position: absolute'>\
+		<div class='pop_window' style='text-align: left; width: 90%; height: 60%; overflow: auto'>\
 			学号：" + student.student_username + "<br>\
 			姓名：" + student.student_fullname + "<br>\
 			性别：" + student.student_gender + "<br>\
@@ -332,7 +332,7 @@ function showStudent(student, reservations) {
 			已绑定的咨询师：<span id='binded_teacher_username'>" + student.student_binded_teacher_username + "</span>&nbsp;\
 				<span id='binded_teacher_fullname'>" + student.student_binded_teacher_fullname + "</span><br>\
 			<br>\
-			<button type='button' onclick='$(\".admin_chakan\").remove();'>关闭</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>关闭</button>\
 			<div id='student_reservations_" + student.student_id + "' style='width: 100%'>\
 			</div>\
 		</div>\
@@ -350,11 +350,10 @@ function showStudent(student, reservations) {
 		");
 	}
 	$(document).ready(function() {
-		$(".admin_chakan").css("top", $(document).scrollTop() + 50);
 		$(".has_children").click(function() {
 			$(this).addClass("highlight").children("p").show().end()
 					.siblings().removeClass("highlight").children("p").hide();
 		});
 	});
-	optimize(".admin_chakan");
+	optimize(".pop_window");
 }

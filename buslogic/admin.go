@@ -200,7 +200,7 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 			// 1、Source为ADD，无SourceId：置为AVAILABLE
 			// 2、Source为TIMETABLE且已预约：置为DELETED并去除timed
 			if reservation, err := models.GetReservationById(reservationId); err == nil &&
-				reservation.Status == models.RESERVATED && reservation.StartTime.After(utils.GetNow()) {
+				reservation.Status == models.RESERVATED { // && reservation.StartTime.After(utils.GetNow()) {
 				if reservation.Source != models.TIMETABLE {
 					// 1
 					reservation.Status = models.AVAILABLE

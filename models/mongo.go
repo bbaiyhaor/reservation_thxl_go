@@ -67,6 +67,18 @@ func GetStudentByUsername(username string) (*Student, error) {
 	return student, nil
 }
 
+func GetStudentByArchiveNumber(archiveNumber string) (*Student, error) {
+	if len(archiveNumber) == 0 {
+		return nil, errors.New("字段不合法")
+	}
+	collection := Mongo.C("student")
+	student := &Student{}
+	if err := collection.Find(bson.M{"archive_number": archiveNumber}).One(student); err != nil {
+		return nil, err
+	}
+	return student, nil
+}
+
 /**
 Teacher
 */

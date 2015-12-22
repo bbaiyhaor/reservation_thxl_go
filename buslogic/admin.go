@@ -410,6 +410,35 @@ func (al *AdminLogic) GetStudentInfoByAdmin(studentId string,
 	return student, reservations, nil
 }
 
+// 管理员更新学生档案编号
+func (al *AdminLogic) UpdateStudentArchiveNumberByAdmin(studentId string, archiveNumber string,
+	userId string, userType models.UserType) (*models.Student, error) {
+	if len(userId) == 0 {
+		return nil, errors.New("请先登录")
+	} else if userType != models.ADMIN {
+		return nil, errors.New("权限不足")
+	} else if len(studentId) == 0 {
+		return nil, errors.New("学生未注册")
+	}
+	admin, err := models.GetAdminById(userId)
+	if err != nil || admin.UserType != models.ADMIN {
+		return nil, errors.New("管理员账户出错,请联系技术支持")
+	}
+	student, err := models.GetStudentById(studentId)
+	if err != nil {
+		return nil, errors.New("学生未注册")
+	}
+	archive, err := models.GetStudentByArchiveNumber(archiveNumber)
+	if err == nil && archive.Id.Valid() {
+		return nil, errors.New("档案号已存在，请重新分配")
+	}
+	student.ArchiveNumber = archiveNumber
+	if err := models.UpsertStudent(student); err != nil {
+		return nil, errors.New("获取数据失败")
+	}
+	return student, nil
+}
+
 // 管理员导出学生信息
 func (al *AdminLogic) ExportStudentByAdmin(studentId string, userId string, userType models.UserType) (string, error) {
 	if len(userId) == 0 {
@@ -425,7 +454,11 @@ func (al *AdminLogic) ExportStudentByAdmin(studentId string, userId string, user
 	if err != nil {
 		return "", errors.New("学生未注册")
 	}
-	filename := "student_" + student.Username + "_" + utils.GetNow().Format(utils.DATE_PATTERN) + utils.CsvSuffix
+	if len(student.ArchiveNumber) == 0 {
+		return "", errors.New("请先分配档案号")
+	}
+	filename := "student_" + student.ArchiveNumber + "_" + student.Username + "_" +
+		utils.GetNow().Format(utils.DATE_PATTERN) + utils.CsvSuffix
 	if err = workflow.ExportStudentInfo(student, filename); err != nil {
 		return "", err
 	}

@@ -774,6 +774,9 @@ function showStudent(student, reservations) {
 			近三个月里发生的有重大意义的事：" + student.student_significant + "<br>\
 			需要接受帮助的主要问题：" + student.student_problem + "<br>\
 			<br>\
+			档案编号：<input id='archive_number' type='text' value='" + student.student_archive_number + "'/>\
+			<button type='button' onclick='updateArchiveNumber(\"" + student.student_id + "\");'>更新</button>\
+			<span id='archive_number_tip' style='color: red;'></span><br>\
 			已绑定的咨询师：<span id='binded_teacher_username'>" + student.student_binded_teacher_username + "</span>&nbsp;\
 				<span id='binded_teacher_fullname'>" + student.student_binded_teacher_fullname + "</span>\
 				<button type='button' onclick='unbindStudent(\"" + student.student_id + "\");'>解绑</button><br>\
@@ -806,6 +809,27 @@ function showStudent(student, reservations) {
 		});
 	});
 	optimize(".pop_window");
+}
+
+function updateArchiveNumber(studentId) {
+	var payload = {
+		student_id: studentId,
+		archive_number: $("#archive_number").val(),
+	};
+	$.ajax({
+		type: "POST",
+		async: false,
+		url: "/admin/student/archive/update",
+		data: payload,
+		dataType: "json",
+		success: function(data) {
+			if (data.state === "SUCCESS") {
+				$("#archive_number_tip").text("更新成功！");
+			} else {
+				alert(data.message);
+			}
+		},
+	});
 }
 
 function exportStudent(studentId) {

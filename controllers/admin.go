@@ -321,6 +321,7 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
 	studentJson["student_fullname"] = student.Fullname
+	studentJson["student_archive_number"] = student.ArchiveNumber
 	studentJson["student_gender"] = student.Gender
 	studentJson["student_email"] = student.Email
 	studentJson["student_school"] = student.School
@@ -381,6 +382,22 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 		reservationJson = append(reservationJson, resJson)
 	}
 	result["reservations"] = reservationJson
+
+	return result
+}
+
+func UpdateStudentArchiveNumberByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	studentId := r.PostFormValue("student_id")
+	archiveNumber := r.PostFormValue("archive_number")
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var al = buslogic.AdminLogic{}
+
+	_, err := al.UpdateStudentArchiveNumberByAdmin(studentId, archiveNumber, userId, userType)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
 
 	return result
 }
@@ -477,6 +494,7 @@ func QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
 	studentJson["student_fullname"] = student.Fullname
+	studentJson["student_archive_number"] = student.ArchiveNumber
 	studentJson["student_gender"] = student.Gender
 	studentJson["student_email"] = student.Email
 	studentJson["student_school"] = student.School

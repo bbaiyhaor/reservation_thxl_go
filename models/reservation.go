@@ -91,7 +91,10 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 			participants += "教师 "
 		}
 		if tf.Participants[3] > 0 {
-			participants += "辅导员"
+			participants += "辅导员 "
+		}
+		if tf.Participants[4] > 0 {
+			participants += "其他"
 		}
 	}
 	json["participants"] = participants

@@ -272,7 +272,7 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId strin
 		return nil, errors.New("咨询已下架")
 	} else if len(category) == 0 {
 		return nil, errors.New("评估分类为空")
-	} else if len(participants) != 4 {
+	} else if len(participants) != 5 {
 		return nil, errors.New("咨询参与者为空")
 	} else if len(problem) == 0 {
 		return nil, errors.New("问题评估为空")

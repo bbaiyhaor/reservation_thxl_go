@@ -65,7 +65,10 @@ func ExportStudentInfo(student *models.Student, filename string) error {
 					participants = append(participants, "教师")
 				}
 				if r.TeacherFeedback.Participants[3] > 0 {
-					participants = append(participants, "辅导员")
+					participants = append(participants, "辅导员 ")
+				}
+				if r.TeacherFeedback.Participants[4] > 0 {
+					participants = append(participants, "其他")
 				}
 				data = append(data, participants)
 				data = append(data, []string{"问题评估", r.TeacherFeedback.Problem})
@@ -121,6 +124,7 @@ type MonthlyReport struct {
 	Parents       int
 	Teacher       int
 	Instructor    int
+	Other         int
 	Amount        int
 }
 
@@ -200,6 +204,13 @@ func ExportMonthlyReport(reservations []*models.Reservation, filename string) er
 			amount.Instructor++
 			amount.Amount++
 		}
+		// 其他
+		if r.TeacherFeedback.Participants[4] > 0 {
+			report[category].Other++
+			report[category].Amount++
+			amount.Other++
+			amount.Amount++
+		}
 	}
 	grades := make([]string, 0)
 	for g, _ := range amount.UnderGraduate {
@@ -218,7 +229,7 @@ func ExportMonthlyReport(reservations []*models.Reservation, filename string) er
 	for _, g := range grades {
 		head = append(head, g)
 	}
-	head = append(head, "硕", "博", "合计（男）", "合计（女）", "家长", "教师", "辅导员", "总计", "百分比")
+	head = append(head, "硕", "博", "合计（男）", "合计（女）", "家长", "教师", "辅导员", "其他", "总计", "百分比")
 	data = append(data, head)
 	// csv的数据
 	for _, category := range categories {
@@ -257,6 +268,11 @@ func ExportMonthlyReport(reservations []*models.Reservation, filename string) er
 		} else {
 			line = append(line, "")
 		}
+		if report[category].Other > 0 {
+			line = append(line, strconv.Itoa(report[category].Other))
+		} else {
+			line = append(line, "")
+		}
 		line = append(line, strconv.Itoa(report[category].Amount))
 		line = append(line, fmt.Sprintf("%#.02f%%", float64(report[category].Amount)/(float64(amount.Amount)/float64(100))))
 		data = append(data, line)
@@ -282,6 +298,8 @@ func ExportMonthlyReport(reservations []*models.Reservation, filename string) er
 	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Teacher)/(float64(amount.Amount)/float64(100))))
 	amountLine = append(amountLine, strconv.Itoa(amount.Instructor))
 	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Instructor)/(float64(amount.Amount)/float64(100))))
+	amountLine = append(amountLine, strconv.Itoa(amount.Other))
+	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Other)/(float64(amount.Amount)/float64(100))))
 	amountLine = append(amountLine, strconv.Itoa(amount.Amount))
 	data = append(data, amountLine)
 	data = append(data, percentLine)

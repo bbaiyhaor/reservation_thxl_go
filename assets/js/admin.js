@@ -575,7 +575,8 @@ function showFeedback(index, feedback) {
 			<select id='category_second_" + index + "'></select><br>\
 			出席人员：<br>\
 			<input id='participant_student_" + index + "' type='checkbox'>学生</input><input id='participant_parents_" + index + "' type='checkbox'>家长</input>\
-			<input id='participant_teacher_" + index + "' type='checkbox'>教师</input><input id='participant_instructor_" + index + "' type='checkbox'>辅导员</input><br>\
+			<input id='participant_teacher_" + index + "' type='checkbox'>教师</input><input id='participant_instructor_" + index + "' type='checkbox'>辅导员</input>\
+			<input id='participant_other_" + index + "' type='checkbox'>其他</input><br>\
 			问题评估：<br>\
 			<textarea id='problem_" + index + "' style='width: 100%; height:80px'></textarea><br>\
 			咨询记录：<br>\
@@ -596,6 +597,7 @@ function showFeedback(index, feedback) {
 		$("#participant_parents_" + index)[0].checked = feedback.participants[1] > 0;
 		$("#participant_teacher_" + index)[0].checked = feedback.participants[2] > 0;
 		$("#participant_instructor_" + index)[0].checked = feedback.participants[3] > 0;
+		$("#participant_other_" + index)[0].checked = feedback.participants[4] > 0;
 	}
 	$("#problem_" + index).val(feedback.problem);
 	$("#record_" + index).val(feedback.record);
@@ -653,6 +655,7 @@ function submitFeedback(index) {
 	participants.push($("#participant_parents_" + index)[0].checked ? 1 : 0);
 	participants.push($("#participant_teacher_" + index)[0].checked ? 1 : 0);
 	participants.push($("#participant_instructor_" + index)[0].checked ? 1 : 0);
+	participants.push($("#participant_other_" + index)[0].checked ? 1 : 0);
 	var payload = {
 		reservation_id: reservations[index].reservation_id,
 		category: $("#category_second_" + index).val(),

@@ -27,11 +27,6 @@ function viewReservations() {
 
 function refreshDataTable(reservations) {
 	$("#page_maintable")[0].innerHTML = "\
-		<div class='table_col' id='col_select'>\
-			<div class='table_head table_cell' id='head_select'>\
-				<button onclick='$(\".checkbox\").click();' style='padding:0px;'>全选</button>\
-			</div>\
-		</div>\
 		<div class='table_col' id='col_time'>\
 			<div class='table_head table_cell'>时间</div>\
 		</div>\
@@ -51,8 +46,6 @@ function refreshDataTable(reservations) {
 	";
 
 	for (var i = 0; i < reservations.length; ++i) {
-		$("#col_select").append("<div class='table_cell' id='cell_select_" + i + "'>"
-			+ "<input class='checkbox' type='checkbox' id='cell_checkbox_" + i + "'></div>");
 		$("#col_time").append("<div class='table_cell' id='cell_time_" + i + "' onclick='editReservation("
 			+ i + ")'>" + reservations[i].start_time.split(" ")[0].substr(2) + "<br>" 
 			+ reservations[i].start_time.split(" ")[1] + "-" + reservations[i].end_time.split(" ")[1] + "</div>");
@@ -82,23 +75,20 @@ function refreshDataTable(reservations) {
 }
 
 function optimize(t) {
-	$("#col_select").width(20);
-	$("#col_time").width(80);
-	$("#col_teacher_fullname").width(44);
-	$("#col_teacher_mobile").width(76);
-	$("#col_status").width(40);
-	$("#col_student").width(40);
-	$("#col_select").css("margin-left", (width - 300) / 2 + "px");
+	$("#col_time").width(width * 0.25);
+	$("#col_teacher_fullname").width(width * 0.2);
+	$("#col_teacher_mobile").width(width * 0.25);
+	$("#col_status").width(width * 0.15);
+	$("#col_student").width(width * 0.1);
+	$("#col_time").css("margin-left", width * 0.02 + "px");
 	for (var i = 0; i < reservations.length; ++i) {
 		var maxHeight = Math.max(
-				$("#cell_select_" + i).height(),
 				$("#cell_time_" + i).height(),
 				$("#cell_teacher_fullname_" + i).height(),
 				$("#cell_teacher_mobile_" + i).height(),
 				$("#cell_status_" + i).height(),
 				$("#cell_student_" + i).height()
 			);
-		$("#cell_select_" + i).height(maxHeight);
 		$("#cell_time_" + i).height(maxHeight);
 		$("#cell_teacher_fullname_" + i).height(maxHeight);
 		$("#cell_teacher_mobile_" + i).height(maxHeight);
@@ -106,14 +96,12 @@ function optimize(t) {
 		$("#cell_student_" + i).height(maxHeight);
 
 		if (i % 2 == 1) {
-			$("#cell_select_" + i).css("background-color", "white");
 			$("#cell_time_" + i).css("background-color", "white");
 			$("#cell_teacher_fullname_" + i).css("background-color", "white");
 			$("#cell_teacher_mobile_" + i).css("background-color", "white");
 			$("#cell_status_" + i).css("background-color", "white");
 			$("#cell_student_" + i).css("background-color", "white");
 		} else {
-			$("#cell_select_" + i).css("background-color", "#f3f3ff");
 			$("#cell_time_" + i).css("background-color", "#f3f3ff");
 			$("#cell_teacher_fullname_" + i).css("background-color", "#f3f3ff");
 			$("#cell_teacher_mobile_" + i).css("background-color", "#f3f3ff");
@@ -123,7 +111,6 @@ function optimize(t) {
 	}
 	$(t).css("left", (width - $(t).width()) / 2 - 11 + "px");
 	$(t).css("top", (height - $(t).height()) / 2 - 11 + "px");
-	$(".table_head").height($("#head_select").height());
 }
 
 function getFeedback(index) {

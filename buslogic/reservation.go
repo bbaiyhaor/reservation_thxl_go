@@ -101,6 +101,33 @@ func (rl *ReservationLogic) GetReservationsByTeacher(userId string, userType mod
 			result = append(result, r)
 		}
 	}
+	if timedReservations, err := models.GetTimedReservationsByTeacherId(teacher.Id.Hex()); err == nil {
+		today := utils.GetToday()
+		for _, tr := range timedReservations {
+			if tr.Status != models.AVAILABLE {
+				continue
+			}
+			minusWeekday := int(tr.Weekday - today.Weekday())
+			if minusWeekday < 0 {
+				minusWeekday += 7
+			}
+			date := today.AddDate(0, 0, minusWeekday)
+			if utils.ConcatTime(date, tr.StartTime).Before(utils.GetNow()) {
+				date = today.AddDate(0, 0, 7)
+			}
+			if !tr.Exceptions[date.Format(utils.DATE_PATTERN)] && !tr.Timed[date.Format(utils.DATE_PATTERN)] {
+				result = append(result, tr.ToReservation(date))
+			}
+			for i := 1; i <= 3; i++ {
+				// 改变i的上阈值可以改变预设咨询的查看范围
+				date = date.AddDate(0, 0, 7)
+				if !tr.Exceptions[date.Format(utils.DATE_PATTERN)] && !tr.Timed[date.Format(utils.DATE_PATTERN)] {
+					result = append(result, tr.ToReservation(date))
+				}
+			}
+		}
+	}
+	sort.Sort(models.ReservationSlice(result))
 	return result, nil
 }
 
@@ -127,31 +154,29 @@ func (rl *ReservationLogic) GetReservationsByAdmin(userId string, userType model
 		}
 		result = append(result, r)
 	}
-	timedReservations, err := models.GetTimedReservationsAll()
-	if err != nil {
-		return result, nil
-	}
-	today := utils.GetToday()
-	for _, tr := range timedReservations {
-		if tr.Status != models.AVAILABLE {
-			continue
-		}
-		minusWeekday := int(tr.Weekday - today.Weekday())
-		if minusWeekday < 0 {
-			minusWeekday += 7
-		}
-		date := today.AddDate(0, 0, minusWeekday)
-		if utils.ConcatTime(date, tr.StartTime).Before(utils.GetNow()) {
-			date = today.AddDate(0, 0, 7)
-		}
-		if !tr.Exceptions[date.Format(utils.DATE_PATTERN)] && !tr.Timed[date.Format(utils.DATE_PATTERN)] {
-			result = append(result, tr.ToReservation(date))
-		}
-		for i := 1; i <= 3; i++ {
-			// 改变i的上阈值可以改变预设咨询的查看范围
-			date = date.AddDate(0, 0, 7)
+	if timedReservations, err := models.GetTimedReservationsAll(); err == nil {
+		today := utils.GetToday()
+		for _, tr := range timedReservations {
+			if tr.Status != models.AVAILABLE {
+				continue
+			}
+			minusWeekday := int(tr.Weekday - today.Weekday())
+			if minusWeekday < 0 {
+				minusWeekday += 7
+			}
+			date := today.AddDate(0, 0, minusWeekday)
+			if utils.ConcatTime(date, tr.StartTime).Before(utils.GetNow()) {
+				date = today.AddDate(0, 0, 7)
+			}
 			if !tr.Exceptions[date.Format(utils.DATE_PATTERN)] && !tr.Timed[date.Format(utils.DATE_PATTERN)] {
 				result = append(result, tr.ToReservation(date))
+			}
+			for i := 1; i <= 3; i++ {
+				// 改变i的上阈值可以改变预设咨询的查看范围
+				date = date.AddDate(0, 0, 7)
+				if !tr.Exceptions[date.Format(utils.DATE_PATTERN)] && !tr.Timed[date.Format(utils.DATE_PATTERN)] {
+					result = append(result, tr.ToReservation(date))
+				}
 			}
 		}
 	}

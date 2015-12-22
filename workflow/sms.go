@@ -17,8 +17,8 @@ import (
 const (
 	SMS_SUCCESS_STUDENT  = "%s你好，你已成功预约星期%s（%d月%d日）%s-%s咨询，地点：紫荆C楼409室。电话：62782007。"
 	SMS_SUCCESS_TEACHER  = "%s您好，%s已预约您星期%s（%d月%d日）%s-%s咨询，地点：紫荆C楼409室。电话：62782007。"
-	SMS_CANCEL_STUDENT = ""
-	SMS_CANCEL_TEACHER = ""
+	SMS_CANCEL_STUDENT   = ""
+	SMS_CANCEL_TEACHER   = ""
 	SMS_REMINDER_STUDENT = "温馨提示：%s你好，你已成功预约明天%s-%s咨询，地点：紫荆C楼409室。电话：62782007。"
 	SMS_REMINDER_TEACHER = "温馨提示：%s您好，%s已预约您明天%s-%s咨询，地点：紫荆C楼409室。电话：62782007。"
 	SMS_FEEDBACK_STUDENT = "温馨提示：%s你好，感谢使用我们的一对一咨询服务，请再次登录预约界面，为咨询师反馈评分，帮助我们成长。"
@@ -51,8 +51,8 @@ func SendSuccessSMS(reservation *models.Reservation) error {
 }
 
 func SendCancelSMS(reservation *models.Reservation) error {
-//	startTime := reservation.StartTime.In(utils.Location)
-//	endTime := reservation.EndTime.In(utils.Location)
+	//	startTime := reservation.StartTime.In(utils.Location)
+	//	endTime := reservation.EndTime.In(utils.Location)
 	student, err := models.GetStudentById(reservation.StudentId)
 	if err != nil {
 		return errors.New("学生未注册")

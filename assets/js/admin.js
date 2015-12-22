@@ -278,6 +278,41 @@ function addReservationConfirm() {
 		success: function(data) {
 			if (data.state === "SUCCESS") {
 				viewReservations();
+			} else if (data.state === "CHECK") {
+				addReservationCheck(payload);
+			} else {
+				alert(data.message);
+			}
+		}
+	});
+}
+
+function addReservationCheck(payload) {
+	$("body").append("\
+		<div class='pop_window' style='width: 50%'>\
+			咨询师信息有变更，是否更新？\
+			<br>\
+			<button type='button' onclick='$(\".pop_window\").remove();addReservationCheckConfirm(" + JSON.stringify(payload) + ");'>确认</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+		</div>\
+	");
+	optimize(".pop_window");
+}
+
+function addReservationCheckConfirm(payload) {
+	payload["force"] = "FORCE";
+	console.log(payload);
+	$.ajax({
+		type: "POST",
+		async: false,
+		url: "/admin/reservation/add",
+		data: payload,
+		dataType: "json",
+		success: function(data) {
+			if (data.state === "SUCCESS") {
+				viewReservations();
+			} else if (data.state === "CHECK") {
+				addReservationCheck(payload);
 			} else {
 				alert(data.message);
 			}
@@ -356,6 +391,41 @@ function editReservationConfirm(index) {
 		success: function(data) {
 			if (data.state === "SUCCESS") {
 				viewReservations();
+			} else if (data.state === "CHECK") {
+				editReservationCheck(payload);
+			} else {
+				alert(data.message);
+			}
+		}
+	});
+}
+
+function editReservationCheck(payload) {
+	$("body").append("\
+		<div class='pop_window' style='width: 50%'>\
+			咨询师信息有变更，是否更新？\
+			<br>\
+			<button type='button' onclick='$(\".pop_window\").remove();editReservationCheckConfirm(" + JSON.stringify(payload) + ");'>确认</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+		</div>\
+	");
+	optimize(".pop_window");
+}
+
+function editReservationCheckConfirm(payload) {
+	payload["force"] = "FORCE";
+	console.log(payload);
+	$.ajax({
+		type: "POST",
+		async: false,
+		url: "/admin/reservation/edit",
+		data: payload,
+		dataType: "json",
+		success: function(data) {
+			if (data.state === "SUCCESS") {
+				viewReservations();
+			} else if (data.state === "CHECK") {
+				addReservationCheck(payload);
 			} else {
 				alert(data.message);
 			}

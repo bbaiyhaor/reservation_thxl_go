@@ -5,6 +5,7 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"net/http"
+	"strings"
 )
 
 func ViewTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
@@ -49,6 +50,7 @@ func AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId s
 	teacherUsername := r.PostFormValue("teacher_username")
 	teacherFullname := r.PostFormValue("teacher_fullname")
 	teacherMobile := r.PostFormValue("teacher_mobile")
+	force := strings.EqualFold(r.PostFormValue("force"), "FORCE")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var al = buslogic.AdminLogic{}
@@ -56,7 +58,7 @@ func AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId s
 
 	var timedReservationJson = make(map[string]interface{})
 	timedReservation, err := al.AddTimetableByAdmin(weekday, startTime, endTime, teacherUsername, teacherFullname,
-		teacherMobile, userId, userType)
+		teacherMobile, force, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -85,6 +87,7 @@ func EditTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId 
 	teacherUsername := r.PostFormValue("teacher_username")
 	teacherFullname := r.PostFormValue("teacher_fullname")
 	teacherMobile := r.PostFormValue("teacher_mobile")
+	force := strings.EqualFold(r.PostFormValue("force"), "FORCE")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var al = buslogic.AdminLogic{}
@@ -92,7 +95,7 @@ func EditTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId 
 
 	var timedReservationJson = make(map[string]interface{})
 	timedReservation, err := al.EditTimetableByAdmin(timedReservationId, weekday, startTime, endTime, teacherUsername,
-		teacherFullname, teacherMobile, userId, userType)
+		teacherFullname, teacherMobile, force, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil

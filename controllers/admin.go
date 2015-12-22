@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+	"strings"
 )
 
 func ViewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
@@ -116,6 +117,7 @@ func AddReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	teacherUsername := r.PostFormValue("teacher_username")
 	teacherFullname := r.PostFormValue("teacher_fullname")
 	teacherMobile := r.PostFormValue("teacher_mobile")
+	force := strings.EqualFold(r.PostFormValue("force"), "FORCE")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var al = buslogic.AdminLogic{}
@@ -123,7 +125,7 @@ func AddReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string
 
 	var reservationJson = make(map[string]interface{})
 	reservation, err := al.AddReservationByAdmin(startTime, endTime, teacherUsername, teacherFullname,
-		teacherMobile, userId, userType)
+		teacherMobile, force, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -154,6 +156,7 @@ func EditReservationByAdmin(w http.ResponseWriter, r *http.Request, userId strin
 	teacherUsername := r.PostFormValue("teacher_username")
 	teacherFullname := r.PostFormValue("teacher_fullname")
 	teacherMobile := r.PostFormValue("teacher_mobile")
+	force := strings.EqualFold(r.PostFormValue("force"), "FORCE")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var al = buslogic.AdminLogic{}
@@ -161,7 +164,7 @@ func EditReservationByAdmin(w http.ResponseWriter, r *http.Request, userId strin
 
 	var reservationJson = make(map[string]interface{})
 	reservation, err := al.EditReservationByAdmin(reservationId, sourceId, originalStartTime,
-		startTime, endTime, teacherUsername, teacherFullname, teacherMobile, userId, userType)
+		startTime, endTime, teacherUsername, teacherFullname, teacherMobile, force, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil

@@ -16,7 +16,7 @@ type AdminLogic struct {
 
 // 管理员添加咨询
 func (al *AdminLogic) AddReservationByAdmin(startTime string, endTime string, teacherUsername string,
-	teacherFullname string, teacherMobile string, userId string, userType models.UserType) (*models.Reservation, error) {
+	teacherFullname string, teacherMobile string, force bool, userId string, userType models.UserType) (*models.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
@@ -57,6 +57,9 @@ func (al *AdminLogic) AddReservationByAdmin(startTime string, endTime string, te
 	} else if teacher.UserType != models.TEACHER {
 		return nil, errors.New("权限不足")
 	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
+		if !force {
+			return nil, errors.New(models.CHECK_MESSAGE)
+		}
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
 		if models.UpsertTeacher(teacher) != nil {
@@ -73,7 +76,7 @@ func (al *AdminLogic) AddReservationByAdmin(startTime string, endTime string, te
 // 管理员编辑咨询
 func (al *AdminLogic) EditReservationByAdmin(reservationId string, sourceId string, originalStartTime string,
 	startTime string, endTime string, teacherUsername string, teacherFullname string, teacherMobile string,
-	userId string, userType models.UserType) (*models.Reservation, error) {
+	force bool, userId string, userType models.UserType) (*models.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
@@ -126,6 +129,9 @@ func (al *AdminLogic) EditReservationByAdmin(reservationId string, sourceId stri
 	} else if teacher.UserType != models.TEACHER {
 		return nil, errors.New("权限不足")
 	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
+		if !force {
+			return nil, errors.New(models.CHECK_MESSAGE)
+		}
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
 		if models.UpsertTeacher(teacher) != nil {

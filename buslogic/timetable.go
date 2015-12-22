@@ -32,7 +32,7 @@ func (al *AdminLogic) ViewTimetableByAdmin(userId string, userType models.UserTy
 
 // 管理员添加时间表
 func (al *AdminLogic) AddTimetableByAdmin(weekday string, startClock string, endClock string,
-	teacherUsername string, teacherFullname string, teacherMobile string,
+	teacherUsername string, teacherFullname string, teacherMobile string, force bool,
 	userId string, userType models.UserType) (*models.TimedReservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
@@ -78,6 +78,9 @@ func (al *AdminLogic) AddTimetableByAdmin(weekday string, startClock string, end
 	} else if teacher.UserType != models.TEACHER {
 		return nil, errors.New("咨询师权限不足")
 	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
+		if !force {
+			return nil, errors.New(models.CHECK_MESSAGE)
+		}
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
 		if err = models.UpsertTeacher(teacher); err != nil {
@@ -94,7 +97,7 @@ func (al *AdminLogic) AddTimetableByAdmin(weekday string, startClock string, end
 // 管理员编辑时间表
 func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday string,
 	startClock string, endClock string, teacherUsername string, teacherFullname string, teacherMobile string,
-	userId string, userType models.UserType) (*models.TimedReservation, error) {
+	force bool, userId string, userType models.UserType) (*models.TimedReservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
@@ -145,6 +148,9 @@ func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday st
 	} else if teacher.UserType != models.TEACHER {
 		return nil, errors.New("咨询师权限不足")
 	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
+		if !force {
+			return nil, errors.New(models.CHECK_MESSAGE)
+		}
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
 		if err = models.UpsertTeacher(teacher); err != nil {

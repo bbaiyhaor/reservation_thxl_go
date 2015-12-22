@@ -255,3 +255,5 @@ var FeedbackAllCategory = map[string]string{
 	"Y4": "Y4 辅导员团体",
 	"Z1": "Z1 个体心理督导",
 }
+
+const CHECK_MESSAGE = "CHECK"

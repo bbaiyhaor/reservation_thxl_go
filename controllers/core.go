@@ -5,6 +5,7 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"html/template"
 	"net/http"
+	"strings"
 )
 
 func EntryPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
@@ -122,8 +123,12 @@ type ErrorMsg struct {
 }
 
 func ErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
+	state := "FAILED"
+	if strings.EqualFold(err.Error(), models.CHECK_MESSAGE) {
+		state = models.CHECK_MESSAGE
+	}
 	if data, err := json.Marshal(ErrorMsg{
-		State:   "FAILED",
+		State:   state,
 		Message: err.Error(),
 	}); err == nil {
 		w.Header().Set("Content-Type", "application/json;charset=UTF-8")

@@ -201,6 +201,40 @@ function addTimedReservationConfirm(weekday) {
         success: function(data) {
             if (data.state === "SUCCESS") {
                 viewTimedReservations();
+            } else if (data.state === "CHECK") {
+                addTimedReservationCheck(payload);
+            } else {
+                alert(data.message);
+            }
+        }
+    });
+}
+
+function addTimedReservationCheck(payload) {
+    $("body").append("\
+		<div class='pop_window' style='width: 50%'>\
+			咨询师信息有变更，是否更新？\
+			<br>\
+			<button type='button' onclick='$(\".pop_window\").remove();addTimedReservationCheckConfirm(" + JSON.stringify(payload) + ");'>确认</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+		</div>\
+	");
+    optimize("Monday", ".pop_window");
+}
+
+function addTimedReservationCheckConfirm(payload) {
+    payload["force"] = "FORCE";
+    $.ajax({
+        type: "POST",
+        async: false,
+        url: "/admin/timetable/add",
+        data: payload,
+        dataType: "json",
+        success: function(data) {
+            if (data.state === "SUCCESS") {
+                viewTimedReservations();
+            } else if (data.state === "CHECK") {
+                addTimedReservationCheck(payload);
             } else {
                 alert(data.message);
             }
@@ -265,6 +299,40 @@ function editTimedReservationConfirm(weekday, index) {
         success: function(data) {
             if (data.state === "SUCCESS") {
                 viewTimedReservations();
+            } else if (data.state === "CHECK") {
+                editTimedReservationCheck(payload);
+            } else {
+                alert(data.message);
+            }
+        }
+    });
+}
+
+function editTimedReservationCheck(payload) {
+    $("body").append("\
+		<div class='pop_window' style='width: 50%'>\
+			咨询师信息有变更，是否更新？\
+			<br>\
+			<button type='button' onclick='$(\".pop_window\").remove();editTimedReservationCheckConfirm(" + JSON.stringify(payload) + ");'>确认</button>\
+			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+		</div>\
+	");
+    optimize("Monday", ".pop_window");
+}
+
+function editTimedReservationCheckConfirm(payload) {
+    payload["force"] = "FORCE";
+    $.ajax({
+        type: "POST",
+        async: false,
+        url: "/admin/timetable/edit",
+        data: payload,
+        dataType: "json",
+        success: function(data) {
+            if (data.state === "SUCCESS") {
+                viewTimedReservations();
+            } else if (data.state === "CHECK") {
+                editTimedReservationCheck(payload);
             } else {
                 alert(data.message);
             }

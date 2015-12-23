@@ -289,14 +289,14 @@ function addReservationConfirm() {
 
 function addReservationCheck(payload) {
 	$("body").append("\
-		<div class='pop_window' style='width: 50%'>\
+		<div id='pop_add_reservation_check' class='pop_window' style='width: 50%'>\
 			咨询师信息有变更，是否更新？\
 			<br>\
-			<button type='button' onclick='$(\".pop_window\").remove();addReservationCheckConfirm(" + JSON.stringify(payload) + ");'>确认</button>\
-			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+			<button type='button' onclick='$(\"#pop_add_reservation_check\").remove();addReservationCheckConfirm(" + JSON.stringify(payload) + ");'>确认</button>\
+			<button type='button' onclick='$(\"#pop_add_reservation_check\").remove();'>取消</button>\
 		</div>\
 	");
-	optimize(".pop_window");
+	optimize("#pop_add_reservation_check");
 }
 
 function addReservationCheckConfirm(payload) {
@@ -402,14 +402,14 @@ function editReservationConfirm(index) {
 
 function editReservationCheck(payload) {
 	$("body").append("\
-		<div class='pop_window' style='width: 50%'>\
+		<div id='pop_edit_reservation_check' class='pop_window' style='width: 50%'>\
 			咨询师信息有变更，是否更新？\
 			<br>\
-			<button type='button' onclick='$(\".pop_window\").remove();editReservationCheckConfirm(" + JSON.stringify(payload) + ");'>确认</button>\
-			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+			<button type='button' onclick='$(\"#pop_edit_reservation_check\").remove();editReservationCheckConfirm(" + JSON.stringify(payload) + ");'>确认</button>\
+			<button type='button' onclick='$(\"#pop_edit_reservation_check\").remove();'>取消</button>\
 		</div>\
 	");
-	optimize(".pop_window");
+	optimize("#pop_edit_reservation_check");
 }
 
 function editReservationCheckConfirm(payload) {
@@ -457,14 +457,14 @@ function searchTeacher(index) {
 
 function removeReservations() {
 	$("body").append("\
-		<div class='pop_window' style='width: 50%'>\
+		<div id='pop_remove_reservations' class='pop_window' style='width: 50%'>\
 			确认删除选中的咨询记录？\
 			<br>\
-			<button type='button' onclick='$(\".pop_window\").remove();removeReservationsConfirm();'>确认</button>\
-			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+			<button type='button' onclick='$(\"#pop_remove_reservations\").remove();removeReservationsConfirm();'>确认</button>\
+			<button type='button' onclick='$(\"#pop_remove_reservations\").remove();'>取消</button>\
 		</div>\
 	");
-	optimize(".pop_window");
+	optimize("#pop_remove_reservations");
 }
 
 function removeReservationsConfirm() {
@@ -502,14 +502,14 @@ function removeReservationsConfirm() {
 
 function cancelReservations() {
 	$("body").append("\
-		<div class='pop_window' style='width: 50%'>\
+		<div id='pop_cancel_reservations' class='pop_window' style='width: 50%'>\
 			确认取消选中的预约？\
 			<br>\
-			<button type='button' onclick='$(\".pop_window\").remove();cancelReservationsConfirm();'>确认</button>\
-			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+			<button type='button' onclick='$(\"#pop_cancel_reservations\").remove();cancelReservationsConfirm();'>确认</button>\
+			<button type='button' onclick='$(\"#pop_cancel_reservations\").remove();'>取消</button>\
 		</div>\
 	");
-	optimize(".pop_window");
+	optimize("#pop_cancel_reservations");
 }
 
 function cancelReservationsConfirm() {
@@ -582,7 +582,7 @@ function showFeedback(index, feedback) {
 			咨询记录：<br>\
 			<textarea id='record_" + index + "' style='width: 100%; height:80px'></textarea><br>\
 			<button type='button' onclick='submitFeedback(" + index + ");'>提交</button>\
-			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+			<button type='button' onclick='$(\"#feedback_table_" + index + "\").remove();'>取消</button>\
 		</div>\
 	");
 	getFeedbackCategories();
@@ -601,7 +601,7 @@ function showFeedback(index, feedback) {
 	}
 	$("#problem_" + index).val(feedback.problem);
 	$("#record_" + index).val(feedback.record);
-	optimize(".pop_window");
+	optimize("#feedback_table_" + index);
 }
 
 function getFeedbackCategories() {
@@ -681,26 +681,26 @@ function submitFeedback(index) {
 }
 
 function successFeedback() {
-	$(".pop_window").remove();
+	$("#feedback_table_" + index).remove();
 	$("body").append("\
-		<div class='pop_window' style='width: 50%;'>\
+		<div id='pop_success_feedback' class='pop_window' style='width: 50%;'>\
 			您已成功提交反馈！<br>\
-			<button type='button' onclick='$(\".pop_window\").remove();'>确定</button>\
+			<button type='button' onclick='$(\"#pop_success_feedback\").remove();'>确定</button>\
 		</div>\
 	");
-	optimize(".pop_window");
+	optimize("#pop_success_feedback");
 }
 
 function setStudent(index) {
 	$("body").append("\
-		<div class='pop_window' style='width: 50%;'>\
+		<div id='pop_set_student' class='pop_window' style='width: 50%;'>\
 			请输入您要制定的学生学号（必须为已注册学生）：<br>\
 			<input id='student_username_" + index + "'/><br>\
 			<button type='button' onclick='setStudentConfirm(" + index + ");'>确认</button>\
-			<button type='button' style='margin-left:20px' onclick='$(\".pop_window\").remove();'>取消</button>\
+			<button type='button' style='margin-left:20px' onclick='$(\"#pop_set_student\").remove();'>取消</button>\
 		</div>\
 	");
-	optimize(".pop_window");
+	optimize("#pop_set_student");
 }
 
 function setStudentConfirm(index) {
@@ -727,14 +727,14 @@ function setStudentConfirm(index) {
 }
 
 function successSetStudent() {
-	$(".pop_window").remove();
+	$("#pop_set_student").remove();
 	$("body").append("\
-		<div class='pop_window' style='width: 50%;'>\
+		<div id='pop_success_set_student' class='pop_window' style='width: 50%;'>\
 			成功指定学生！<br>\
-			<button type='button' onclick='$(\".pop_window\").remove();viewReservations();'>确定</button>\
+			<button type='button' onclick='$(\"#pop_success_set_student\").remove();viewReservations();'>确定</button>\
 		</div>\
 	");
-	optimize(".pop_window");
+	optimize("#pop_success_set_student");
 }
 
 function getStudent(index) {
@@ -759,37 +759,46 @@ function getStudent(index) {
 
 function showStudent(student, reservations) {
 	$("body").append("\
-		<div class='pop_window' style='text-align: left; height: 70%; overflow:auto;'>\
-			学号：" + student.student_username + "<br>\
-			姓名：" + student.student_fullname + "<br>\
-			性别：" + student.student_gender + "<br>\
-			出生日期：" + student.student_birthday + "<br>\
-			系别：" + student.student_school + "<br>\
-			年级：" + student.student_grade + "<br>\
-			现住址：" + student.student_current_address + "<br>\
-			家庭住址：" + student.student_family_address + "<br>\
-			联系电话：" + student.student_mobile + "<br>\
-			Email：" + student.student_email + "<br>\
-			咨询经历：" + (student.student_experience_time ? "时间：" + student.student_experience_time + " 地点：" + student.student_experience_location + " 咨询师：" + student.student_experience_teacher : "无") + "<br>\
-			父亲年龄：" + student.student_father_age + " 职业：" + student.student_father_job + " 学历：" + student.student_father_edu + "<br>\
-			母亲年龄：" + student.student_mother_age + " 职业：" + student.student_mother_job + " 学历：" + student.student_mother_edu + "<br>\
-			父母婚姻状况：" + student.student_parent_marriage + "<br>\
-			近三个月里发生的有重大意义的事：" + student.student_significant + "<br>\
-			需要接受帮助的主要问题：" + student.student_problem + "<br>\
-			<br>\
-			档案编号：<input id='archive_number' type='text' value='" + student.student_archive_number + "'/>\
-			<button type='button' onclick='updateArchiveNumber(\"" + student.student_id + "\");'>更新</button>\
-			<span id='archive_number_tip' style='color: red;'></span><br>\
-			已绑定的咨询师：<span id='binded_teacher_username'>" + student.student_binded_teacher_username + "</span>&nbsp;\
-				<span id='binded_teacher_fullname'>" + student.student_binded_teacher_fullname + "</span>\
-				<button type='button' onclick='unbindStudent(\"" + student.student_id + "\");'>解绑</button><br>\
-			请输入匹配咨询师工号：<input id='teacher_username' type='text'/>\
-			<button type='button' onclick='bindStudent(\"" + student.student_id + "\");'>绑定</button><br>\
-			<div style='margin: 10px 0'>\
-				<button type='button' onclick='exportStudent(\"" + student.student_id + "\");'>导出</button>\
-				<button type='button' onclick='$(\".pop_window\").remove();'>关闭</button>\
+		<div id='pop_show_student_" + student.student_id + "' class='pop_window' style='text-align: left; height: 70%; overflow:auto;'>\
+			<div style='width: 60%; float: left;'>\
+				学号：" + student.student_username + "<br>\
+				姓名：" + student.student_fullname + "<br>\
+				性别：" + student.student_gender + "<br>\
+				出生日期：" + student.student_birthday + "<br>\
+				系别：" + student.student_school + "<br>\
+				年级：" + student.student_grade + "<br>\
+				现住址：" + student.student_current_address + "<br>\
+				家庭住址：" + student.student_family_address + "<br>\
+				联系电话：" + student.student_mobile + "<br>\
+				Email：" + student.student_email + "<br>\
+				咨询经历：" + (student.student_experience_time ? "时间：" + student.student_experience_time + " 地点：" + student.student_experience_location + " 咨询师：" + student.student_experience_teacher : "无") + "<br>\
+				父亲年龄：" + student.student_father_age + " 职业：" + student.student_father_job + " 学历：" + student.student_father_edu + "<br>\
+				母亲年龄：" + student.student_mother_age + " 职业：" + student.student_mother_job + " 学历：" + student.student_mother_edu + "<br>\
+				父母婚姻状况：" + student.student_parent_marriage + "<br>\
+				近三个月里发生的有重大意义的事：" + student.student_significant + "<br>\
+				需要接受帮助的主要问题：" + student.student_problem + "<br>\
+				<br>\
+				档案编号：<input id='archive_number_" + student.student_id + "' type='text' value='" + student.student_archive_number + "'/>\
+				<button type='button' onclick='updateArchiveNumber(\"" + student.student_id + "\");'>更新</button>\
+				<span id='archive_number_tip_" + student.student_id + "' style='color: red;'></span><br>\
+				已绑定的咨询师：<span id='binded_teacher_username_" + student.student_id + "'>" + student.student_binded_teacher_username + "</span>&nbsp;\
+					<span id='binded_teacher_fullname_" + student.student_id + "'>" + student.student_binded_teacher_fullname + "</span>\
+					<button type='button' onclick='unbindStudent(\"" + student.student_id + "\");'>解绑</button><br>\
+				请输入匹配咨询师工号：<input id='teacher_username_" + student.student_id + "' type='text'/>\
+				<button type='button' onclick='bindStudent(\"" + student.student_id + "\");'>绑定</button><br>\
+				<div style='margin: 10px 0'>\
+					<button type='button' onclick='exportStudent(\"" + student.student_id + "\");'>导出</button>\
+					<button type='button' onclick='$(\"#pop_show_student_" + student.student_id + "\").remove();'>关闭</button>\
+				</div>\
+				<div id='student_reservations_" + student.student_id + "' style='width: 600px'>\
+				</div>\
 			</div>\
-			<div id='student_reservations_" + student.student_id + "' style='width: 600px'>\
+			<div style='width: 35%; float: right; border: 2px solid red; padding: 2px;'>\
+				<p style='margin-top: 0; background-color: red'>账户相关，谨慎操作</p>\
+				新密码：<input id='password_" + student.student_id + "' type='password'/><br>\
+				确认密码：<input id='password_check_" + student.student_id + "' type='password'/><br>\
+				<button type='button' onclick='resetStudentPassword(\"" + student.student_id + "\");'>重置密码</button>\
+				<p>删除账户</p>\
 			</div>\
 		</div>\
 	");
@@ -811,13 +820,13 @@ function showStudent(student, reservations) {
 					.siblings().removeClass("highlight").children("p").hide();
 		});
 	});
-	optimize(".pop_window");
+	optimize("#pop_show_student_" + student.student_id);
 }
 
 function updateArchiveNumber(studentId) {
 	var payload = {
 		student_id: studentId,
-		archive_number: $("#archive_number").val(),
+		archive_number: $("#archive_number_" + studentId).val(),
 	};
 	$.ajax({
 		type: "POST",
@@ -827,12 +836,62 @@ function updateArchiveNumber(studentId) {
 		dataType: "json",
 		success: function(data) {
 			if (data.state === "SUCCESS") {
-				$("#archive_number_tip").text("更新成功！");
+				$("#archive_number_tip_" + studentId).text("更新成功！");
 			} else {
 				alert(data.message);
 			}
 		},
 	});
+}
+
+function resetStudentPassword(studentId) {
+	$("body").append("\
+		<div id='pop_reset' class='pop_window' style='width: 50%;'>\
+			您确定要重置该生的密码？<br>\
+			<button type='button' onclick='$(\"#pop_reset\").remove();resetStudentPasswordConfirm(\"" + studentId + "\");'>确认</button>\
+			<button type='button' style='margin-left:20px' onclick='$(\"#pop_reset\").remove();'>取消</button>\
+		</div>\
+	");
+	optimize("#pop_reset");
+}
+
+function resetStudentPasswordConfirm(studentId) {
+	var password = $("#password_" + studentId).val();
+	var passwordConfirm = $("#password_check_" + studentId).val();
+	if (password !== passwordConfirm) {
+		alert("两次密码不一致，请重新输入");
+		$("#password_" + studentId).val("");
+		$("#password_check_" + studentId).val("");
+		return;
+	}
+	$.ajax({
+		type: "POST",
+		async: false,
+		url: "/admin/student/password/reset",
+		data: {
+			student_id: studentId,
+			password: password,
+		},
+		dataType: "json",
+		success: function(data) {
+			if (data.state === "SUCCESS") {
+				resetStudentPasswordSuccess();
+			} else {
+				alert(data.message);
+			}
+		}
+	});
+}
+
+function resetStudentPasswordSuccess() {
+	$("#pop_reset").remove();
+	$("body").append("\
+		<div id='pop_reset_success' class='pop_window' style='width: 50%;'>\
+			密码重置成功！<br>\
+			<button type='button' onclick='$(\"#pop_reset_success\").remove();'>确定</button>\
+		</div>\
+	");
+	optimize("#pop_reset_success");
 }
 
 function exportStudent(studentId) {
@@ -867,8 +926,8 @@ function unbindStudent(studentId) {
 		dataType: "json",
 		success: function(data) {
 			if (data.state === "SUCCESS") {
-				$("#binded_teacher_username").text(data.student_info.student_binded_teacher_username);
-				$("#binded_teacher_fullname").text(data.student_info.student_binded_teacher_fullname);
+				$("#binded_teacher_username_" + studentId).text(data.student_info.student_binded_teacher_username);
+				$("#binded_teacher_fullname_" + studentId).text(data.student_info.student_binded_teacher_fullname);
 			} else {
 				alert(data.message);
 			}
@@ -879,7 +938,7 @@ function unbindStudent(studentId) {
 function bindStudent(studentId) {
 	var payload = {
 		student_id: studentId,
-		teacher_username: $("#teacher_username").val(),
+		teacher_username: $("#teacher_username_" + studentId).val(),
 	};
 	$.ajax({
 		type: "POST",
@@ -889,8 +948,8 @@ function bindStudent(studentId) {
 		dataType: "json",
 		success: function(data) {
 			if (data.state === "SUCCESS") {
-				$("#binded_teacher_username").text(data.student_info.student_binded_teacher_username);
-				$("#binded_teacher_fullname").text(data.student_info.student_binded_teacher_fullname);
+				$("#binded_teacher_username_" + studentId).text(data.student_info.student_binded_teacher_username);
+				$("#binded_teacher_fullname_" + studentId).text(data.student_info.student_binded_teacher_fullname);
 			} else {
 				alert(data.message);
 			}
@@ -921,7 +980,7 @@ function getWorkload() {
 
 function showWorkload(workload) {
 	$("body").append("\
-		<div class='pop_window' style='text-align: left; width: 50%; height: 70%; overflow: auto;'>\
+		<div id='pop_show_workload' class='pop_window' style='text-align: left; width: 50%; height: 70%; overflow: auto;'>\
 			咨询师工作量统计\
 			<div id='teacher_workload' style='width: 600px; margin-top: 10px;'>\
 				<div class='table_col' id='col_workload_username'>\
@@ -939,7 +998,7 @@ function showWorkload(workload) {
 				<div class='clearfix'></div>\
 			</div>\
 			<div style='margin: 10px 0'>\
-				<button type='button' onclick='$(\".pop_window\").remove();'>关闭</button>\
+				<button type='button' onclick='$(\"#pop_show_workload\").remove();'>关闭</button>\
 			</div>\
 		</div>\
 	");
@@ -959,7 +1018,7 @@ function showWorkload(workload) {
 				+ i + "'>" + Object.size(workload[i].reservations) + "</div>");
 		}
 	}
-	optimize(".pop_window");
+	optimize("#pop_show_workload");
 }
 
 Object.size = function(obj) {

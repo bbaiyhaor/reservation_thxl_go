@@ -41,8 +41,8 @@ function studentRegister() {
 		async: false,
 		url: "/user/student/register",
 		data: {
-			username: $("#username").val(),
-			password: $("#password").val(),
+			username: username,
+			password: password,
 		},
 		dataType: "json",
 		success: function(data) {

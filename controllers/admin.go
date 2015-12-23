@@ -402,6 +402,22 @@ func UpdateStudentArchiveNumberByAdmin(w http.ResponseWriter, r *http.Request, u
 	return result
 }
 
+func ResetStudentPasswordByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	studentId := r.PostFormValue("student_id")
+	password := r.PostFormValue("password")
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var al = buslogic.AdminLogic{}
+
+	_, err := al.ResetStudentPasswordByAdmin(studentId, password, userId, userType)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
+
+	return result
+}
+
 func ExportStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	studentId := r.PostFormValue("student_id")
 

@@ -439,6 +439,33 @@ func (al *AdminLogic) UpdateStudentArchiveNumberByAdmin(studentId string, archiv
 	return student, nil
 }
 
+// 管理员重置学生密码
+func (al *AdminLogic) ResetStudentPasswordByAdmin(studentId string, password string,
+	userId string, userType models.UserType) (*models.Student, error) {
+	if len(userId) == 0 {
+		return nil, errors.New("请先登录")
+	} else if userType != models.ADMIN {
+		return nil, errors.New("权限不足")
+	} else if len(studentId) == 0 {
+		return nil, errors.New("学生未注册")
+	} else if len(password) == 0 {
+		return nil, errors.New("密码为空")
+	}
+	admin, err := models.GetAdminById(userId)
+	if err != nil || admin.UserType != models.ADMIN {
+		return nil, errors.New("管理员账户出错,请联系技术支持")
+	}
+	student, err := models.GetStudentById(studentId)
+	if err != nil {
+		return nil, errors.New("学生未注册")
+	}
+	student.Password = password
+	if err := models.UpsertStudent(student); err != nil {
+		return nil, errors.New("获取数据失败")
+	}
+	return student, nil
+}
+
 // 管理员导出学生信息
 func (al *AdminLogic) ExportStudentByAdmin(studentId string, userId string, userType models.UserType) (string, error) {
 	if len(userId) == 0 {

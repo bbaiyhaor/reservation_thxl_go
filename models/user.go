@@ -8,7 +8,7 @@ import (
 type UserType int
 
 const (
-	UNKNWONUSER UserType = iota
+	UNKNOWN UserType = iota
 	STUDENT
 	TEACHER
 	ADMIN

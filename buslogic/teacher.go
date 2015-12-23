@@ -145,7 +145,7 @@ func (tl *TeacherLogic) QueryStudentInfoByTeacher(studentUsername string,
 		return nil, nil, errors.New("权限不足")
 	}
 	student, err := models.GetStudentByUsername(studentUsername)
-	if err != nil {
+	if err != nil || student.UserType != models.STUDENT {
 		return nil, nil, errors.New("学生未注册")
 	}
 	if !strings.EqualFold(student.BindedTeacherId, teacher.Id.Hex()) {

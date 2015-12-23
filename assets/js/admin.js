@@ -799,6 +799,7 @@ function showStudent(student, reservations) {
 				确认密码：<input id='password_check_" + student.student_id + "' type='password'/><br>\
 				<button type='button' onclick='resetStudentPassword(\"" + student.student_id + "\");'>重置密码</button>\
 				<p>删除账户</p>\
+				<button type='button' onclick='deleteStudentAccount(\"" + student.student_id + "\");' class='btn btn-danger'>删除账户</button>\
 			</div>\
 		</div>\
 	");
@@ -884,7 +885,6 @@ function resetStudentPasswordConfirm(studentId) {
 }
 
 function resetStudentPasswordSuccess() {
-	$("#pop_reset").remove();
 	$("body").append("\
 		<div id='pop_reset_success' class='pop_window' style='width: 50%;'>\
 			密码重置成功！<br>\
@@ -892,6 +892,59 @@ function resetStudentPasswordSuccess() {
 		</div>\
 	");
 	optimize("#pop_reset_success");
+}
+
+function deleteStudentAccount(studentId) {
+	$("body").append("\
+		<div id='pop_delete_student_account' class='pop_window' style='width: 50%;'>\
+			<span style='color: red'><b>删除学生账户不可恢复，请确认操作</b></span><br>\
+			<button type='button' onclick='$(\"#pop_delete_student_account\").remove();deleteStudentAccountConfirm(\"" + studentId + "\");'>确认</button>\
+			<button type='button' style='margin-left:20px' onclick='$(\"#pop_delete_student_account\").remove();'>取消</button>\
+		</div>\
+	");
+	optimize("#pop_delete_student_account");
+}
+
+function deleteStudentAccountConfirm(studentId) {
+	$("body").append("\
+		<div id='pop_delete_student_account_confirm' class='pop_window' style='width: 50%;'>\
+			<span style='color: red;'><b>请再次确认删除学生账户</b></span><br>\
+			<button type='button' onclick='$(\"#pop_delete_student_account_confirm\").remove();deleteStudentAccountConfirmCheck(\"" + studentId + "\");'>确认</button>\
+			<button type='button' style='margin-left:20px' onclick='$(\"#pop_delete_student_account_confirm\").remove();'>取消</button>\
+		</div>\
+	");
+	optimize("#pop_delete_student_account_confirm");
+}
+
+function deleteStudentAccountConfirmCheck(studentId) {
+	var payload = {
+		student_id: studentId,
+	};
+	$.ajax({
+		type: "POST",
+		async: false,
+		url: "/admin/student/account/delete",
+		data: payload,
+		dataType: "json",
+		success: function(data) {
+			if (data.state === "SUCCESS") {
+				deleteStudentAccountSuccess();
+			} else {
+				alert(data.message);
+			}
+		},
+	});
+}
+
+function deleteStudentAccountSuccess(studentId) {
+	$("#pop_show_student_" + studentId).remove();
+	$("body").append("\
+		<div id='pop_delete_student_account_success' class='pop_window' style='width: 50%;'>\
+			学生账户已删除！<br>\
+			<button type='button' onclick='$(\"#pop_delete_student_account_success\").remove();'>确定</button>\
+		</div>\
+	");
+	optimize("#pop_delete_student_account_success");
 }
 
 function exportStudent(studentId) {

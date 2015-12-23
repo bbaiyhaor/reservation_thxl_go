@@ -61,7 +61,7 @@ func GetStudentByUsername(username string) (*Student, error) {
 	}
 	collection := Mongo.C("student")
 	student := &Student{}
-	if err := collection.Find(bson.M{"username": username}).One(student); err != nil {
+	if err := collection.Find(bson.M{"username": username, "user_type": STUDENT}).One(student); err != nil {
 		return nil, err
 	}
 	return student, nil

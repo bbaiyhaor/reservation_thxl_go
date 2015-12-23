@@ -400,7 +400,7 @@ func (al *AdminLogic) GetStudentInfoByAdmin(studentId string,
 		return nil, nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := models.GetStudentById(studentId)
-	if err != nil {
+	if err != nil || student.UserType != models.STUDENT {
 		return nil, nil, errors.New("学生未注册")
 	}
 	reservations, err := models.GetReservationsByStudentId(student.Id.Hex())
@@ -464,6 +464,30 @@ func (al *AdminLogic) ResetStudentPasswordByAdmin(studentId string, password str
 		return nil, errors.New("获取数据失败")
 	}
 	return student, nil
+}
+
+// 管理员删除学生账户
+func (al *AdminLogic) DeleteStudentAccountByAdmin(studentId string, userId string, userType models.UserType) error {
+	if len(userId) == 0 {
+		return errors.New("请先登录")
+	} else if userType != models.ADMIN {
+		return errors.New("权限不足")
+	} else if len(studentId) == 0 {
+		return errors.New("学生未注册")
+	}
+	admin, err := models.GetAdminById(userId)
+	if err != nil || admin.UserType != models.ADMIN {
+		return errors.New("管理员账户出错,请联系技术支持")
+	}
+	student, err := models.GetStudentById(studentId)
+	if err != nil || student.UserType != models.STUDENT {
+		return errors.New("学生未注册")
+	}
+	student.UserType = models.UNKNOWN
+	if err := models.UpsertStudent(student); err != nil {
+		return errors.New("获取数据失败")
+	}
+	return nil
 }
 
 // 管理员导出学生信息
@@ -560,7 +584,7 @@ func (al *AdminLogic) QueryStudentInfoByAdmin(studentUsername string,
 		return nil, nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := models.GetStudentByUsername(studentUsername)
-	if err != nil {
+	if err != nil || student.UserType != models.STUDENT {
 		return nil, nil, errors.New("学生未注册")
 	}
 	reservations, err := models.GetReservationsByStudentId(student.Id.Hex())

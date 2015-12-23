@@ -105,6 +105,8 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 
 type Reservation struct {
 	Id              bson.ObjectId     `bson:"_id"`
+	CreateTime      time.Time         `bson:"create_time"`
+	UpdateTime      time.Time         `bson:"update_time"`
 	StartTime       time.Time         `bson:"start_time"` // indexed
 	EndTime         time.Time         `bson:"end_time"`
 	Status          ReservationStatus `bson:"status"`

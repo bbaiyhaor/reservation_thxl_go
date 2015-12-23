@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"gopkg.in/mgo.v2/bson"
+	"time"
 )
 
 type UserType int
@@ -41,6 +42,8 @@ func (e Experience) IsEmpty() bool {
 
 type Student struct {
 	Id              bson.ObjectId `bson:"_id"`
+	CreateTime      time.Time     `bson:"create_time"`
+	UpdateTime      time.Time     `bson:"update_time"`
 	Username        string        `bson:"username"` // Indexed
 	Password        string        `bson:"password"`
 	UserType        UserType      `bson:"user_type"`
@@ -69,17 +72,21 @@ type Student struct {
 }
 
 type Teacher struct {
-	Id       bson.ObjectId `bson:"_id"`
-	Username string        `bson:"username"` // Indexed
-	Password string        `bson:"password"`
-	Fullname string        `bson:"fullname"`
-	Mobile   string        `bson:"mobile"`
-	UserType UserType      `bson:"user_type"`
+	Id         bson.ObjectId `bson:"_id"`
+	CreateTime time.Time     `bson:"create_time"`
+	UpdateTime time.Time     `bson:"update_time"`
+	Username   string        `bson:"username"` // Indexed
+	Password   string        `bson:"password"`
+	Fullname   string        `bson:"fullname"`
+	Mobile     string        `bson:"mobile"`
+	UserType   UserType      `bson:"user_type"`
 }
 
 type Admin struct {
-	Id       bson.ObjectId `bson:"_id"`
-	Username string        `bson:"username"` // Indexed
-	Password string        `bson:"password"`
-	UserType UserType      `bson:"user_type"`
+	Id         bson.ObjectId `bson:"_id"`
+	CreateTime time.Time     `bson:"create_time"`
+	UpdateTime time.Time     `bson:"update_time"`
+	Username   string        `bson:"username"` // Indexed
+	Password   string        `bson:"password"`
+	UserType   UserType      `bson:"user_type"`
 }

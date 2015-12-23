@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"time"
@@ -23,10 +24,12 @@ func AddStudent(username string, password string) (*Student, error) {
 	}
 	collection := Mongo.C("student")
 	newStudent := &Student{
-		Id:       bson.NewObjectId(),
-		Username: username,
-		Password: password,
-		UserType: STUDENT,
+		Id:         bson.NewObjectId(),
+		CreateTime: utils.GetNow(),
+		UpdateTime: utils.GetNow(),
+		Username:   username,
+		Password:   password,
+		UserType:   STUDENT,
 	}
 	if err := collection.Insert(newStudent); err != nil {
 		return nil, err
@@ -39,6 +42,7 @@ func UpsertStudent(student *Student) error {
 		return errors.New("字段不合法")
 	}
 	collection := Mongo.C("student")
+	student.UpdateTime = utils.GetNow()
 	_, err := collection.UpsertId(student.Id, student)
 	return err
 }
@@ -89,12 +93,14 @@ func AddTeacher(username string, password string, fullname string, mobile string
 	}
 	collection := Mongo.C("teacher")
 	newTeacher := &Teacher{
-		Id:       bson.NewObjectId(),
-		Username: username,
-		Password: password,
-		Fullname: fullname,
-		Mobile:   mobile,
-		UserType: TEACHER,
+		Id:         bson.NewObjectId(),
+		CreateTime: utils.GetNow(),
+		UpdateTime: utils.GetNow(),
+		Username:   username,
+		Password:   password,
+		Fullname:   fullname,
+		Mobile:     mobile,
+		UserType:   TEACHER,
 	}
 	if err := collection.Insert(newTeacher); err != nil {
 		return nil, err
@@ -107,6 +113,7 @@ func UpsertTeacher(teacher *Teacher) error {
 		return errors.New("字段不合法")
 	}
 	collection := Mongo.C("teacher")
+	teacher.UpdateTime = utils.GetNow()
 	_, err := collection.UpsertId(teacher.Id, teacher)
 	return err
 }
@@ -169,10 +176,12 @@ func AddAdmin(username string, password string) (*Admin, error) {
 	}
 	collection := Mongo.C("admin")
 	newAdmin := &Admin{
-		Id:       bson.NewObjectId(),
-		Username: username,
-		Password: password,
-		UserType: ADMIN,
+		Id:         bson.NewObjectId(),
+		CreateTime: utils.GetNow(),
+		UpdateTime: utils.GetNow(),
+		Username:   username,
+		Password:   password,
+		UserType:   ADMIN,
 	}
 	if err := collection.Insert(newAdmin); err != nil {
 		return nil, err
@@ -185,6 +194,7 @@ func UpsertAdmin(admin *Admin) error {
 		return errors.New("字段不合法")
 	}
 	collection := Mongo.C("admin")
+	admin.UpdateTime = utils.GetNow()
 	_, err := collection.UpsertId(admin.Id, admin)
 	return err
 }
@@ -222,6 +232,8 @@ func AddReservation(startTime time.Time, endTime time.Time, source ReservationSo
 	collection := Mongo.C("reservation")
 	newReservation := &Reservation{
 		Id:              bson.NewObjectId(),
+		CreateTime:      utils.GetNow(),
+		UpdateTime:      utils.GetNow(),
 		StartTime:       startTime,
 		EndTime:         endTime,
 		Status:          AVAILABLE,
@@ -242,6 +254,7 @@ func UpsertReservation(reservation *Reservation) error {
 		return errors.New("字段不合法")
 	}
 	collection := Mongo.C("reservation")
+	reservation.UpdateTime = utils.GetNow()
 	_, err := collection.UpsertId(reservation.Id, reservation)
 	return err
 }
@@ -309,6 +322,8 @@ func AddTimedReservation(weekday time.Weekday, startTime time.Time, endTime time
 	collection := Mongo.C("timetable")
 	timedReservation := &TimedReservation{
 		Id:         bson.NewObjectId(),
+		CreateTime: utils.GetNow(),
+		UpdateTime: utils.GetNow(),
 		Weekday:    weekday,
 		StartTime:  startTime,
 		EndTime:    endTime,
@@ -328,6 +343,7 @@ func UpsertTimedReservation(timedReservation *TimedReservation) error {
 		return errors.New("字段不合法")
 	}
 	collection := Mongo.C("timetable")
+	timedReservation.UpdateTime = utils.GetNow()
 	_, err := collection.UpsertId(timedReservation.Id, timedReservation)
 	return err
 }

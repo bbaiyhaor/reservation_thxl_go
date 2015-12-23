@@ -9,6 +9,8 @@ import (
 
 type TimedReservation struct {
 	Id         bson.ObjectId     `bson:"_id"`
+	CreateTime time.Time         `bson:"create_time"`
+	UpdateTime time.Time         `bson:"update_time"`
 	Weekday    time.Weekday      `bson:"weekday"`
 	StartTime  time.Time         `bson:"start_time"`
 	EndTime    time.Time         `bson:"end_time"`
@@ -21,6 +23,8 @@ type TimedReservation struct {
 func (tr TimedReservation) ToReservation(date time.Time) *Reservation {
 	return &Reservation{
 		Id:              tr.Id,
+		CreateTime:      utils.GetNow(),
+		UpdateTime:      utils.GetNow(),
 		StartTime:       utils.ConcatTime(date, tr.StartTime),
 		EndTime:         utils.ConcatTime(date, tr.EndTime),
 		Status:          AVAILABLE,

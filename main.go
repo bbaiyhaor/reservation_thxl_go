@@ -92,15 +92,6 @@ func main() {
 	}
 
 	// TODO: Remove the following test codes
-	//	time1, _ := time.ParseInLocation(utils.CLOCK_PATTERN, "13:00", utils.Location)
-	//	time2, _ := time.ParseInLocation(utils.CLOCK_PATTERN, "14:00", utils.Location)
-	//	time3, _ := time.ParseInLocation(utils.CLOCK_PATTERN, "15:00", utils.Location)
-	//	time4, _ := time.ParseInLocation(utils.CLOCK_PATTERN, "16:00", utils.Location)
-	//	teacher, _ := models.AddTeacher("11", "11", "wang", "15101186680")
-	//	models.AddTimedReservation(time.Tuesday, time2, time3, teacher.Id.Hex())
-	//	models.AddTimedReservation(time.Tuesday, time1, time2, teacher.Id.Hex())
-	//	models.AddTimedReservation(time.Monday, time3, time4, teacher.Id.Hex())
-	//	models.AddTimedReservation(time.Monday, time1, time3, teacher.Id.Hex())
 
 	// mux
 	router := mux.NewRouter()

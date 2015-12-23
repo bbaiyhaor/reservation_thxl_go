@@ -7,6 +7,7 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"github.com/shudiwsh2009/reservation_thxl_go/workflow"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -235,34 +236,38 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 
 // 管理员拉取反馈
 func (al *AdminLogic) GetFeedbackByAdmin(reservationId string, sourceId string,
-	userId string, userType models.UserType) (*models.Reservation, error) {
+	userId string, userType models.UserType) (*models.Student, *models.Reservation, error) {
 	if len(userId) == 0 {
-		return nil, errors.New("请先登录")
+		return nil, nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
-		return nil, errors.New("权限不足")
+		return nil, nil, errors.New("权限不足")
 	} else if len(reservationId) == 0 {
-		return nil, errors.New("咨询已下架")
+		return nil, nil, errors.New("咨询已下架")
 	} else if strings.EqualFold(reservationId, sourceId) {
-		return nil, errors.New("咨询未被预约，不能反馈")
+		return nil, nil, errors.New("咨询未被预约，不能反馈")
 	}
 	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
-		return nil, errors.New("管理员账户出错,请联系技术支持")
+		return nil, nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	reservation, err := models.GetReservationById(reservationId)
 	if err != nil || reservation.Status == models.DELETED {
-		return nil, errors.New("咨询已下架")
+		return nil, nil, errors.New("咨询已下架")
 	} else if reservation.StartTime.After(utils.GetNow()) {
-		return nil, errors.New("咨询未开始,暂不能反馈")
+		return nil, nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == models.AVAILABLE {
-		return nil, errors.New("咨询未被预约,不能反馈")
+		return nil, nil, errors.New("咨询未被预约,不能反馈")
 	}
-	return reservation, nil
+	student, err := models.GetStudentById(reservation.StudentId)
+	if err != nil {
+		return nil, nil, errors.New("获取数据失败")
+	}
+	return student, reservation, nil
 }
 
 // 管理员提交反馈
 func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId string,
-	category string, participants []int, problem string, record string,
+	category string, participants []int, problem string, record string, crisisLevel string,
 	userId string, userType models.UserType) (*models.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
@@ -278,8 +283,14 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId strin
 		return nil, errors.New("问题评估为空")
 	} else if len(record) == 0 {
 		return nil, errors.New("咨询记录为空")
+	} else if len(crisisLevel) == 0 {
+		return nil, errors.New("危机等级为空")
 	} else if strings.EqualFold(reservationId, sourceId) {
 		return nil, errors.New("咨询未被预约，不能反馈")
+	}
+	crisisLevelInt, err := strconv.Atoi(crisisLevel)
+	if err != nil || crisisLevelInt < 0 || crisisLevelInt > models.CRISIS_LEVEL_MAX {
+		return nil, errors.New("危机等级错误")
 	}
 	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
@@ -300,7 +311,12 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId strin
 		Problem:      problem,
 		Record:       record,
 	}
-	if err = models.UpsertReservation(reservation); err != nil {
+	student, err := models.GetStudentById(reservation.StudentId)
+	if err != nil {
+		return nil, errors.New("获取数据失败")
+	}
+	student.CrisisLevel = crisisLevelInt
+	if models.UpsertReservation(reservation) != nil || models.UpsertStudent(student) != nil {
 		return nil, errors.New("获取数据失败")
 	}
 	if sendFeedbackSMS && participants[0] > 0 {
@@ -408,6 +424,37 @@ func (al *AdminLogic) GetStudentInfoByAdmin(studentId string,
 		return nil, nil, errors.New("获取数据失败")
 	}
 	return student, reservations, nil
+}
+
+// 管理员更新学生档案编号
+func (al *AdminLogic) UpdateStudentCrisisLevelByAdmin(studentId string, crisisLevel string,
+	userId string, userType models.UserType) (*models.Student, error) {
+	if len(userId) == 0 {
+		return nil, errors.New("请先登录")
+	} else if userType != models.ADMIN {
+		return nil, errors.New("权限不足")
+	} else if len(studentId) == 0 {
+		return nil, errors.New("学生未注册")
+	} else if len(crisisLevel) == 0 {
+		return nil, errors.New("危机等级为空")
+	}
+	crisisLevelInt, err := strconv.Atoi(crisisLevel)
+	if err != nil || crisisLevelInt < 0 || crisisLevelInt > models.CRISIS_LEVEL_MAX {
+		return nil, errors.New("危机等级错误")
+	}
+	admin, err := models.GetAdminById(userId)
+	if err != nil || admin.UserType != models.ADMIN {
+		return nil, errors.New("管理员账户出错,请联系技术支持")
+	}
+	student, err := models.GetStudentById(studentId)
+	if err != nil {
+		return nil, errors.New("学生未注册")
+	}
+	student.CrisisLevel = crisisLevelInt
+	if err := models.UpsertStudent(student); err != nil {
+		return nil, errors.New("获取数据失败")
+	}
+	return student, nil
 }
 
 // 管理员更新学生档案编号

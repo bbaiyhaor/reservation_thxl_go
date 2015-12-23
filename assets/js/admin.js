@@ -195,6 +195,10 @@ function optimize(t) {
 			$("#cell_status_" + i).css("background-color", "#f3f3ff");
 			$("#cell_student_" + i).css("background-color", "#f3f3ff");
 		}
+
+		if (reservations[i].student_crisis_level && reservations[i].student_crisis_level !== "0") {
+			$("#cell_student_" + i).css("background-color", "rgba(255, 0, 0, " + parseInt(reservations[i].student_crisis_level) / 5 +")");
+		}
 	}
 	$("#cell_select_add").height(28);
 	$("#cell_time_add").height(28);
@@ -581,6 +585,7 @@ function showFeedback(index, feedback) {
 			<textarea id='problem_" + index + "' style='width: 100%; height:80px'></textarea><br>\
 			咨询记录：<br>\
 			<textarea id='record_" + index + "' style='width: 100%; height:80px'></textarea><br>\
+			危机等级：<select id='crisis_level_"+ index + "'><option value='0'>无</option><option value='1'>一级</option><option value='2'>二级</option><option value='3'>三级</option><option value='4'>四级</option><option value='5'>五级</option></select><br>\
 			<button type='button' onclick='submitFeedback(" + index + ");'>提交</button>\
 			<button type='button' onclick='$(\"#feedback_table_" + index + "\").remove();'>取消</button>\
 		</div>\
@@ -601,6 +606,7 @@ function showFeedback(index, feedback) {
 	}
 	$("#problem_" + index).val(feedback.problem);
 	$("#record_" + index).val(feedback.record);
+	$("#crisis_level_" + index).val(feedback.crisis_level);
 	optimize("#feedback_table_" + index);
 }
 
@@ -662,6 +668,7 @@ function submitFeedback(index) {
 		participants: participants,
 		problem: $("#problem_" + index).val(),
 		record: $("#record_" + index).val(),
+		crisis_level: $("#crisis_level_" + index).val(),
 	};
 	$.ajax({
 		type: "POST",
@@ -672,7 +679,8 @@ function submitFeedback(index) {
 		traditional: true,
 		success: function(data) {
 			if (data.state === "SUCCESS") {
-				successFeedback();
+				successFeedback(index);
+				viewReservations();
 			} else {
 				alert(data.message);
 			}
@@ -680,7 +688,7 @@ function submitFeedback(index) {
 	});
 }
 
-function successFeedback() {
+function successFeedback(index) {
 	$("#feedback_table_" + index).remove();
 	$("body").append("\
 		<div id='pop_success_feedback' class='pop_window' style='width: 50%;'>\
@@ -778,6 +786,9 @@ function showStudent(student, reservations) {
 				近三个月里发生的有重大意义的事：" + student.student_significant + "<br>\
 				需要接受帮助的主要问题：" + student.student_problem + "<br>\
 				<br>\
+				危机等级：<select id='crisis_level_"+ student.student_id + "'><option value='0'>无</option><option value='1'>一级</option><option value='2'>二级</option><option value='3'>三级</option><option value='4'>四级</option><option value='5'>五级</option></select>\
+				<button type='button' onclick='updateCrisisLevel(\"" + student.student_id + "\");'>更新</button>\
+				<span id='crisis_level_tip_" + student.student_id + "' style='color: red;'></span><br>\
 				档案编号：<input id='archive_number_" + student.student_id + "' type='text' value='" + student.student_archive_number + "'/>\
 				<button type='button' onclick='updateArchiveNumber(\"" + student.student_id + "\");'>更新</button>\
 				<span id='archive_number_tip_" + student.student_id + "' style='color: red;'></span><br>\
@@ -815,6 +826,7 @@ function showStudent(student, reservations) {
 			</div>\
 		");
 	}
+	$("#crisis_level_" + student.student_id).val(student.student_crisis_level);
 	$(document).ready(function() {
 		$(".has_children").click(function() {
 			$(this).addClass("highlight").children("p").show().end()
@@ -822,6 +834,28 @@ function showStudent(student, reservations) {
 		});
 	});
 	optimize("#pop_show_student_" + student.student_id);
+}
+
+function updateCrisisLevel(studentId) {
+	var payload = {
+		student_id: studentId,
+		crisis_level: $("#crisis_level_" + studentId).val(),
+	};
+	$.ajax({
+		type: "POST",
+		async: false,
+		url: "/admin/student/crisis/update",
+		data: payload,
+		dataType: "json",
+		success: function(data) {
+			if (data.state === "SUCCESS") {
+				$("#crisis_level_tip_" + studentId).text("更新成功！");
+				viewReservations();
+			} else {
+				alert(data.message);
+			}
+		},
+	});
 }
 
 function updateArchiveNumber(studentId) {

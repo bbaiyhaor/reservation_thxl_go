@@ -56,19 +56,19 @@ function refreshDataTable(reservations) {
 		if (reservations[i].status === "AVAILABLE") {
 			$("#col_status").append("<div class='table_cell' id='cell_status_" + i + "'>未预约</div>");
 			$("#col_student").append("<div class='table_cell' id='cell_student_" + i + "'>" 
-				+ "<button type='button' id='cell_student_view_" + i + "' disabled='true'>查看"
+				+ "<button type='button' id='cell_student_view_" + i + "' disabled='true' style='padding: 2px 2px'>查看"
 				+ "</button></div>");
 		} else if (reservations[i].status === "RESERVATED") {
 			$("#col_status").append("<div class='table_cell' id='cell_status_" + i + "'>已预约</div>");
 			$("#col_student").append("<div class='table_cell' id='cell_student_" + i + "'>" 
-				+ "<button type='button' id='cell_student_view_" + i + "' onclick='getStudent(" + i + ");'>查看"
+				+ "<button type='button' id='cell_student_view_" + i + "' onclick='getStudent(" + i + ");' style='padding: 2px 2px'>查看"
 				+ "</button></div>");
 		} else if (reservations[i].status === "FEEDBACK") {
 			$("#col_status").append("<div class='table_cell' id='cell_status_" + i + "'>"
-				+ "<button type='button' id='cell_status_feedback_" + i + "' onclick='getFeedback(" + i + ");'>"
+				+ "<button type='button' id='cell_status_feedback_" + i + "' onclick='getFeedback(" + i + ");' style='padding: 2px 2px'>"
 				+ "反馈</button></div>");
 			$("#col_student").append("<div class='table_cell' id='cell_student_" + i + "'>" 
-				+ "<button type='button' id='cell_student_view_" + i + "' onclick='getStudent(" + i + ");'>查看"
+				+ "<button type='button' id='cell_student_view_" + i + "' onclick='getStudent(" + i + ");' style='padding: 2px 2px'>查看"
 				+ "</button></div>");
 		}
 	}
@@ -78,9 +78,9 @@ function optimize(t) {
 	$("#col_time").width(width * 0.25);
 	$("#col_teacher_fullname").width(width * 0.2);
 	$("#col_teacher_mobile").width(width * 0.25);
-	$("#col_status").width(width * 0.15);
-	$("#col_student").width(width * 0.1);
-	$("#col_time").css("margin-left", width * 0.02 + "px");
+	$("#col_status").width(width * 0.13);
+	$("#col_student").width(width * 0.13);
+	$("#col_time").css("margin-left", width * 0.01 + "px");
 	for (var i = 0; i < reservations.length; ++i) {
 		var maxHeight = Math.max(
 				$("#cell_time_" + i).height(),
@@ -107,6 +107,11 @@ function optimize(t) {
 			$("#cell_teacher_mobile_" + i).css("background-color", "#f3f3ff");
 			$("#cell_status_" + i).css("background-color", "#f3f3ff");
 			$("#cell_student_" + i).css("background-color", "#f3f3ff");
+		}
+
+		if (reservations[i].student_crisis_level && reservations[i].student_crisis_level !== "0") {
+			//$("#cell_student_" + i).css("background-color", "rgba(255, 0, 0, " + parseInt(reservations[i].student_crisis_level) / 5 +")");
+			$("#cell_student_view_" + i).css("background-color", "rgba(255, 0, 0, " + parseInt(reservations[i].student_crisis_level) / 5 +")");
 		}
 	}
 	$(t).css("left", (width - $(t).width()) / 2 - 11 + "px");
@@ -149,6 +154,7 @@ function showFeedback(index, feedback) {
 			<textarea id='problem_" + index + "' style='width: 100%; height:80px''></textarea><br>\
 			咨询记录：<br>\
 			<textarea id='record_" + index + "' style='width: 100%; height:80px''></textarea><br>\
+			危机等级：<select id='crisis_level_"+ index + "'><option value='0'>无</option><option value='1'>一级</option><option value='2'>二级</option><option value='3'>三级</option><option value='4'>四级</option><option value='5'>五级</option></select><br>\
 			<button type='button' onclick='submitFeedback(" + index + ");'>提交</button>\
 			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
 		</div>\
@@ -169,6 +175,7 @@ function showFeedback(index, feedback) {
 	}
 	$("#problem_" + index).val(feedback.problem);
 	$("#record_" + index).val(feedback.record);
+	$("#crisis_level_" + index).val(feedback.crisis_level);
 	optimize(".pop_window");
 }
 
@@ -230,6 +237,7 @@ function submitFeedback(index) {
 		participants: participants,
 		problem: $("#problem_" + index).val(),
 		record: $("#record_" + index).val(),
+		crisis_level: $("#crisis_level_" + index).val(),
 	};
 	$.ajax({
 		type: "POST",
@@ -241,6 +249,7 @@ function submitFeedback(index) {
 		success: function(data) {
 			if (data.state === "SUCCESS") {
 				successFeedback();
+				viewReservations();
 			} else {
 				alert(data.message);
 			}
@@ -318,6 +327,7 @@ function showStudent(student, reservations) {
 			父母婚姻状况：" + student.student_parent_marriage + "<br>\
 			近三个月里发生的有重大意义的事：" + student.student_significant + "<br>\
 			需要接受帮助的主要问题：" + student.student_problem + "<br>\
+			危机等级：" + student.student_crisis_level + "<br>\
 			<br>\
 			已绑定的咨询师：<span id='binded_teacher_username'>" + student.student_binded_teacher_username + "</span>&nbsp;\
 				<span id='binded_teacher_fullname'>" + student.student_binded_teacher_fullname + "</span><br>\

@@ -39,6 +39,7 @@ func ExportStudentInfo(student *models.Student, filename string) error {
 	} else {
 		data = append(data, []string{"匹配咨询师", bindedTeacher.Username, bindedTeacher.Fullname})
 	}
+	data = append(data, []string{"危机等级", strconv.Itoa(student.CrisisLevel)})
 	data = append(data, []string{""})
 	data = append(data, []string{""})
 

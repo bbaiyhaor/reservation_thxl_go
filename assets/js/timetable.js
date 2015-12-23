@@ -65,15 +65,13 @@ function refreshDataTable(weekday, timedReservations) {
         $("#col_teacher_mobile_" + weekday).append("<div class='table_cell' id='cell_teacher_mobile_" + weekday + "_"
             + i + "'>" + timedReservations[i].teacher_mobile + "</div>");
         if (timedReservations[i].status === "AVAILABLE") {
-            $("#col_status_" + weekday).append("<div class='table_cell' id='cell_status_" + weekday + "_" + i + "'" +
-                "style='background-color: greenyellow'>生效</div>");
+            $("#col_status_" + weekday).append("<div class='table_cell' id='cell_status_" + weekday + "_" + i + "'>生效</div>");
             $("#col_operation_" + weekday).append("<div class='table_cell' id='cell_operation_" + weekday + "_" + + i + "'>"
                 + "<button type='button' id='cell_operation_oper_" + weekday + "_" + + i + "' onclick='closeTimedReservation(\""
                 + weekday + "\"," + i + ");'>关闭"
                 + "</button></div>");
         } else {
-            $("#col_status_" + weekday).append("<div class='table_cell' id='cell_status_" + weekday + "_" + i + "'" +
-                "style='background-color: red'>关闭</div>");
+            $("#col_status_" + weekday).append("<div class='table_cell' id='cell_status_" + weekday + "_" + i + "'>关闭</div>");
             $("#col_operation_" + weekday).append("<div class='table_cell' id='cell_operation_" + weekday + "_" + + i + "'>"
                 + "<button type='button' id='cell_operation_oper_" + weekday + "_" + + i + "' onclick='openTimedReservation(\""
                 + weekday + "\"," + i + ");'>打开"
@@ -122,7 +120,7 @@ function optimize(weekday, t) {
             $("#cell_teacher_fullname_" + weekday + "_" + i).css("background-color", "white");
             $("#cell_teacher_username_" + weekday + "_" + i).css("background-color", "white");
             $("#cell_teacher_mobile_" + weekday + "_" + i).css("background-color", "white");
-            //$("#cell_status_" + weekday + "_" + i).css("background-color", "white");
+            $("#cell_status_" + weekday + "_" + i).css("background-color", "white");
             $("#cell_operation_" + weekday + "_" + i).css("background-color", "white");
         } else {
             $("#cell_select_" + weekday + "_" + i).css("background-color", "#f3f3ff");
@@ -130,8 +128,14 @@ function optimize(weekday, t) {
             $("#cell_teacher_fullname_" + weekday + "_" + i).css("background-color", "#f3f3ff");
             $("#cell_teacher_username_" + weekday + "_" + i).css("background-color", "#f3f3ff");
             $("#cell_teacher_mobile_" + weekday + "_" + i).css("background-color", "#f3f3ff");
-            //$("#cell_status_" + weekday + "_" + i).css("background-color", "#f3f3ff");
+            $("#cell_status_" + weekday + "_" + i).css("background-color", "#f3f3ff");
             $("#cell_operation_" + weekday + "_" + i).css("background-color", "#f3f3ff");
+        }
+
+        if (timedReservations[weekday][i].status === "AVAILABLE") {
+            $("#cell_status_" + weekday + "_" + i).css("background-color", "greenyellow");
+        } else {
+            $("#cell_status_" + weekday + "_" + i).css("background-color", "red");
         }
     }
     $("#cell_select_" + weekday + "_add").height(28);

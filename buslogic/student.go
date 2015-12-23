@@ -30,11 +30,15 @@ func (sl *StudentLogic) MakeReservationByStudent(reservationId string, sourceId 
 	} else if len(gender) == 0 {
 		return nil, errors.New("性别为空")
 	} else if len(birthday) == 0 {
-		return nil, errors.New("生日为空")
+		return nil, errors.New("出生日期为空")
 	} else if len(school) == 0 {
 		return nil, errors.New("院系为空")
 	} else if len(grade) == 0 {
 		return nil, errors.New("年纪为空")
+	} else if len(currentAddress) == 0 {
+		return nil, errors.New("现在住址为空")
+	} else if len(familyAddress) == 0 {
+		return nil, errors.New("家庭住址为空")
 	} else if len(mobile) == 0 {
 		return nil, errors.New("手机号为空")
 	} else if len(email) == 0 {
@@ -64,7 +68,7 @@ func (sl *StudentLogic) MakeReservationByStudent(reservationId string, sourceId 
 	reservation := &models.Reservation{}
 	if len(sourceId) == 0 {
 		// Source为ADD，无SourceId：直接预约
-		reservation, err := models.GetReservationById(reservationId)
+		reservation, err = models.GetReservationById(reservationId)
 		if err != nil || reservation.Status == models.DELETED {
 			return nil, errors.New("咨询已下架")
 		} else if reservation.StartTime.Before(utils.GetNow()) {

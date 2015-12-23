@@ -40,6 +40,8 @@ func (e Experience) IsEmpty() bool {
 	return len(e.Time) == 0 && len(e.Location) == 0 && len(e.Teacher) == 0
 }
 
+const CRISIS_LEVEL_MAX = 5
+
 type Student struct {
 	Id              bson.ObjectId `bson:"_id"`
 	CreateTime      time.Time     `bson:"create_time"`
@@ -49,6 +51,7 @@ type Student struct {
 	UserType        UserType      `bson:"user_type"`
 	BindedTeacherId string        `bson:"binded_teacher_id"` // Indexed
 	ArchiveNumber   string        `bson:"archive_number"`    // Indexed
+	CrisisLevel     int           `bson:"crisis_level"`
 
 	Fullname       string     `bson:"fullname"`
 	Gender         string     `bson:"gender"`

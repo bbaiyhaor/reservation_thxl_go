@@ -31,6 +31,9 @@ func ViewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 		resJson["source"] = res.Source.String()
 		resJson["source_id"] = res.SourceId
 		resJson["student_id"] = res.StudentId
+		if student, err := ul.GetStudentById(res.StudentId); err == nil {
+			resJson["student_crisis_level"] = student.CrisisLevel
+		}
 		resJson["teacher_id"] = res.TeacherId
 		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
 			resJson["teacher_username"] = teacher.Username
@@ -77,6 +80,9 @@ func ViewDailyReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId
 		resJson["source"] = res.Source.String()
 		resJson["source_id"] = res.SourceId
 		resJson["student_id"] = res.StudentId
+		if student, err := ul.GetStudentById(res.StudentId); err == nil {
+			resJson["student_crisis_level"] = student.CrisisLevel
+		}
 		resJson["teacher_id"] = res.TeacherId
 		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
 			resJson["teacher_username"] = teacher.Username
@@ -231,7 +237,7 @@ func GetFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, u
 	var al = buslogic.AdminLogic{}
 
 	var feedback = make(map[string]interface{})
-	reservation, err := al.GetFeedbackByAdmin(reservationId, sourceId, userId, userType)
+	student, reservation, err := al.GetFeedbackByAdmin(reservationId, sourceId, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -240,6 +246,7 @@ func GetFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, u
 	feedback["participants"] = reservation.TeacherFeedback.Participants
 	feedback["problem"] = reservation.TeacherFeedback.Problem
 	feedback["record"] = reservation.TeacherFeedback.Record
+	feedback["crisis_level"] = student.CrisisLevel
 	result["feedback"] = feedback
 
 	return result
@@ -253,6 +260,7 @@ func SubmitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	participants := []string(r.Form["participants"])
 	problem := r.PostFormValue("problem")
 	record := r.PostFormValue("record")
+	crisisLevel := r.PostFormValue("crisis_level")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var al = buslogic.AdminLogic{}
@@ -263,7 +271,8 @@ func SubmitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string
 			participantsInt = append(participantsInt, pi)
 		}
 	}
-	_, err := al.SubmitFeedbackByAdmin(reservationId, sourceId, category, participantsInt, problem, record, userId, userType)
+	_, err := al.SubmitFeedbackByAdmin(reservationId, sourceId, category, participantsInt, problem, record, crisisLevel,
+		userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -322,6 +331,7 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	studentJson["student_username"] = student.Username
 	studentJson["student_fullname"] = student.Fullname
 	studentJson["student_archive_number"] = student.ArchiveNumber
+	studentJson["student_crisis_level"] = student.CrisisLevel
 	studentJson["student_gender"] = student.Gender
 	studentJson["student_email"] = student.Email
 	studentJson["student_school"] = student.School
@@ -382,6 +392,22 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 		reservationJson = append(reservationJson, resJson)
 	}
 	result["reservations"] = reservationJson
+
+	return result
+}
+
+func UpdateStudentCrisisLevelByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	studentId := r.PostFormValue("student_id")
+	crisisLevel := r.PostFormValue("crisis_level")
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var al = buslogic.AdminLogic{}
+
+	_, err := al.UpdateStudentCrisisLevelByAdmin(studentId, crisisLevel, userId, userType)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
 
 	return result
 }
@@ -526,6 +552,7 @@ func QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 	studentJson["student_username"] = student.Username
 	studentJson["student_fullname"] = student.Fullname
 	studentJson["student_archive_number"] = student.ArchiveNumber
+	studentJson["student_crisis_level"] = student.CrisisLevel
 	studentJson["student_gender"] = student.Gender
 	studentJson["student_email"] = student.Email
 	studentJson["student_school"] = student.School

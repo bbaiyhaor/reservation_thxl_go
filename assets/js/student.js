@@ -45,15 +45,15 @@ function refreshDataTable(reservations) {
 		if (reservations[i].status === "AVAILABLE") {
 			$("#col_status").append("<div class='table_cell' id='cell_status_" + i
 				+ "'><button type='button' id='cell_status_b_" + i + "' onclick='makeReservation(" + i
-				+ ")'>预约</button></div>");
+				+ ")' style='padding: 2px 2px'>预约</button></div>");
 		} else if (reservations[i].status === "RESERVATED") {
 			$("#col_status").append("<div class='table_cell' id='cell_status_" + i
-				+ "'><button type='button' id='cell_status_b_" + i + "' disabled='true'>已预约</button>"
+				+ "'><button type='button' id='cell_status_b_" + i + "' disabled='true' style='padding: 2px 2px'>已预约</button>"
 				+ "</div>");
 		} else if (reservations[i].status === "FEEDBACK") {
 			$("#col_status").append("<div class='table_cell' id='cell_status_" + i
 				+ "'><button type='button' id='cell_status_b_" + i + "' onclick='getFeedback(" + i
-				+ ")'>反馈</button></div>");
+				+ ")' style='padding: 2px 2px'>反馈</button></div>");
 		}
 	}
 }

@@ -38,6 +38,9 @@ func ViewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId st
 		resJson["source"] = res.Source
 		resJson["source_id"] = res.SourceId
 		resJson["student_id"] = res.StudentId
+		if student, err := ul.GetStudentById(res.StudentId); err == nil {
+			resJson["student_crisis_level"] = student.CrisisLevel
+		}
 		resJson["teacher_id"] = res.TeacherId
 		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
 			resJson["teacher_fullname"] = teacher.Fullname
@@ -65,7 +68,7 @@ func GetFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string,
 	var tl = buslogic.TeacherLogic{}
 
 	var feedback = make(map[string]interface{})
-	reservation, err := tl.GetFeedbackByTeacher(reservationId, sourceId, userId, userType)
+	student, reservation, err := tl.GetFeedbackByTeacher(reservationId, sourceId, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -74,6 +77,7 @@ func GetFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string,
 	feedback["participants"] = reservation.TeacherFeedback.Participants
 	feedback["problem"] = reservation.TeacherFeedback.Problem
 	feedback["record"] = reservation.TeacherFeedback.Record
+	feedback["crisis_level"] = student.CrisisLevel
 	result["feedback"] = feedback
 
 	return result
@@ -87,6 +91,7 @@ func SubmitFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 	participants := []string(r.Form["participants"])
 	problem := r.PostFormValue("problem")
 	record := r.PostFormValue("record")
+	crisisLevel := r.PostFormValue("crisis_level")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var tl = buslogic.TeacherLogic{}
@@ -97,7 +102,8 @@ func SubmitFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 			participantsInt = append(participantsInt, pi)
 		}
 	}
-	_, err := tl.SubmitFeedbackByTeacher(reservationId, sourceId, category, participantsInt, problem, record, userId, userType)
+	_, err := tl.SubmitFeedbackByTeacher(reservationId, sourceId, category, participantsInt, problem, record, crisisLevel,
+		userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -122,6 +128,8 @@ func GetStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
 	studentJson["student_fullname"] = student.Fullname
+	studentJson["student_archive_number"] = student.ArchiveNumber
+	studentJson["student_crisis_level"] = student.CrisisLevel
 	studentJson["student_gender"] = student.Gender
 	studentJson["student_email"] = student.Email
 	studentJson["student_school"] = student.School
@@ -202,6 +210,8 @@ func QueryStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId st
 	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
 	studentJson["student_fullname"] = student.Fullname
+	studentJson["student_archive_number"] = student.ArchiveNumber
+	studentJson["student_crisis_level"] = student.CrisisLevel
 	studentJson["student_gender"] = student.Gender
 	studentJson["student_email"] = student.Email
 	studentJson["student_school"] = student.School

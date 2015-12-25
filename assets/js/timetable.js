@@ -29,7 +29,7 @@ function refreshDataTable(weekday, timedReservations) {
     $("#page_maintable_" + weekday)[0].innerHTML = "\
 		<div class='table_col' id='col_select_" + weekday + "'>\
 			<div class='table_head table_cell' id='head_select_" + weekday + "'>\
-				<button onclick='$(\".checkbox\").click();'>全选</button>\
+				<button class='btn_select_all' name='all' onclick='selectAll();'>全选</button>\
 			</div>\
 		</div>\
 		<div class='table_col' id='col_time_" + weekday + "'>\
@@ -85,6 +85,18 @@ function refreshDataTable(weekday, timedReservations) {
     $("#col_teacher_mobile_" + weekday).append("<div class='table_cell' id='cell_teacher_mobile_" + weekday + "_add'></div>");
     $("#col_status_" + weekday).append("<div class='table_cell' id='cell_status_" + weekday + "_add'></div>");
     $("#col_operation_" + weekday).append("<div class='table_cell' id='cell_operation_" + weekday + "_add'></div>");
+}
+
+function selectAll() {
+    if ($(".btn_select_all").first() && $(".btn_select_all").first().prop("name") && $(".btn_select_all").first().prop("name") === "all") {
+        $(".checkbox").prop("checked", true);
+        $(".btn_select_all").prop("name", "none");
+        $(".btn_select_all").text("不选");
+    } else {
+        $(".checkbox").prop("checked", false);
+        $(".btn_select_all").prop("name", "all");
+        $(".btn_select_all").text("全选");
+    }
 }
 
 function optimize(weekday, t) {

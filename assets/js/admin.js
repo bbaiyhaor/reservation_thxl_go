@@ -88,7 +88,7 @@ function refreshDataTable(reservations) {
 	$("#page_maintable")[0].innerHTML = "\
 		<div class='table_col' id='col_select'>\
 			<div class='table_head table_cell' id='head_select'>\
-				<button onclick='$(\".checkbox\").click();'>全选</button>\
+				<button id='btn_select_all' name='all' onclick='selectAll();'>全选</button>\
 			</div>\
 		</div>\
 		<div class='table_col' id='col_time'>\
@@ -149,6 +149,18 @@ function refreshDataTable(reservations) {
 	$("#col_teacher_mobile").append("<div class='table_cell' id='cell_teacher_mobile_add'></div>");
 	$("#col_status").append("<div class='table_cell' id='cell_status_add'></div>");
 	$("#col_student").append("<div class='table_cell' id='cell_student_add'></div>");
+}
+
+function selectAll() {
+	if ($("#btn_select_all").prop("name") && $("#btn_select_all").prop("name") === "all") {
+		$(".checkbox").prop("checked", true);
+		$("#btn_select_all").prop("name", "none");
+		$("#btn_select_all").text("不选");
+	} else {
+		$(".checkbox").prop("checked", false);
+		$("#btn_select_all").prop("name", "all");
+		$("#btn_select_all").text("全选");
+	}
 }
 
 function optimize(t) {
@@ -594,7 +606,7 @@ function showFeedback(index, feedback) {
 	showFirstCategory(index);
 	if (feedback.category.length > 0) {
 		$("#category_first_" + index).val(feedback.category.charAt(0));
-		showSecondCategory(index);
+		$("#category_first_" + index).change();
 		$("#category_second_" + index).val(feedback.category);
 	}
 	if (feedback.participants.length > 0) {

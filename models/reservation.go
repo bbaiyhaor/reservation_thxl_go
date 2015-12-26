@@ -72,29 +72,24 @@ type TeacherFeedback struct {
 	Record       string `bson:"record"`
 }
 
+var Reservation_Participants = [...]string{
+	"学生", "家长", "教师", "辅导员", "其他",
+}
+
 func (tf TeacherFeedback) IsEmpty() bool {
-	return len(tf.Category) == 0 || tf.Participants == nil || len(tf.Problem) == 0 || len(tf.Record) == 0
+	return len(tf.Category) == 0 || tf.Participants == nil || len(tf.Participants) != len(Reservation_Participants) ||
+		len(tf.Problem) == 0 || len(tf.Record) == 0
 }
 
 func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	var json = make(map[string]interface{})
 	json["category"] = FeedbackAllCategory[tf.Category]
 	participants := ""
-	if len(tf.Participants) == 5 {
-		if tf.Participants[0] > 0 {
-			participants += "学生 "
-		}
-		if tf.Participants[1] > 0 {
-			participants += "家长 "
-		}
-		if tf.Participants[2] > 0 {
-			participants += "教师 "
-		}
-		if tf.Participants[3] > 0 {
-			participants += "辅导员 "
-		}
-		if tf.Participants[4] > 0 {
-			participants += "其他"
+	if len(tf.Participants) == len(Reservation_Participants) {
+		for i := 0; i < len(tf.Participants); i++ {
+			if tf.Participants[i] > 0 {
+				participants += Reservation_Participants[i] + " "
+			}
 		}
 	}
 	json["participants"] = participants

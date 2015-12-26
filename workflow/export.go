@@ -56,20 +56,10 @@ func ExportStudentInfo(student *models.Student, filename string) error {
 			if !r.TeacherFeedback.IsEmpty() {
 				data = append(data, []string{"评估分类", models.FeedbackAllCategory[r.TeacherFeedback.Category]})
 				participants := []string{"出席人员"}
-				if r.TeacherFeedback.Participants[0] > 0 {
-					participants = append(participants, "学生")
-				}
-				if r.TeacherFeedback.Participants[1] > 0 {
-					participants = append(participants, "家长")
-				}
-				if r.TeacherFeedback.Participants[2] > 0 {
-					participants = append(participants, "教师")
-				}
-				if r.TeacherFeedback.Participants[3] > 0 {
-					participants = append(participants, "辅导员 ")
-				}
-				if r.TeacherFeedback.Participants[4] > 0 {
-					participants = append(participants, "其他")
+				for j := 0; j < len(r.TeacherFeedback.Participants); j++ {
+					if r.TeacherFeedback.Participants[j] > 0 {
+						participants = append(participants, models.Reservation_Participants[j])
+					}
 				}
 				data = append(data, participants)
 				data = append(data, []string{"问题评估", r.TeacherFeedback.Problem})

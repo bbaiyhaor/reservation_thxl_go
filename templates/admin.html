@@ -1,6 +1,6 @@
 <!doctype html>
 <html>
-	<head>
+	<scipt>
 		<meta charset="utf-8">
 	    <meta name="HandheldFriendly" content="True">
 	    <meta name="MobileOptimized" content="320">
@@ -9,10 +9,10 @@
 		<title>
 			学生心理发展指导中心预约系统
 		</title>
-		<link rel="stylesheet" href="/assets/css/datepicker.css" type="text/css" />
 		<link type="text/css" href="/assets/css/style.css" rel="stylesheet">
 		<script type="text/javascript" src="/assets/js/jquery-2.1.4.min.js"></script>
-		<script type="text/javascript" src="/assets/js/datepicker.js"></script>
+		<script type="text/javascript" src="/assets/jquery-ui-1.11.4.custom/jquery-ui.min.js"></script>
+		<link rel="stylesheet" href="/assets/jquery-ui-1.11.4.custom/jquery-ui.min.css" type="text/css">
 	</head>
 	<body background="/assets/img/bg.png"  style="text-align:center;">
 		<div id="page_title">
@@ -49,81 +49,48 @@
 	<script type="text/javascript" src="/assets/js/user.js"></script>
 	<script type="text/javascript" src="/assets/js/admin.js"></script>
 	<script type="text/javascript">
-		viewReservations();
-		$("#query_date").DatePicker({
-			format: "YY-m-dd",
-			date: $("#query_date").val(),
-			current: $("#query_date").val(),
-			starts: 1,
-			position: "r",
-			onBeforeShow: function() {
-				$("#query_date").DatePickerSetDate($("#query_date").val(), true);
-			},
-			onChange: function(formated, dates) {
-				$("#query_date").val(formated);
-				$("#query_date").val($("#query_date").val().substr(4, 10));
-				$("#query_date").DatePickerHide();
-			},
-		});
-		$("#export_date").DatePicker({
-			format: "YY-m-dd",
-			date: $("#export_date").val(),
-			current: $("#export_date").val(),
-			starts: 1,
-			position: "r",
-			onBeforeShow: function() {
-				$("#export_date").DatePickerSetDate($("#export_date").val(), true);
-			},
-			onChange: function(formated, dates) {
-				$("#export_date").val(formated);
-				$("#export_date").val($("#export_date").val().substr(4, 10));
-				$("#export_date").DatePickerHide();
-			},
-		});
-		$("#monthly_report_date").DatePicker({
-			format: "YY-m-dd",
-			date: $("#monthly_report_date").val(),
-			current: $("#monthly_report_date").val(),
-			starts: 1,
-			position: "r",
-			onBeforeShow: function() {
-				$("#monthly_report_date").DatePickerSetDate($("#monthly_report_date").val(), true);
-			},
-			onChange: function(formated, dates) {
-				$("#monthly_report_date").val(formated);
-				$("#monthly_report_date").val($("#monthly_report_date").val().substr(4, 10));
-				$("#monthly_report_date").DatePickerHide();
-			},
-		});
-		$("#workload_from").DatePicker({
-			format: "YY-m-dd",
-			date: $("#workload_from").val(),
-			current: $("#workload_from").val(),
-			starts: 1,
-			position: "r",
-			onBeforeShow: function() {
-				$("#workload_from").DatePickerSetDate($("#workload_from").val(), true);
-			},
-			onChange: function(formated, dates) {
-				$("#workload_from").val(formated);
-				$("#workload_from").val($("#workload_from").val().substr(4, 10));
-				$("#workload_from").DatePickerHide();
-			},
-		});
-		$("#workload_to").DatePicker({
-			format: "YY-m-dd",
-			date: $("#workload_to").val(),
-			current: $("#workload_to").val(),
-			starts: 1,
-			position: "r",
-			onBeforeShow: function() {
-				$("#workload_to").DatePickerSetDate($("#workload_to").val(), true);
-			},
-			onChange: function(formated, dates) {
-				$("#workload_to").val(formated);
-				$("#workload_to").val($("#workload_to").val().substr(4, 10));
-				$("#workload_to").DatePickerHide();
-			},
+		$(function() {
+			viewReservations();
+			$('#query_date').datepicker({
+				showOtherMonths: true,
+				selectOtherMonths: true,
+				showButtonPanel: true,
+				dateFormat: 'yy-mm-dd',
+				showWeek: true,
+				firstDay: 1
+			});
+			$('#export_date').datepicker({
+				showOtherMonths: true,
+				selectOtherMonths: true,
+				showButtonPanel: true,
+				dateFormat: 'yy-mm-dd',
+				showWeek: true,
+				firstDay: 1
+			});
+			$('#monthly_report_date').datepicker({
+				showOtherMonths: true,
+				selectOtherMonths: true,
+				showButtonPanel: true,
+				dateFormat: 'yy-mm-dd',
+				showWeek: true,
+				firstDay: 1
+			});
+			$('#workload_from').datepicker({
+				showOtherMonths: true,
+				selectOtherMonths: true,
+				showButtonPanel: true,
+				dateFormat: 'yy-mm-dd',
+				showWeek: true,
+				firstDay: 1
+			});
+			$('#workload_to').datepicker({
+				showOtherMonths: true,
+				selectOtherMonths: true,
+				showButtonPanel: true,
+				dateFormat: 'yy-mm-dd',
+				showWeek: true,
+				firstDay: 1
+			});
 		});
 	</script>
 </html>

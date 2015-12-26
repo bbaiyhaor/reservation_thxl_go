@@ -2,22 +2,22 @@ var width = $(window).width();
 var height = $(window).height();
 
 function optimize(t) {
-  $(t).css("left", (width - $(t).width()) / 2 - 11 + "px");
-  $(t).css("top", (height - $(t).height()) / 2 - 11 + "px");
+  $(t).css('left', (width - $(t).width()) / 2 - 11 + 'px');
+  $(t).css('top', (height - $(t).height()) / 2 - 11 + 'px');
 }
 
 function studentLogin() {
   $.ajax({
-    type: "POST",
+    type: 'POST',
     async: false,
-    url: "/user/student/login",
+    url: '/user/student/login',
     data: {
-      username: $("#username").val(),
-      password: $("#password").val(),
+      username: $('#username').val(),
+      password: $('#password').val(),
     },
-    dataType: "json",
+    dataType: 'json',
     success: function(data) {
-      if (data.state === "SUCCESS") {
+      if (data.state === 'SUCCESS') {
         window.location.href = data.url;
       } else {
         alert(data.message);
@@ -27,26 +27,26 @@ function studentLogin() {
 }
 
 function studentRegister() {
-  var username = $("#username").val();
-  var password = $("#password").val();
-  var passwordConfirm = $("#password_confirm").val();
+  var username = $('#username').val();
+  var password = $('#password').val();
+  var passwordConfirm = $('#password_confirm').val();
   if (password !== passwordConfirm) {
-    alert("两次密码不一致，请重新输入");
-    $("#password").val("");
-    $("#password_confirm").val("");
+    alert('两次密码不一致，请重新输入');
+    $('#password').val('');
+    $('#password_confirm').val('');
     return;
   }
   $.ajax({
-    type: "POST",
+    type: 'POST',
     async: false,
-    url: "/user/student/register",
+    url: '/user/student/register',
     data: {
       username: username,
       password: password,
     },
-    dataType: "json",
+    dataType: 'json',
     success: function(data) {
-      if (data.state === "SUCCESS") {
+      if (data.state === 'SUCCESS') {
         window.location.href = data.url;
       } else {
         alert(data.message);
@@ -57,16 +57,16 @@ function studentRegister() {
 
 function teacherLogin() {
   $.ajax({
-    type: "POST",
+    type: 'POST',
     async: false,
-    url: "/user/teacher/login",
+    url: '/user/teacher/login',
     data: {
-      username: $("#username").val(),
-      password: $("#password").val(),
+      username: $('#username').val(),
+      password: $('#password').val(),
     },
-    dataType: "json",
+    dataType: 'json',
     success: function(data) {
-      if (data.state === "SUCCESS") {
+      if (data.state === 'SUCCESS') {
         window.location.href = data.url;
       } else {
         alert(data.message);
@@ -77,16 +77,16 @@ function teacherLogin() {
 
 function adminLogin() {
   $.ajax({
-    type: "POST",
+    type: 'POST',
     async: false,
-    url: "/user/admin/login",
+    url: '/user/admin/login',
     data: {
-      username: $("#username").val(),
-      password: $("#password").val(),
+      username: $('#username').val(),
+      password: $('#password').val(),
     },
-    dataType: "json",
+    dataType: 'json',
     success: function(data) {
-      if (data.state === "SUCCESS") {
+      if (data.state === 'SUCCESS') {
         window.location.href = data.url;
       } else {
         alert(data.message);
@@ -97,13 +97,13 @@ function adminLogin() {
 
 function logout() {
   $.ajax({
-    type: "GET",
+    type: 'GET',
     async: false,
-    url: "/user/logout",
+    url: '/user/logout',
     data: {},
-    dataType: "json",
+    dataType: 'json',
     success: function(data) {
-      if (data.state === "SUCCESS") {
+      if (data.state === 'SUCCESS') {
         window.location.href = data.url;
       }
     },

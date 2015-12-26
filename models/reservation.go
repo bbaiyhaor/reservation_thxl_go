@@ -80,7 +80,7 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	var json = make(map[string]interface{})
 	json["category"] = FeedbackAllCategory[tf.Category]
 	participants := ""
-	if len(tf.Participants) == 4 {
+	if len(tf.Participants) == 5 {
 		if tf.Participants[0] > 0 {
 			participants += "学生 "
 		}

@@ -27,31 +27,31 @@ function viewTimedReservations() {
 
 function refreshDataTable(weekday, timedReservations) {
     $("#page_maintable_" + weekday)[0].innerHTML = "\
-		<div class='table_col' id='col_select_" + weekday + "'>\
-			<div class='table_head table_cell' id='head_select_" + weekday + "'>\
-				<button class='btn_select_all' name='all' onclick='selectAll();'>全选</button>\
-			</div>\
-		</div>\
-		<div class='table_col' id='col_time_" + weekday + "'>\
-			<div class='table_head table_cell'>时间</div>\
-		</div>\
-		<div class='table_col' id='col_teacher_fullname_" + weekday + "'>\
-			<div class='table_head table_cell'>咨询师</div>\
-		</div>\
-		<div class='table_col' id='col_teacher_username_" + weekday + "'>\
-			<div class='table_head table_cell'>咨询师编号</div>\
-		</div>\
-		<div class='table_col' id='col_teacher_mobile_" + weekday + "'>\
-			<div class='table_head table_cell'>咨询师手机</div>\
-		</div>\
-		<div class='table_col' id='col_status_" + weekday + "'>\
-			<div class='table_head table_cell'>状态</div>\
-		</div>\
-		<div class='table_col' id='col_operation_" + weekday + "'>\
-			<div class='table_head table_cell'>操作</div>\
-		</div>\
-		<div class='clearfix'></div>\
-	";
+    <div class='table_col' id='col_select_" + weekday + "'>\
+      <div class='table_head table_cell' id='head_select_" + weekday + "'>\
+        <button class='btn_select_all' name='all' onclick='selectAll();'>全选</button>\
+      </div>\
+    </div>\
+    <div class='table_col' id='col_time_" + weekday + "'>\
+      <div class='table_head table_cell'>时间</div>\
+    </div>\
+    <div class='table_col' id='col_teacher_fullname_" + weekday + "'>\
+      <div class='table_head table_cell'>咨询师</div>\
+    </div>\
+    <div class='table_col' id='col_teacher_username_" + weekday + "'>\
+      <div class='table_head table_cell'>咨询师编号</div>\
+    </div>\
+    <div class='table_col' id='col_teacher_mobile_" + weekday + "'>\
+      <div class='table_head table_cell'>咨询师手机</div>\
+    </div>\
+    <div class='table_col' id='col_status_" + weekday + "'>\
+      <div class='table_head table_cell'>状态</div>\
+    </div>\
+    <div class='table_col' id='col_operation_" + weekday + "'>\
+      <div class='table_head table_cell'>操作</div>\
+    </div>\
+    <div class='clearfix'></div>\
+  ";
 
     for (var i = 0; i < timedReservations.length; ++i) {
         $("#col_select_" + weekday).append("<div class='table_cell' id='cell_select_" + weekday + "_" + i + "'>"
@@ -228,13 +228,13 @@ function addTimedReservationConfirm(weekday) {
 
 function addTimedReservationCheck(payload) {
     $("body").append("\
-		<div class='pop_window' style='width: 50%'>\
-			咨询师信息有变更，是否更新？\
-			<br>\
-			<button type='button' onclick='$(\".pop_window\").remove();addTimedReservationCheckConfirm(" + JSON.stringify(payload) + ");'>确认</button>\
-			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
-		</div>\
-	");
+    <div class='pop_window' style='width: 50%'>\
+      咨询师信息有变更，是否更新？\
+      <br>\
+      <button type='button' onclick='$(\".pop_window\").remove();addTimedReservationCheckConfirm(" + JSON.stringify(payload) + ");'>确认</button>\
+      <button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+    </div>\
+  ");
     optimize("Monday", ".pop_window");
 }
 
@@ -326,13 +326,13 @@ function editTimedReservationConfirm(weekday, index) {
 
 function editTimedReservationCheck(payload) {
     $("body").append("\
-		<div class='pop_window' style='width: 50%'>\
-			咨询师信息有变更，是否更新？\
-			<br>\
-			<button type='button' onclick='$(\".pop_window\").remove();editTimedReservationCheckConfirm(" + JSON.stringify(payload) + ");'>确认</button>\
-			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
-		</div>\
-	");
+    <div class='pop_window' style='width: 50%'>\
+      咨询师信息有变更，是否更新？\
+      <br>\
+      <button type='button' onclick='$(\".pop_window\").remove();editTimedReservationCheckConfirm(" + JSON.stringify(payload) + ");'>确认</button>\
+      <button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+    </div>\
+  ");
     optimize("Monday", ".pop_window");
 }
 
@@ -380,13 +380,13 @@ function searchTeacher(weekday, index) {
 
 function removeTimedReservations() {
     $("body").append("\
-		<div class='pop_window' style='width: 50%'>\
-			确认删除选中的预设咨询？\
-			<br>\
-			<button type='button' onclick='$(\".pop_window\").remove();removeReservationsConfirm();'>确认</button>\
-			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
-		</div>\
-	");
+    <div class='pop_window' style='width: 50%'>\
+      确认删除选中的预设咨询？\
+      <br>\
+      <button type='button' onclick='$(\".pop_window\").remove();removeReservationsConfirm();'>确认</button>\
+      <button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+    </div>\
+  ");
     optimize("Monday", ".pop_window");
 }
 
@@ -423,13 +423,13 @@ function removeReservationsConfirm() {
 
 function openTimedReservations() {
     $("body").append("\
-		<div class='pop_window' style='width: 50%'>\
-			确认打开选中的预设咨询？\
-			<br>\
-			<button type='button' onclick='$(\".pop_window\").remove();openReservationsConfirm();'>确认</button>\
-			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
-		</div>\
-	");
+    <div class='pop_window' style='width: 50%'>\
+      确认打开选中的预设咨询？\
+      <br>\
+      <button type='button' onclick='$(\".pop_window\").remove();openReservationsConfirm();'>确认</button>\
+      <button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+    </div>\
+  ");
     optimize("Monday", ".pop_window");
 }
 
@@ -466,13 +466,13 @@ function openReservationsConfirm() {
 
 function closeTimedReservations() {
     $("body").append("\
-		<div class='pop_window' style='width: 50%'>\
-			确认关闭选中的预设咨询？\
-			<br>\
-			<button type='button' onclick='$(\".pop_window\").remove();closeReservationsConfirm();'>确认</button>\
-			<button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
-		</div>\
-	");
+    <div class='pop_window' style='width: 50%'>\
+      确认关闭选中的预设咨询？\
+      <br>\
+      <button type='button' onclick='$(\".pop_window\").remove();closeReservationsConfirm();'>确认</button>\
+      <button type='button' onclick='$(\".pop_window\").remove();'>取消</button>\
+    </div>\
+  ");
     optimize("Monday", ".pop_window");
 }
 

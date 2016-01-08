@@ -117,6 +117,15 @@ func AdminTimetablePage(w http.ResponseWriter, r *http.Request, userId string, u
 	return nil
 }
 
+func ProtocolPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	t := template.Must(template.ParseFiles("templates/protocol.html"))
+	err := t.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
 type ErrorMsg struct {
 	State   string `json:"state"`
 	Message string `json:"message"`

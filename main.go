@@ -107,6 +107,7 @@ func main() {
 	pageRouter.HandleFunc("/admin", handleWithCookie(controllers.AdminPage))
 	pageRouter.HandleFunc("/admin/login", handleWithCookie(controllers.AdminLoginPage))
 	pageRouter.HandleFunc("/admin/timetable", handleWithCookie(controllers.AdminTimetablePage))
+	pageRouter.HandleFunc("/protocol", handleWithCookie(controllers.ProtocolPage))
 	// 加载动态处理器
 	userRouter := router.PathPrefix("/user").Subrouter()
 	userRouter.HandleFunc("/student/login", handleWithCookie(controllers.StudentLogin)).Methods("POST")

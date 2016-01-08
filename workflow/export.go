@@ -10,7 +10,7 @@ import (
 
 func ExportStudentInfo(student *models.Student, filename string) error {
 	data := make([][]string, 0)
-	data = append(data, []string{"档案号", student.ArchiveNumber})
+	data = append(data, []string{"档案分类", student.ArchiveCategory, "档案编号", student.ArchiveNumber})
 	// 学生基本信息
 	data = append(data, []string{"学号", student.Username})
 	data = append(data, []string{"姓名", student.Fullname})

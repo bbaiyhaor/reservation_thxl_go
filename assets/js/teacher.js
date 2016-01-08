@@ -297,6 +297,7 @@ function showStudent(student, reservations) {
       父母婚姻状况：' + student.student_parent_marriage + '<br>\
       近三个月里发生的有重大意义的事：' + student.student_significant + '<br>\
       需要接受帮助的主要问题：' + student.student_problem + '<br>\
+      档案分类：' + student.student_archive_category + ' 档案编号：' + student.student_archive_number + '<br>\
       危机等级：' + student.student_crisis_level + '<br>\
       <br>\
       已绑定的咨询师：<span id="binded_teacher_username">' + student.student_binded_teacher_username + '</span>&nbsp;\

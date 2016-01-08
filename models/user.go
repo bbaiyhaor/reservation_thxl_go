@@ -50,7 +50,8 @@ type Student struct {
 	Password        string        `bson:"password"`
 	UserType        UserType      `bson:"user_type"`
 	BindedTeacherId string        `bson:"binded_teacher_id"` // Indexed
-	ArchiveNumber   string        `bson:"archive_number"`    // Indexed
+	ArchiveCategory string        `bson:"archive_category"`
+	ArchiveNumber   string        `bson:"archive_number"` // Indexed
 	CrisisLevel     int           `bson:"crisis_level"`
 
 	Fullname       string     `bson:"fullname"`

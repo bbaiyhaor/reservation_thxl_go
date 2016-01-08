@@ -710,7 +710,8 @@ function showStudent(student, reservations) {
         危机等级：<select id="crisis_level_'+ student.student_id + '"><option value="0">无</option><option value="1">一级</option><option value="2">二级</option><option value="3">三级</option><option value="4">四级</option><option value="5">五级</option></select>\
         <button type="button" onclick="updateCrisisLevel(\'' + student.student_id + '\');">更新</button>\
         <span id="crisis_level_tip_' + student.student_id + '" style="color: red;"></span><br>\
-        档案编号：<input id="archive_number_' + student.student_id + '" type="text" value="' + student.student_archive_number + '"/>\
+        档案分类：<input id="archive_category_' + student.student_id + '" type="text" value="' + student.student_archive_category + '" style="width: 100px"/>\
+        档案编号：<input id="archive_number_' + student.student_id + '" type="text" value="' + student.student_archive_number + '" style="width: 50px"/>\
         <button type="button" onclick="updateArchiveNumber(\'' + student.student_id + '\');">更新</button>\
         <span id="archive_number_tip_' + student.student_id + '" style="color: red;"></span><br>\
         已绑定的咨询师：<span id="binded_teacher_username_' + student.student_id + '">' + student.student_binded_teacher_username + '</span>&nbsp;\
@@ -774,6 +775,7 @@ function updateCrisisLevel(studentId) {
 function updateArchiveNumber(studentId) {
   $.post('/admin/student/archive/update', {
     student_id: studentId,
+    archive_category: $('#archive_category_' + studentId).val(),
     archive_number: $('#archive_number_' + studentId).val(),
   }, function(data, textStatus, xhr) {
     if (data.state === 'SUCCESS') {

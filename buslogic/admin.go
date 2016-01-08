@@ -458,7 +458,7 @@ func (al *AdminLogic) UpdateStudentCrisisLevelByAdmin(studentId string, crisisLe
 }
 
 // 管理员更新学生档案编号
-func (al *AdminLogic) UpdateStudentArchiveNumberByAdmin(studentId string, archiveNumber string,
+func (al *AdminLogic) UpdateStudentArchiveNumberByAdmin(studentId string, archiveCategory string, archiveNumber string,
 	userId string, userType models.UserType) (*models.Student, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
@@ -466,6 +466,10 @@ func (al *AdminLogic) UpdateStudentArchiveNumberByAdmin(studentId string, archiv
 		return nil, errors.New("权限不足")
 	} else if len(studentId) == 0 {
 		return nil, errors.New("学生未注册")
+	} else if len(archiveCategory) == 0 {
+		return nil, errors.New("档案分类为空")
+	} else if len(archiveNumber) == 0 {
+		return nil, errors.New("档案编号为空")
 	}
 	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
@@ -476,9 +480,10 @@ func (al *AdminLogic) UpdateStudentArchiveNumberByAdmin(studentId string, archiv
 		return nil, errors.New("学生未注册")
 	}
 	archive, err := models.GetStudentByArchiveNumber(archiveNumber)
-	if err == nil && archive.Id.Valid() {
+	if err == nil && archive.Id.Valid() && !strings.EqualFold(archive.Id.Hex(), student.Id.Hex()) {
 		return nil, errors.New("档案号已存在，请重新分配")
 	}
+	student.ArchiveCategory = archiveCategory
 	student.ArchiveNumber = archiveNumber
 	if err := models.UpsertStudent(student); err != nil {
 		return nil, errors.New("获取数据失败")

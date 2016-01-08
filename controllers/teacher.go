@@ -128,6 +128,7 @@ func GetStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
 	studentJson["student_fullname"] = student.Fullname
+	studentJson["student_archive_category"] = student.ArchiveCategory
 	studentJson["student_archive_number"] = student.ArchiveNumber
 	studentJson["student_crisis_level"] = student.CrisisLevel
 	studentJson["student_gender"] = student.Gender
@@ -210,6 +211,7 @@ func QueryStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId st
 	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
 	studentJson["student_fullname"] = student.Fullname
+	studentJson["student_archive_category"] = student.ArchiveCategory
 	studentJson["student_archive_number"] = student.ArchiveNumber
 	studentJson["student_crisis_level"] = student.CrisisLevel
 	studentJson["student_gender"] = student.Gender

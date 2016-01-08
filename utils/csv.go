@@ -32,3 +32,17 @@ func WriteToCSV(data [][]string, filename string) error {
 	w.Flush()
 	return nil
 }
+
+func ReadFromCSV(filename string) ([][]string, error) {
+	fin, err := os.Open(filepath.FromSlash(filename))
+	if err != nil || fin == nil {
+		return nil, errors.New("打开文件失败")
+	}
+	defer fin.Close()
+	w := csv.NewReader(transform.NewReader(fin, simplifiedchinese.GB18030.NewDecoder()))
+	data, err := w.ReadAll()
+	if err != nil {
+		return nil, errors.New("读取文件失败")
+	}
+	return data, nil
+}

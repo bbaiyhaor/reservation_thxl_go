@@ -76,6 +76,12 @@ func (ul *UserLogic) StudentRegister(username string, password string) (*models.
 	if err != nil {
 		return nil, errors.New("注册失败，请联系管理员")
 	}
+	archive, err := models.GetArchiveByStudentUsername(newStudent.Username)
+	if err == nil && archive != nil {
+		newStudent.ArchiveCategory = archive.ArchiveCategory
+		newStudent.ArchiveNumber = archive.ArchiveNumber
+		models.UpsertStudent(newStudent)
+	}
 	return newStudent, nil
 }
 

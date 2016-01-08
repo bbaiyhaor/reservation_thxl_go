@@ -479,8 +479,12 @@ func (al *AdminLogic) UpdateStudentArchiveNumberByAdmin(studentId string, archiv
 	if err != nil {
 		return nil, errors.New("学生未注册")
 	}
-	archive, err := models.GetStudentByArchiveNumber(archiveNumber)
-	if err == nil && archive.Id.Valid() && !strings.EqualFold(archive.Id.Hex(), student.Id.Hex()) {
+	archiveStudent, err := models.GetStudentByArchiveNumber(archiveNumber)
+	if err == nil && archiveStudent.Id.Valid() && !strings.EqualFold(archiveStudent.Id.Hex(), student.Id.Hex()) {
+		return nil, errors.New("档案号已存在，请重新分配")
+	}
+	archive, err := models.GetArchiveByArchiveNumber(archiveNumber)
+	if err == nil && archive.Id.Valid() && !strings.EqualFold(archive.StudentUsername, student.Username) {
 		return nil, errors.New("档案号已存在，请重新分配")
 	}
 	student.ArchiveCategory = archiveCategory

@@ -7,6 +7,7 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/controllers"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
+	"github.com/shudiwsh2009/reservation_thxl_go/workflow"
 	"gopkg.in/mgo.v2"
 	"log"
 	"net/http"
@@ -89,6 +90,10 @@ func main() {
 	if utils.Location, err = time.LoadLocation("Asia/Shanghai"); err != nil {
 		fmt.Errorf("初始化时区失败：%v", err)
 		return
+	}
+	// 初始化档案
+	if err := workflow.ImportArchiveFromCSVFile(); err != nil {
+		fmt.Errorf("初始化档案失败：%v", err)
 	}
 
 	// TODO: Remove the following test codes

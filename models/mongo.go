@@ -392,3 +392,45 @@ func GetTimedReservationsByTeacherId(teacherId string) ([]*TimedReservation, err
 	}
 	return timedReservations, nil
 }
+
+// Archive
+func AddArchive(studentUsername string, archiveCategory string, archiveNumber string) (*Archive, error) {
+	if len(studentUsername) == 0 || len(archiveCategory) == 0 || len(archiveNumber) == 0 {
+		return nil, errors.New("字段不合法")
+	}
+	collection := Mongo.C("archive")
+	newArchive := &Archive{
+		Id:              bson.NewObjectId(),
+		StudentUsername: studentUsername,
+		ArchiveCategory: archiveCategory,
+		ArchiveNumber:   archiveNumber,
+	}
+	if err := collection.Insert(newArchive); err != nil {
+		return nil, err
+	}
+	return newArchive, nil
+}
+
+func GetArchiveByStudentUsername(studentUsername string) (*Archive, error) {
+	if len(studentUsername) == 0 {
+		return nil, errors.New("字段不合法")
+	}
+	collection := Mongo.C("archive")
+	archive := &Archive{}
+	if err := collection.Find(bson.M{"student_username": studentUsername}).One(archive); err != nil {
+		return nil, err
+	}
+	return archive, nil
+}
+
+func GetArchiveByArchiveNumber(archiveNumber string) (*Archive, error) {
+	if len(archiveNumber) == 0 {
+		return nil, errors.New("字段不合法")
+	}
+	collection := Mongo.C("archive")
+	archive := &Archive{}
+	if err := collection.Find(bson.M{"archive_number": archiveNumber}).One(archive); err != nil {
+		return nil, err
+	}
+	return archive, nil
+}

@@ -27,6 +27,10 @@ function studentLogin() {
 }
 
 function studentRegister() {
+  if (!$('#agree').is(':checked')) {
+    alert('请先阅读并同意咨询协议');
+    return;
+  }
   var username = $('#username').val();
   var password = $('#password').val();
   var passwordConfirm = $('#password_confirm').val();

@@ -247,6 +247,8 @@ func GetFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, u
 	feedback["problem"] = reservation.TeacherFeedback.Problem
 	feedback["record"] = reservation.TeacherFeedback.Record
 	feedback["crisis_level"] = student.CrisisLevel
+	feedback["key_case"] = student.KeyCase
+	feedback["medical_diagnosis"] = student.MedicalDiagnosis
 	result["feedback"] = feedback
 
 	return result
@@ -261,6 +263,8 @@ func SubmitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	problem := r.PostFormValue("problem")
 	record := r.PostFormValue("record")
 	crisisLevel := r.PostFormValue("crisis_level")
+	keyCase := []string(r.Form["key_case"])
+	medicalDiagnosis := []string(r.Form["medical_diagnosis"])
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var al = buslogic.AdminLogic{}
@@ -271,8 +275,20 @@ func SubmitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string
 			participantsInt = append(participantsInt, pi)
 		}
 	}
+	keyCaseInt := []int{}
+	for _, k := range keyCase {
+		if ki, err := strconv.Atoi(k); err == nil {
+			keyCaseInt = append(keyCaseInt, ki)
+		}
+	}
+	medicalDiagnosisInt := []int{}
+	for _, m := range medicalDiagnosis {
+		if mi, err := strconv.Atoi(m); err == nil {
+			medicalDiagnosisInt = append(medicalDiagnosisInt, mi)
+		}
+	}
 	_, err := al.SubmitFeedbackByAdmin(reservationId, sourceId, category, participantsInt, problem, record, crisisLevel,
-		userId, userType)
+		keyCaseInt, medicalDiagnosisInt, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -333,6 +349,8 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	studentJson["student_archive_category"] = student.ArchiveCategory
 	studentJson["student_archive_number"] = student.ArchiveNumber
 	studentJson["student_crisis_level"] = student.CrisisLevel
+	studentJson["student_key_case"] = student.KeyCase
+	studentJson["student_medical_diagnosis"] = student.MedicalDiagnosis
 	studentJson["student_gender"] = student.Gender
 	studentJson["student_email"] = student.Email
 	studentJson["student_school"] = student.School
@@ -400,11 +418,26 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 func UpdateStudentCrisisLevelByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
 	studentId := r.PostFormValue("student_id")
 	crisisLevel := r.PostFormValue("crisis_level")
+	r.ParseForm()
+	keyCase := []string(r.Form["key_case"])
+	medicalDiagnosis := []string(r.Form["medical_diagnosis"])
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var al = buslogic.AdminLogic{}
 
-	_, err := al.UpdateStudentCrisisLevelByAdmin(studentId, crisisLevel, userId, userType)
+	keyCaseInt := []int{}
+	for _, k := range keyCase {
+		if ki, err := strconv.Atoi(k); err == nil {
+			keyCaseInt = append(keyCaseInt, ki)
+		}
+	}
+	medicalDiagnosisInt := []int{}
+	for _, m := range medicalDiagnosis {
+		if mi, err := strconv.Atoi(m); err == nil {
+			medicalDiagnosisInt = append(medicalDiagnosisInt, mi)
+		}
+	}
+	_, err := al.UpdateStudentCrisisLevelByAdmin(studentId, crisisLevel, keyCaseInt, medicalDiagnosisInt, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -556,6 +589,8 @@ func QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 	studentJson["student_archive_category"] = student.ArchiveCategory
 	studentJson["student_archive_number"] = student.ArchiveNumber
 	studentJson["student_crisis_level"] = student.CrisisLevel
+	studentJson["student_key_case"] = student.KeyCase
+	studentJson["student_medical_diagnosis"] = student.MedicalDiagnosis
 	studentJson["student_gender"] = student.Gender
 	studentJson["student_email"] = student.Email
 	studentJson["student_school"] = student.School

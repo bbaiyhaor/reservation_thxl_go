@@ -24,13 +24,15 @@ func AddStudent(username string, password string) (*Student, error) {
 	}
 	collection := Mongo.C("student")
 	newStudent := &Student{
-		Id:          bson.NewObjectId(),
-		CreateTime:  utils.GetNow(),
-		UpdateTime:  utils.GetNow(),
-		Username:    username,
-		Password:    password,
-		UserType:    STUDENT,
-		CrisisLevel: 0,
+		Id:               bson.NewObjectId(),
+		CreateTime:       utils.GetNow(),
+		UpdateTime:       utils.GetNow(),
+		Username:         username,
+		Password:         password,
+		UserType:         STUDENT,
+		CrisisLevel:      0,
+		KeyCase:          make([]int, 5),
+		MedicalDiagnosis: make([]int, 8),
 	}
 	if err := collection.Insert(newStudent); err != nil {
 		return nil, err

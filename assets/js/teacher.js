@@ -121,7 +121,7 @@ function optimize(t) {
 
     if (reservations[i].student_crisis_level && reservations[i].student_crisis_level !== '0') {
       //$('#cell_student_' + i).css('background-color', 'rgba(255, 0, 0, ' + parseInt(reservations[i].student_crisis_level) / 5 +')');
-      $('#cell_student_view_' + i).css('background-color', 'rgba(255, 0, 0, ' + parseInt(reservations[i].student_crisis_level) / 5 +')');
+      $('#cell_student_view_' + i).css('background-color', 'rgba(255, 0, 0, ' + parseInt(reservations[i].student_crisis_level) / 1 +')');
     }
   }
   $(t).css('left', (width - $(t).width()) / 2 - 11 + 'px');
@@ -143,7 +143,7 @@ function getFeedback(index) {
 
 function showFeedback(index, feedback) {
   $('body').append('\
-    <div id="feedback_table_' + index + '" class="pop_window" style="text-align:left; width: 90%; height: 60%; overflow: auto;">\
+    <div class="pop_window" id="feedback_table_' + index + '" style="text-align: left; width: 90%; height: 70%; overflow:auto;">\
       咨询师反馈表<br>\
       评估分类：<br>\
       <select id="category_first_' + index + '" onchange="showSecondCategory(' + index + ')"><option value="">请选择</option></select><br>\
@@ -153,19 +153,37 @@ function showFeedback(index, feedback) {
       <input id="participant_teacher_' + index + '" type="checkbox">教师</input><input id="participant_instructor_' + index + '" type="checkbox">辅导员</input>\
       <input id="participant_other_' + index + '" type="checkbox">其他</input><br>\
       问题评估：<br>\
-      <textarea id="problem_' + index + '" style="width: 100%; height:80px""></textarea><br>\
+      <textarea id="problem_' + index + '" style="width: 100%; height:80px"></textarea><br>\
       咨询记录：<br>\
-      <textarea id="record_' + index + '" style="width: 100%; height:80px""></textarea><br>\
-      危机等级：<select id="crisis_level_'+ index + '"><option value="0">无</option><option value="1">一级</option><option value="2">二级</option><option value="3">三级</option><option value="4">四级</option><option value="5">五级</option></select><br>\
+      <textarea id="record_' + index + '" style="width: 100%; height:80px"></textarea><br>\
+      是否危机个案：<select id="crisis_level_'+ index + '"><option value="0">否</option><option value="1">是</option></select><br>\
+      <div id="key_case" style="display: none">\
+        <b>重点个案：</b>\
+        <input id="key_case_' + index + '_0" type="checkbox">通报院系</input>\
+        <input id="key_case_' + index + '_1" type="checkbox">联席会议</input>\
+        <input id="key_case_' + index + '_2" type="checkbox">服药</input>\
+        <input id="key_case_' + index + '_3" type="checkbox">自杀未遂</input>\
+        <input id="key_case_' + index + '_4" type="checkbox">家长陪读</input>\
+        <br>\
+        <b>医疗诊断：</b>\
+        <input id="medical_diagnosis_' + index + '_0" type="checkbox">精神分裂诊断</input>\
+        <input id="medical_diagnosis_' + index + '_1" type="checkbox">双相诊断</input>\
+        <input id="medical_diagnosis_' + index + '_2" type="checkbox">抑郁症诊断</input>\
+        <input id="medical_diagnosis_' + index + '_3" type="checkbox">强迫症诊断</input>\
+        <input id="medical_diagnosis_' + index + '_4" type="checkbox">进食障碍诊断</input>\
+        <input id="medical_diagnosis_' + index + '_5" type="checkbox">失眠诊断</input>\
+        <input id="medical_diagnosis_' + index + '_6" type="checkbox">其他精神症状诊断</input>\
+        <input id="medical_diagnosis_' + index + '_7" type="checkbox">躯体疾病诊断</input>\
+      </div>\
       <button type="button" onclick="submitFeedback(' + index + ');">提交</button>\
-      <button type="button" onclick="$(\'.pop_window\').remove();">取消</button>\
+      <button type="button" onclick="$(\'#feedback_table_' + index + '\').remove();">取消</button>\
     </div>\
   ');
   $(function() {
     showFirstCategory(index);
     if (feedback.category.length > 0) {
       $('#category_first_' + index).val(feedback.category.charAt(0));
-      showSecondCategory(index);
+      $('#category_first_' + index).change();
       $('#category_second_' + index).val(feedback.category);
     }
     if (feedback.participants.length > 0) {
@@ -175,9 +193,24 @@ function showFeedback(index, feedback) {
       $('#participant_instructor_' + index).first().attr('checked', feedback.participants[3] > 0);
       $('#participant_other_' + index).first().attr('checked', feedback.participants[4] > 0);
     }
+    var i = 1;
+    for (i = 0; i < 5; i++) {
+      $('#key_case_' + index + '_' + i).first().attr('checked', feedback.key_case[i] > 0);
+    }
+    for (i = 0; i < 8; i++) {
+      $('#medical_diagnosis_' + index + '_' + i).first().attr('checked', feedback.medical_diagnosis[i] > 0);
+    }
     $('#problem_' + index).val(feedback.problem);
     $('#record_' + index).val(feedback.record);
+    $('#crisis_level_' + index).change(function() {
+      if ($('#crisis_level_' + index).val() === "0") {
+        $('#key_case').hide();
+      } else {
+        $('#key_case').show();
+      }
+    });
     $('#crisis_level_' + index).val(feedback.crisis_level);
+    $('#crisis_level_' + index).change();
     optimize('#feedback_table_' + index);
   });
 }
@@ -214,11 +247,20 @@ function showSecondCategory(index) {
 
 function submitFeedback(index) {
   var participants = [];
-  participants.push($('#participant_student_' + index)[0].checked ? 1 : 0);
-  participants.push($('#participant_parents_' + index)[0].checked ? 1 : 0);
-  participants.push($('#participant_teacher_' + index)[0].checked ? 1 : 0);
-  participants.push($('#participant_instructor_' + index)[0].checked ? 1 : 0);
-  participants.push($('#participant_other_' + index)[0].checked ? 1 : 0);
+  participants.push($('#participant_student_' + index).first().is(':checked') ? 1 : 0);
+  participants.push($('#participant_parents_' + index).first().is(':checked') ? 1 : 0);
+  participants.push($('#participant_teacher_' + index).first().is(':checked') ? 1 : 0);
+  participants.push($('#participant_instructor_' + index).first().is(':checked') ? 1 : 0);
+  participants.push($('#participant_other_' + index).first().is(':checked') ? 1 : 0);
+  var i = 1;
+  var keyCase = [];
+  for (i = 0; i < 5; i++) {
+    keyCase.push($('#key_case_' + index + '_' + i).first().is(':checked') ? 1 : 0);
+  }
+  var medicalDiagnosis = [];
+  for (i = 0; i < 8; i++) {
+    medicalDiagnosis.push($('#medical_diagnosis_' + index + '_' + i).first().is(':checked') ? 1 : 0);
+  }
   var payload = {
     reservation_id: reservations[index].reservation_id,
     category: $('#category_second_' + index).val(),
@@ -226,6 +268,8 @@ function submitFeedback(index) {
     problem: $('#problem_' + index).val(),
     record: $('#record_' + index).val(),
     crisis_level: $('#crisis_level_' + index).val(),
+    key_case: keyCase,
+    medical_diagnosis: medicalDiagnosis
   };
   $.ajax({
     url: '/teacher/reservation/feedback/submit',
@@ -298,7 +342,25 @@ function showStudent(student, reservations) {
       近三个月里发生的有重大意义的事：' + student.student_significant + '<br>\
       需要接受帮助的主要问题：' + student.student_problem + '<br>\
       档案分类：' + student.student_archive_category + ' 档案编号：' + student.student_archive_number + '<br>\
-      危机等级：' + student.student_crisis_level + '<br>\
+      是否危机个案：<span id="crisis_level_'+ student.student_id + '"></span><br>\
+      <div id="key_case_' + student.student_id + '" style="display: none">\
+        <b>重点个案：</b>\
+        <input id="key_case_' + student.student_id + '_0" type="checkbox">通报院系</input>\
+        <input id="key_case_' + student.student_id + '_1" type="checkbox">联席会议</input>\
+        <input id="key_case_' + student.student_id + '_2" type="checkbox">服药</input>\
+        <input id="key_case_' + student.student_id + '_3" type="checkbox">自杀未遂</input>\
+        <input id="key_case_' + student.student_id + '_4" type="checkbox">家长陪读</input>\
+        <br>\
+        <b>医疗诊断：</b>\
+        <input id="medical_diagnosis_' + student.student_id + '_0" type="checkbox">精神分裂诊断</input>\
+        <input id="medical_diagnosis_' + student.student_id + '_1" type="checkbox">双相诊断</input>\
+        <input id="medical_diagnosis_' + student.student_id + '_2" type="checkbox">抑郁症诊断</input>\
+        <input id="medical_diagnosis_' + student.student_id + '_3" type="checkbox">强迫症诊断</input>\
+        <input id="medical_diagnosis_' + student.student_id + '_4" type="checkbox">进食障碍诊断</input>\
+        <input id="medical_diagnosis_' + student.student_id + '_5" type="checkbox">失眠诊断</input>\
+        <input id="medical_diagnosis_' + student.student_id + '_6" type="checkbox">其他精神症状诊断</input>\
+        <input id="medical_diagnosis_' + student.student_id + '_7" type="checkbox">躯体疾病诊断</input>\
+      </div>\
       <br>\
       已绑定的咨询师：<span id="binded_teacher_username">' + student.student_binded_teacher_username + '</span>&nbsp;\
         <span id="binded_teacher_fullname">' + student.student_binded_teacher_fullname + '</span><br>\
@@ -320,11 +382,22 @@ function showStudent(student, reservations) {
       </div>\
     ');
   }
-  $(document).ready(function() {
+  $(function() {
     $('.has_children').click(function() {
       $(this).addClass('highlight').children('p').show().end()
           .siblings().removeClass('highlight').children('p').hide();
     });
+    var i = 1;
+    for (i = 0; i < 5; i++) {
+      $('#key_case_' + student.student_id + '_' + i).first().attr('checked', student.student_key_case[i] > 0);
+    }
+    for (i = 0; i < 8; i++) {
+      $('#medical_diagnosis_' + student.student_id + '_' + i).first().attr('checked', student.student_medical_diagnosis[i] > 0);
+    }
+    $('#crisis_level_' + student.student_id).text(student.student_crisis_level === 0 ? '否' : '是');
+    if (student.student_crisis_level !== 0) {
+      $('#key_case_' + student.student_id).show();
+    }
   });
   optimize('#pop_show_student_' + student.student_id);
 }

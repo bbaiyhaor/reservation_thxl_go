@@ -40,19 +40,24 @@ func (e Experience) IsEmpty() bool {
 	return len(e.Time) == 0 && len(e.Location) == 0 && len(e.Teacher) == 0
 }
 
-const CRISIS_LEVEL_MAX = 5
+var (
+	KEY_CASE          = []string{"通报院系", "联席会议", "服药", "自杀未遂", "家长陪读"}
+	MEDICAL_DIAGNOSIS = []string{"精神分裂诊断", "双相诊断", "抑郁症诊断", "强迫症诊断", "进食障碍诊断", "失眠诊断", "其他精神症状诊断", "躯体疾病诊断"}
+)
 
 type Student struct {
-	Id              bson.ObjectId `bson:"_id"`
-	CreateTime      time.Time     `bson:"create_time"`
-	UpdateTime      time.Time     `bson:"update_time"`
-	Username        string        `bson:"username"` // Indexed
-	Password        string        `bson:"password"`
-	UserType        UserType      `bson:"user_type"`
-	BindedTeacherId string        `bson:"binded_teacher_id"` // Indexed
-	ArchiveCategory string        `bson:"archive_category"`
-	ArchiveNumber   string        `bson:"archive_number"` // Indexed
-	CrisisLevel     int           `bson:"crisis_level"`
+	Id               bson.ObjectId `bson:"_id"`
+	CreateTime       time.Time     `bson:"create_time"`
+	UpdateTime       time.Time     `bson:"update_time"`
+	Username         string        `bson:"username"` // Indexed
+	Password         string        `bson:"password"`
+	UserType         UserType      `bson:"user_type"`
+	BindedTeacherId  string        `bson:"binded_teacher_id"` // Indexed
+	ArchiveCategory  string        `bson:"archive_category"`
+	ArchiveNumber    string        `bson:"archive_number"` // Indexed
+	CrisisLevel      int           `bson:"crisis_level"`
+	KeyCase          []int         `bson:"key_case"`
+	MedicalDiagnosis []int         `bson:"medical_diagnosis"`
 
 	Fullname       string     `bson:"fullname"`
 	Gender         string     `bson:"gender"`

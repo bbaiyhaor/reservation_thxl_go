@@ -50,7 +50,7 @@ func (tl *TeacherLogic) GetFeedbackByTeacher(reservationId string, sourceId stri
 // 咨询师提交反馈
 func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId string,
 	category string, participants []int, problem string, record string, crisisLevel string,
-	userId string, userType models.UserType) (*models.Reservation, error) {
+	keyCase []int, medicalDiagnosis []int, userId string, userType models.UserType) (*models.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
 	} else if userType != models.TEACHER {
@@ -59,7 +59,7 @@ func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId s
 		return nil, errors.New("咨询已下架")
 	} else if len(category) == 0 {
 		return nil, errors.New("评估分类为空")
-	} else if len(participants) != 5 {
+	} else if len(participants) != len(models.Reservation_Participants) {
 		return nil, errors.New("咨询参与者为空")
 	} else if len(problem) == 0 {
 		return nil, errors.New("问题评估为空")
@@ -67,11 +67,15 @@ func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId s
 		return nil, errors.New("咨询记录为空")
 	} else if len(crisisLevel) == 0 {
 		return nil, errors.New("危机等级为空")
+	} else if len(keyCase) != len(models.KEY_CASE) {
+		return nil, errors.New("重点个案为空")
+	} else if len(medicalDiagnosis) != len(models.MEDICAL_DIAGNOSIS) {
+		return nil, errors.New("医疗诊断为空")
 	} else if strings.EqualFold(reservationId, sourceId) {
 		return nil, errors.New("咨询未被预约，不能反馈")
 	}
 	crisisLevelInt, err := strconv.Atoi(crisisLevel)
-	if err != nil || crisisLevelInt < 0 || crisisLevelInt > models.CRISIS_LEVEL_MAX {
+	if err != nil || crisisLevelInt < 0 {
 		return nil, errors.New("危机等级错误")
 	}
 	teacher, err := models.GetTeacherById(userId)
@@ -105,6 +109,8 @@ func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId s
 		return nil, errors.New("获取数据失败")
 	}
 	student.CrisisLevel = crisisLevelInt
+	student.KeyCase = keyCase
+	student.MedicalDiagnosis = medicalDiagnosis
 	if models.UpsertReservation(reservation) != nil || models.UpsertStudent(student) != nil {
 		return nil, errors.New("获取数据失败")
 	}

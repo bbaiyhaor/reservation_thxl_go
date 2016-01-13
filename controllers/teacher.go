@@ -78,6 +78,8 @@ func GetFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string,
 	feedback["problem"] = reservation.TeacherFeedback.Problem
 	feedback["record"] = reservation.TeacherFeedback.Record
 	feedback["crisis_level"] = student.CrisisLevel
+	feedback["key_case"] = student.KeyCase
+	feedback["medical_diagnosis"] = student.MedicalDiagnosis
 	result["feedback"] = feedback
 
 	return result
@@ -92,6 +94,8 @@ func SubmitFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 	problem := r.PostFormValue("problem")
 	record := r.PostFormValue("record")
 	crisisLevel := r.PostFormValue("crisis_level")
+	keyCase := []string(r.Form["key_case"])
+	medicalDiagnosis := []string(r.Form["medical_diagnosis"])
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var tl = buslogic.TeacherLogic{}
@@ -102,8 +106,20 @@ func SubmitFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 			participantsInt = append(participantsInt, pi)
 		}
 	}
+	keyCaseInt := []int{}
+	for _, k := range keyCase {
+		if ki, err := strconv.Atoi(k); err == nil {
+			keyCaseInt = append(keyCaseInt, ki)
+		}
+	}
+	medicalDiagnosisInt := []int{}
+	for _, m := range medicalDiagnosis {
+		if mi, err := strconv.Atoi(m); err == nil {
+			medicalDiagnosisInt = append(medicalDiagnosisInt, mi)
+		}
+	}
 	_, err := tl.SubmitFeedbackByTeacher(reservationId, sourceId, category, participantsInt, problem, record, crisisLevel,
-		userId, userType)
+		keyCaseInt, medicalDiagnosisInt, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -131,6 +147,8 @@ func GetStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 	studentJson["student_archive_category"] = student.ArchiveCategory
 	studentJson["student_archive_number"] = student.ArchiveNumber
 	studentJson["student_crisis_level"] = student.CrisisLevel
+	studentJson["student_key_case"] = student.KeyCase
+	studentJson["student_medical_diagnosis"] = student.MedicalDiagnosis
 	studentJson["student_gender"] = student.Gender
 	studentJson["student_email"] = student.Email
 	studentJson["student_school"] = student.School
@@ -214,6 +232,8 @@ func QueryStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId st
 	studentJson["student_archive_category"] = student.ArchiveCategory
 	studentJson["student_archive_number"] = student.ArchiveNumber
 	studentJson["student_crisis_level"] = student.CrisisLevel
+	studentJson["student_key_case"] = student.KeyCase
+	studentJson["student_medical_diagnosis"] = student.MedicalDiagnosis
 	studentJson["student_gender"] = student.Gender
 	studentJson["student_email"] = student.Email
 	studentJson["student_school"] = student.School

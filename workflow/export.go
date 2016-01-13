@@ -119,7 +119,7 @@ type MonthlyReport struct {
 	Amount        int
 }
 
-func ExportMonthlyReport(reservations []*models.Reservation, filename string) error {
+func ExportReportForm(reservations []*models.Reservation, filename string) error {
 	report := make(map[string]*MonthlyReport)
 	for index, category := range models.FeedbackAllCategory {
 		report[index] = &MonthlyReport{
@@ -131,7 +131,7 @@ func ExportMonthlyReport(reservations []*models.Reservation, filename string) er
 		UnderGraduate: make(map[string]int),
 	}
 	for _, r := range reservations {
-		if r.TeacherFeedback.IsEmpty() || len(r.TeacherFeedback.Participants) != 4 {
+		if r.TeacherFeedback.IsEmpty() || len(r.TeacherFeedback.Participants) != len(models.Reservation_Participants) {
 			continue
 		}
 		category := r.TeacherFeedback.Category
@@ -220,7 +220,7 @@ func ExportMonthlyReport(reservations []*models.Reservation, filename string) er
 	for _, g := range grades {
 		head = append(head, g)
 	}
-	head = append(head, "硕", "博", "合计（男）", "合计（女）", "家长", "教师", "辅导员", "其他", "总计", "百分比")
+	head = append(head, "硕", "博", "合计（男）", "合计（女）", "男女总计", "家长", "教师/辅导员", "其他", "辅助总计", "百分比")
 	data = append(data, head)
 	// csv的数据
 	for _, category := range categories {
@@ -244,18 +244,14 @@ func ExportMonthlyReport(reservations []*models.Reservation, filename string) er
 		}
 		line = append(line, strconv.Itoa(report[category].Male))
 		line = append(line, strconv.Itoa(report[category].Female))
+		line = append(line, strconv.Itoa(report[category].Male+report[category].Female))
 		if report[category].Parents > 0 {
 			line = append(line, strconv.Itoa(report[category].Parents))
 		} else {
 			line = append(line, "")
 		}
-		if report[category].Teacher > 0 {
-			line = append(line, strconv.Itoa(report[category].Teacher))
-		} else {
-			line = append(line, "")
-		}
-		if report[category].Instructor > 0 {
-			line = append(line, strconv.Itoa(report[category].Instructor))
+		if report[category].Teacher+report[category].Instructor > 0 {
+			line = append(line, strconv.Itoa(report[category].Teacher+report[category].Instructor))
 		} else {
 			line = append(line, "")
 		}
@@ -283,12 +279,12 @@ func ExportMonthlyReport(reservations []*models.Reservation, filename string) er
 	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Male)/(float64(amount.Male+amount.Female)/float64(100))))
 	amountLine = append(amountLine, strconv.Itoa(amount.Female))
 	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Female)/(float64(amount.Male+amount.Female)/float64(100))))
+	amountLine = append(amountLine, strconv.Itoa(amount.Male+amount.Female))
+	percentLine = append(percentLine, "")
 	amountLine = append(amountLine, strconv.Itoa(amount.Parents))
 	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Parents)/(float64(amount.Amount)/float64(100))))
-	amountLine = append(amountLine, strconv.Itoa(amount.Teacher))
-	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Teacher)/(float64(amount.Amount)/float64(100))))
-	amountLine = append(amountLine, strconv.Itoa(amount.Instructor))
-	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Instructor)/(float64(amount.Amount)/float64(100))))
+	amountLine = append(amountLine, strconv.Itoa(amount.Teacher+amount.Instructor))
+	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Teacher+amount.Instructor)/(float64(amount.Amount)/float64(100))))
 	amountLine = append(amountLine, strconv.Itoa(amount.Other))
 	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Other)/(float64(amount.Amount)/float64(100))))
 	amountLine = append(amountLine, strconv.Itoa(amount.Amount))

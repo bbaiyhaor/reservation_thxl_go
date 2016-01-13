@@ -781,33 +781,38 @@ func (al *AdminLogic) GetTeacherWorkloadByAdmin(fromDate string, toDate string,
 }
 
 // 管理员导出月报
-func (al *AdminLogic) ExportMonthlyReportByAdmin(monthlyDate string, userId string, userType models.UserType) (string, error) {
+func (al *AdminLogic) ExportReportFormByAdmin(fromDate string, toDate string, userId string, userType models.UserType) (string, error) {
 	if len(userId) == 0 {
 		return "", errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return "", errors.New("权限不足")
-	} else if len(monthlyDate) == 0 {
-		return "", errors.New("日期为空")
+	} else if len(fromDate) == 0 {
+		return "", errors.New("开始日期为空")
+	} else if len(toDate) == 0 {
+		return "", errors.New("结束日期为空")
 	}
 	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
 		return "", errors.New("管理员账户出错,请联系技术支持")
 	}
-	date, err := time.ParseInLocation(utils.DATE_PATTERN, monthlyDate, utils.Location)
+	from, err := time.ParseInLocation(utils.DATE_PATTERN, fromDate, utils.Location)
 	if err != nil {
-		return "", errors.New("日期格式错误")
+		return "", errors.New("开始日期格式错误")
 	}
-	from := time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, utils.Location)
-	to := from.AddDate(0, 1, 0)
+	to, err := time.ParseInLocation(utils.DATE_PATTERN, toDate, utils.Location)
+	if err != nil {
+		return "", errors.New("结束日期格式错误")
+	}
+	to = to.AddDate(0, 0, 1)
 	reservations, err := models.GetReservatedReservationsBetweenTime(from, to)
 	if err != nil {
 		return "", errors.New("获取数据失败")
 	}
-	filename := fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), utils.CsvSuffix)
+	filename := fmt.Sprintf("monthly_report_%s_%s%s", fromDate, toDate, utils.CsvSuffix)
 	if len(reservations) == 0 {
 		return "", nil
 	}
-	if err = workflow.ExportMonthlyReport(reservations, filename); err != nil {
+	if err = workflow.ExportReportForm(reservations, filename); err != nil {
 		return "", err
 	}
 	return "/" + utils.ExportFolder + filename, nil

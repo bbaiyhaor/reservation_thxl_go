@@ -976,9 +976,10 @@ Object.size = function(obj) {
   return size;
 }
 
-function exportMonthlyReport() {
-  $.post('/admin/reservation/export/report/monthly', {
-    monthly_date: $('#monthly_report_date').val(),
+function exportReportForm() {
+  $.post('/admin/reservation/export/report', {
+    from_date: $('#report_date_from').val(),
+    to_date: $('#report_date_to').val(),
   }, function(data, textStatus, xhr) {
     if (data.state === 'SUCCESS') {
       window.open(data.url);

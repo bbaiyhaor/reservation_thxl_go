@@ -536,6 +536,25 @@ func ExportKeyCaseReport(reservations []*models.Reservation, filename string) er
 	amountLine = append(amountLine, strconv.Itoa(amount.Amount))
 	data = append(data, amountLine)
 	data = append(data, percentLine)
+
+	// 学生列表
+	data = append(data, []string{""})
+	data = append(data, []string{""})
+	data = append(data, []string{"姓名", "学号", "个案类型"})
+	for _, student := range students {
+		line := []string{student.Fullname, student.Username}
+		for index, value := range student.KeyCase {
+			if value > 0 {
+				line = append(line, models.KEY_CASE[index])
+			}
+		}
+		for index, value := range student.MedicalDiagnosis {
+			if value > 0 {
+				line = append(line, models.MEDICAL_DIAGNOSIS[index])
+			}
+		}
+		data = append(data, line)
+	}
 	if err := utils.WriteToCSV(data, filename); err != nil {
 		return err
 	}

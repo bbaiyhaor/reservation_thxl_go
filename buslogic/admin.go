@@ -792,7 +792,7 @@ func (al *AdminLogic) GetTeacherWorkloadByAdmin(fromDate string, toDate string,
 	return workload, nil
 }
 
-// 管理员导出月报
+// 管理员导出报表
 func (al *AdminLogic) ExportReportFormByAdmin(fromDate string, toDate string, userId string, userType models.UserType) (string, error) {
 	if len(userId) == 0 {
 		return "", errors.New("请先登录")
@@ -828,4 +828,41 @@ func (al *AdminLogic) ExportReportFormByAdmin(fromDate string, toDate string, us
 		return "", err
 	}
 	return "/" + utils.ExportFolder + filename, nil
+}
+
+// 管理员导出报表
+func (al *AdminLogic) ExportReportMonthlyByAdmin(monthlyDate string, userId string, userType models.UserType) (string, string, error) {
+	if len(userId) == 0 {
+		return "", "", errors.New("请先登录")
+	} else if userType != models.ADMIN {
+		return "", "", errors.New("权限不足")
+	} else if len(monthlyDate) == 0 {
+		return "", "", errors.New("开始日期为空")
+	}
+	admin, err := models.GetAdminById(userId)
+	if err != nil || admin.UserType != models.ADMIN {
+		return "", "", errors.New("管理员账户出错,请联系技术支持")
+	}
+	date, err := time.ParseInLocation(utils.DATE_PATTERN, monthlyDate, utils.Location)
+	if err != nil {
+		return "", "", errors.New("开始日期格式错误")
+	}
+	from := time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, utils.Location)
+	to := from.AddDate(0, 1, 0)
+	reservations, err := models.GetReservatedReservationsBetweenTime(from, to)
+	if err != nil {
+		return "", "", errors.New("获取数据失败")
+	}
+	reportFilename := fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), utils.CsvSuffix)
+	keyCaseFilename := fmt.Sprintf("monthly_key_case_%d_%d%s", date.Year(), date.Month(), utils.CsvSuffix)
+	if len(reservations) == 0 {
+		return "", "", nil
+	}
+	if err = workflow.ExportReportForm(reservations, reportFilename); err != nil {
+		return "", "", err
+	}
+	if err = workflow.ExportKeyCaseReport(reservations, keyCaseFilename); err != nil {
+		return "", "", err
+	}
+	return "/" + utils.ExportFolder + reportFilename, "/" + utils.ExportFolder + keyCaseFilename, nil
 }

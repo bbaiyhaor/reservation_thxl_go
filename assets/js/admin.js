@@ -1074,13 +1074,13 @@ Object.size = function(obj) {
   return size;
 }
 
-function exportReportForm() {
-  $.post('/admin/reservation/export/report', {
-    from_date: $('#report_date_from').val(),
-    to_date: $('#report_date_to').val(),
+function exportReportMonthly() {
+  $.post('/admin/reservation/export/report/monthly', {
+    monthly_date: $('#monthly_report_date').val(),
   }, function(data, textStatus, xhr) {
     if (data.state === 'SUCCESS') {
-      window.open(data.url);
+      window.open(data.report);
+      window.open(data.key_case);
     } else {
       alert(data.message);
     }

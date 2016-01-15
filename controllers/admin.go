@@ -712,3 +712,20 @@ func ExportReportFormByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 
 	return result
 }
+
+func ExportReportMonthlyByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	monthlyDate := r.PostFormValue("monthly_date")
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var al = buslogic.AdminLogic{}
+
+	reportUrl, keyCaseUrl, err := al.ExportReportMonthlyByAdmin(monthlyDate, userId, userType)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
+	result["report"] = reportUrl
+	result["key_case"] = keyCaseUrl
+
+	return result
+}

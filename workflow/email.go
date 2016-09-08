@@ -5,13 +5,11 @@ import (
 	"github.com/scorredoira/email"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"net/smtp"
-	"os"
 	"strings"
 )
 
 func SendEmail(subject string, body string, attached []string, to []string) error {
-	appEnv := os.Getenv("RESERVATION_THXL_ENV")
-	if !strings.EqualFold(appEnv, "ONLINE") {
+	if utils.APP_ENV != "ONLINE" || utils.MAIL_SMTP == "" || utils.MAIL_USERNAME == "" || utils.MAIL_PASSWORD == "" {
 		fmt.Printf("Send Email: \"%s\" to %s.\n", subject, strings.Join(to, ","))
 		return nil
 	}

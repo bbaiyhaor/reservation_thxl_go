@@ -9,7 +9,7 @@ import (
 )
 
 func EntryPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	t := template.Must(template.ParseFiles("templates/entry.html"))
+	t := template.Must(template.ParseFiles("../templates/entry.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -18,7 +18,7 @@ func EntryPage(w http.ResponseWriter, r *http.Request, userId string, userType m
 }
 
 func StudentLoginPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	t := template.Must(template.ParseFiles("templates/student_login.html"))
+	t := template.Must(template.ParseFiles("../templates/student_login.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -27,7 +27,7 @@ func StudentLoginPage(w http.ResponseWriter, r *http.Request, userId string, use
 }
 
 func StudentRegisterPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	t := template.Must(template.ParseFiles("templates/student_register.html"))
+	t := template.Must(template.ParseFiles("../templates/student_register.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -43,7 +43,7 @@ func StudentPage(w http.ResponseWriter, r *http.Request, userId string, userType
 		http.Redirect(w, r, "/reservation/admin", http.StatusFound)
 		return nil
 	}
-	t := template.Must(template.ParseFiles("templates/student.html"))
+	t := template.Must(template.ParseFiles("../templates/student.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -52,7 +52,7 @@ func StudentPage(w http.ResponseWriter, r *http.Request, userId string, userType
 }
 
 func TeacherLoginPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	t := template.Must(template.ParseFiles("templates/teacher_login.html"))
+	t := template.Must(template.ParseFiles("../templates/teacher_login.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -68,7 +68,7 @@ func TeacherPage(w http.ResponseWriter, r *http.Request, userId string, userType
 		http.Redirect(w, r, "/reservation/admin", http.StatusFound)
 		return nil
 	}
-	t := template.Must(template.ParseFiles("templates/teacher.html"))
+	t := template.Must(template.ParseFiles("../templates/teacher.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -77,7 +77,7 @@ func TeacherPage(w http.ResponseWriter, r *http.Request, userId string, userType
 }
 
 func AdminLoginPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	t := template.Must(template.ParseFiles("templates/admin_login.html"))
+	t := template.Must(template.ParseFiles("../templates/admin_login.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -93,7 +93,7 @@ func AdminPage(w http.ResponseWriter, r *http.Request, userId string, userType m
 		http.Redirect(w, r, "/reservation/teacher", http.StatusFound)
 		return nil
 	}
-	t := template.Must(template.ParseFiles("templates/admin.html"))
+	t := template.Must(template.ParseFiles("../templates/admin.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -109,7 +109,7 @@ func AdminTimetablePage(w http.ResponseWriter, r *http.Request, userId string, u
 		http.Redirect(w, r, "/reservation/teacher", http.StatusFound)
 		return nil
 	}
-	t := template.Must(template.ParseFiles("templates/admin_timetable.html"))
+	t := template.Must(template.ParseFiles("../templates/admin_timetable.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -118,7 +118,7 @@ func AdminTimetablePage(w http.ResponseWriter, r *http.Request, userId string, u
 }
 
 func ProtocolPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	t := template.Must(template.ParseFiles("templates/protocol.html"))
+	t := template.Must(template.ParseFiles("../templates/protocol.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

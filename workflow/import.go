@@ -5,7 +5,7 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 )
 
-const ArchiveFile = "assets/import/archive.csv"
+const ArchiveFile = "../assets/import/archive.csv"
 
 func ImportArchiveFromCSVFile() error {
 	data, err := utils.ReadFromCSV(ArchiveFile)

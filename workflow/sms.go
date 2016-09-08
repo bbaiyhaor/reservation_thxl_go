@@ -9,9 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
-	"strings"
 )
 
 const (
@@ -111,8 +109,7 @@ func sendSMS(mobile string, content string) error {
 	if m := utils.IsMobile(mobile); !m {
 		return errors.New("手机号格式不正确")
 	}
-	appEnv := os.Getenv("RESERVATION_THXL_ENV")
-	if !strings.EqualFold(appEnv, "ONLINE") {
+	if utils.APP_ENV != "ONLINE" || utils.SMS_UID == "" || utils.SMS_KEY == "" {
 		fmt.Printf("Send SMS: \"%s\" to %s.\n", content, mobile)
 		return nil
 	}

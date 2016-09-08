@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strconv"
 	"time"
+	"flag"
 )
 
 var needUserPath = regexp.MustCompile("^(/reservation/(student|teacher|admin)$|/(user/logout|(student|teacher|admin)/))")
@@ -77,6 +78,20 @@ func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, models
 }
 
 func main() {
+	appEnv := flag.String("app-env", "STAGING", "app environment")
+	smsUid := flag.String("sms-uid", "", "sms uid")
+	smsKey := flag.String("sms-key", "", "sms key")
+	mailSmtp := flag.String("mail-smtp", "", "mail smtp")
+	mailUsername := flag.String("mail-username", "", "mail username")
+	mailPassword := flag.String("mail-password", "", "mail password")
+	flag.Parse()
+	utils.APP_ENV = *appEnv
+	utils.SMS_UID = *smsUid
+	utils.SMS_KEY = *smsKey
+	utils.MAIL_SMTP = *mailSmtp
+	utils.MAIL_USERNAME = *mailUsername
+	utils.MAIL_PASSWORD = *mailPassword
+	fmt.Println(utils.APP_ENV, utils.SMS_UID, utils.SMS_KEY, utils.MAIL_SMTP, utils.MAIL_USERNAME, utils.MAIL_PASSWORD)
 	// 数据库连接
 	session, err := mgo.Dial("127.0.0.1:27017")
 	if err != nil {
@@ -165,7 +180,7 @@ func main() {
 	categoryRouter.HandleFunc("/feedback", handleWithCookie(controllers.GetFeedbackCategories)).Methods("GET")
 	// http加载处理器
 	http.Handle("/", router)
-	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets/"))))
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("../assets/"))))
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

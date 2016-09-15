@@ -10,6 +10,7 @@ import (
 	"log"
 	"sort"
 	"time"
+	"strings"
 )
 
 func main() {
@@ -19,6 +20,7 @@ func main() {
 	mailSmtp := flag.String("mail-smtp", "", "mail smtp")
 	mailUsername := flag.String("mail-username", "", "mail username")
 	mailPassword := flag.String("mail-password", "", "mail password")
+	mailTo := flag.String("mail-to", "", "mail to list")
 	flag.Parse()
 	utils.APP_ENV = *appEnv
 	utils.SMS_UID = *smsUid
@@ -26,6 +28,7 @@ func main() {
 	utils.MAIL_SMTP = *mailSmtp
 	utils.MAIL_USERNAME = *mailUsername
 	utils.MAIL_PASSWORD = *mailPassword
+	mailToList := strings.Split(mailTo, ",")
 	log.Printf("loading config: %s %s %s %s %s %s", utils.APP_ENV, utils.SMS_UID, utils.SMS_KEY, utils.MAIL_SMTP, utils.MAIL_USERNAME, utils.MAIL_PASSWORD)
 	// 数据库连接
 	mongoDbDialInfo := mgo.DialInfo{
@@ -78,8 +81,7 @@ func main() {
 	}
 	// email
 	title := fmt.Sprintf("【心理发展中心】%s咨询安排表", todayDate)
-	if err := workflow.SendEmail(title, title, []string{fmt.Sprintf("%s%s", utils.ExportFolder, filename)},
-		workflow.EMAIL_TO_DEVELOPER); err != nil {
+	if err := workflow.SendEmail(title, title, []string{fmt.Sprintf("%s%s", utils.ExportFolder, filename)}, mailToList); err != nil {
 		log.Printf("发送邮件失败：%v", err)
 		return
 	}

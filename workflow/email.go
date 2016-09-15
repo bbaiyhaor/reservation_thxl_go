@@ -18,6 +18,9 @@ func SendEmail(subject string, body string, attached []string, to []string) erro
 		fmt.Printf("Send Email: \"%s\" to %s.\n", subject, strings.Join(to, ","))
 		return nil
 	}
+	if len(to) == 0 {
+		return nil
+	}
 	m := email.NewMessage(subject, body)
 	m.From = utils.MAIL_USERNAME
 	m.To = to

@@ -61,9 +61,15 @@ func main() {
 		log.Printf("获取咨询列表失败：%v", err)
 		return
 	}
+	succCnt, failCnt := 0, 0
 	for _, reservation := range reservations {
 		if reservation.Status == models.RESERVATED {
-			workflow.SendReminderSMS(reservation)
+			if err = workflow.SendReminderSMS(reservation); err == nil {
+				succCnt++
+			} else {
+				failCnt++
+			}
 		}
 	}
+	log.Printf("发送%d个预约记录的提醒短信，成功%d个，失败%d个", succCnt + failCnt, succCnt, failCnt)
 }

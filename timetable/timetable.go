@@ -81,5 +81,7 @@ func main() {
 	if err := workflow.SendEmail(title, title, []string{fmt.Sprintf("%s%s", utils.ExportFolder, filename)},
 		workflow.EMAIL_TO_DEVELOPER); err != nil {
 		log.Printf("发送邮件失败：%v", err)
+		return
 	}
+	log.Printf("发送邮件成功")
 }

@@ -6,12 +6,10 @@ import (
 	"fmt"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
-	"github.com/shudiwsh2009/reservation_thzy_go/workflow"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
-	"strconv"
 )
 
 const (
@@ -150,11 +148,11 @@ func sendSMS(mobile string, content string) error {
 	if err != nil {
 		return errors.New("短信发送失败")
 	}
-	errCode := string{responseBody}
+	errCode := string(responseBody)
 	if errMsg, ok := SMS_ERROR_MSG[errCode]; ok {
 		log.Printf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg)
-		workflow.SendEmail("thxlfzzx报警：短信发送失败",
-			fmt.Sprintf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg), []string{}, EMAIL_TO_DEVELOPER)
+		SendEmail("thxlfzzx报警：短信发送失败", fmt.Sprintf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg),
+			[]string{}, EMAIL_TO_DEVELOPER)
 		return errors.New(fmt.Sprintf("短信发送失败：%s", errMsg))
 	}
 	log.Printf("Send SMS \"%s\" to %s: return %s", content, mobile, errCode)

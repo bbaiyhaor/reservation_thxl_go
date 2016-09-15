@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const (
+var (
 	EMAIL_TO_SELF      = []string{"thxlfzzx@qq.com"}
 	EMAIL_TO_DEVELOPER = []string{"shudiwsh2009@gmail.com"}
 )

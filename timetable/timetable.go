@@ -59,7 +59,7 @@ func main() {
 	tomorrow := today.AddDate(0, 0, 1)
 	reservations, err := models.GetReservationsBetweenTime(today, tomorrow)
 	if err != nil {
-		log.Printf(err)
+		log.Printf("%v", err)
 		return
 	}
 	todayDate := today.Format(utils.DATE_PATTERN)
@@ -73,7 +73,7 @@ func main() {
 	sort.Sort(models.ReservationSlice(reservations))
 	filename := "timetable_" + todayDate + utils.CsvSuffix
 	if err = workflow.ExportTodayReservationTimetable(reservations, filename); err != nil {
-		log.Printf(err)
+		log.Printf("%v", err)
 		return
 	}
 	// email

@@ -75,11 +75,12 @@ func GetFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string,
 	}
 	feedback["category"] = reservation.TeacherFeedback.Category
 	feedback["participants"] = reservation.TeacherFeedback.Participants
-	feedback["problem"] = reservation.TeacherFeedback.Problem
+	feedback["emphasis"] = reservation.TeacherFeedback.Emphasis
+	feedback["severity"] = reservation.TeacherFeedback.Severity
+	feedback["medical_diagnosis"] = reservation.TeacherFeedback.MedicalDiagnosis
+	feedback["crisis"] = reservation.TeacherFeedback.Crisis
 	feedback["record"] = reservation.TeacherFeedback.Record
 	feedback["crisis_level"] = student.CrisisLevel
-	feedback["key_case"] = student.KeyCase
-	feedback["medical_diagnosis"] = student.MedicalDiagnosis
 	result["feedback"] = feedback
 
 	return result
@@ -91,35 +92,42 @@ func SubmitFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 	category := r.PostFormValue("category")
 	r.ParseForm()
 	participants := []string(r.Form["participants"])
-	problem := r.PostFormValue("problem")
+	emphasis := r.PostFormValue("emphasis")
+	severity := []string(r.Form["severity"])
+	medicalDiagnosis := []string(r.Form["medical_diagnosis"])
+	crisis := []string(r.Form["crisis"])
 	record := r.PostFormValue("record")
 	crisisLevel := r.PostFormValue("crisis_level")
-	keyCase := []string(r.Form["key_case"])
-	medicalDiagnosis := []string(r.Form["medical_diagnosis"])
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var tl = buslogic.TeacherLogic{}
 
-	participantsInt := []int{}
+	participantsInt := make([]int, 0)
 	for _, p := range participants {
 		if pi, err := strconv.Atoi(p); err == nil {
 			participantsInt = append(participantsInt, pi)
 		}
 	}
-	keyCaseInt := []int{}
-	for _, k := range keyCase {
-		if ki, err := strconv.Atoi(k); err == nil {
-			keyCaseInt = append(keyCaseInt, ki)
+	severityInt := make([]int, 0)
+	for _, s := range severity {
+		if si, err := strconv.Atoi(s); err == nil {
+			severityInt = append(severityInt, si)
 		}
 	}
-	medicalDiagnosisInt := []int{}
+	medicalDiagnosisInt := make([]int, 0)
 	for _, m := range medicalDiagnosis {
 		if mi, err := strconv.Atoi(m); err == nil {
 			medicalDiagnosisInt = append(medicalDiagnosisInt, mi)
 		}
 	}
-	_, err := tl.SubmitFeedbackByTeacher(reservationId, sourceId, category, participantsInt, problem, record, crisisLevel,
-		keyCaseInt, medicalDiagnosisInt, userId, userType)
+	crisisInt := make([]int, 0)
+	for _, c := range crisis {
+		if ci, err := strconv.Atoi(c); err == nil {
+			crisisInt = append(crisisInt, ci)
+		}
+	}
+	_, err := tl.SubmitFeedbackByTeacher(reservationId, sourceId, category, participantsInt, emphasis, severityInt,
+		medicalDiagnosisInt, crisisInt, record, crisisLevel, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -147,8 +155,6 @@ func GetStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 	studentJson["student_archive_category"] = student.ArchiveCategory
 	studentJson["student_archive_number"] = student.ArchiveNumber
 	studentJson["student_crisis_level"] = student.CrisisLevel
-	studentJson["student_key_case"] = student.KeyCase
-	studentJson["student_medical_diagnosis"] = student.MedicalDiagnosis
 	studentJson["student_gender"] = student.Gender
 	studentJson["student_email"] = student.Email
 	studentJson["student_school"] = student.School

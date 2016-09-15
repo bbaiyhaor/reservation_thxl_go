@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"html/template"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -135,6 +136,8 @@ func ErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 	state := "FAILED"
 	if strings.EqualFold(err.Error(), models.CHECK_MESSAGE) {
 		state = models.CHECK_MESSAGE
+	} else {
+		log.Printf("error %s %v", r.URL.Path, err)
 	}
 	if data, err := json.Marshal(ErrorMsg{
 		State:   state,

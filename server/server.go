@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"flag"
 	"github.com/gorilla/mux"
 	"github.com/shudiwsh2009/reservation_thxl_go/controllers"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
@@ -14,7 +14,6 @@ import (
 	"regexp"
 	"strconv"
 	"time"
-	"flag"
 )
 
 var needUserPath = regexp.MustCompile("^(/reservation/(student|teacher|admin)$|/(user/logout|(student|teacher|admin)/))")
@@ -24,13 +23,29 @@ var redirectAdminPath = regexp.MustCompile("^(/reservation/admin|/admin/)")
 
 func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, models.UserType) interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		// request log
+		case http.MethodGet:
+			if r.URL.RawQuery != "" {
+				log.Printf("%s %s?%s", r.Method, r.URL.Path, r.URL.RawQuery)
+			} else {
+				log.Printf("%s %s", r.Method, r.URL.Path)
+			}
+		case http.MethodPost:
+			r.ParseForm()
+			log.Printf("%s %s %+v", r.Method, r.URL.Path, r.PostForm)
+		}
 		if !needUserPath.MatchString(r.URL.Path) {
 			if result := fn(w, r, "", 0); result != nil {
+				// non-get response
+				if r.Method != http.MethodGet {
+					log.Printf("response: %s %+v", r.URL.Path, result)
+				}
 				if data, err := json.Marshal(result); err == nil {
 					w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 					w.Write(data)
 				} else {
-					fmt.Errorf("%v", err)
+					log.Printf("%v", err)
 				}
 			}
 			return
@@ -67,11 +82,15 @@ func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, models
 			}
 		}
 		if result := fn(w, r, userId, userType); result != nil {
+			// non-get authorized response
+			if r.Method != http.MethodGet {
+				log.Printf("response userId %s userType %d: %s %+v", userId, userType, r.URL.Path, result)
+			}
 			if data, err := json.Marshal(result); err == nil {
 				w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 				w.Write(data)
 			} else {
-				fmt.Errorf("%v", err)
+				log.Printf("%v", err)
 			}
 		}
 	}
@@ -91,14 +110,14 @@ func main() {
 	utils.MAIL_SMTP = *mailSmtp
 	utils.MAIL_USERNAME = *mailUsername
 	utils.MAIL_PASSWORD = *mailPassword
-	fmt.Println(utils.APP_ENV, utils.SMS_UID, utils.SMS_KEY, utils.MAIL_SMTP, utils.MAIL_USERNAME, utils.MAIL_PASSWORD)
+	log.Printf("loading config: %s %s %s %s %s %s", utils.APP_ENV, utils.SMS_UID, utils.SMS_KEY, utils.MAIL_SMTP, utils.MAIL_USERNAME, utils.MAIL_PASSWORD)
 	// 数据库连接
 	mongoDbDialInfo := mgo.DialInfo{
-		Addrs:		[]string{"127.0.0.1:27017"},
-		Timeout:	60 * time.Second,
-		Database:	"admin",
-		Username:	"admin",
-		Password:	"THXLFZZX",
+		Addrs:    []string{"127.0.0.1:27017"},
+		Timeout:  60 * time.Second,
+		Database: "admin",
+		Username: "admin",
+		Password: "THXLFZZX",
 	}
 	var session *mgo.Session
 	var err error
@@ -108,7 +127,7 @@ func main() {
 		session, err = mgo.Dial("127.0.0.1:27017")
 	}
 	if err != nil {
-		fmt.Printf("连接数据库失败：%v\n", err)
+		log.Printf("连接数据库失败：%v", err)
 		return
 	}
 	defer session.Close()
@@ -116,12 +135,12 @@ func main() {
 	models.Mongo = session.DB("reservation_thxl")
 	// 时区
 	if utils.Location, err = time.LoadLocation("Asia/Shanghai"); err != nil {
-		fmt.Printf("初始化时区失败：%v\n", err)
+		log.Printf("初始化时区失败：%v", err)
 		return
 	}
 	// 初始化档案
 	if err := workflow.ImportArchiveFromCSVFile(); err != nil {
-		fmt.Printf("初始化档案失败：%v\n", err)
+		log.Printf("初始化档案失败：%v", err)
 	}
 
 	// TODO: Remove the following test codes

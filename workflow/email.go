@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+const (
+	EMAIL_TO_SELF      = []string{"thxlfzzx@qq.com"}
+	EMAIL_TO_DEVELOPER = []string{"shudiwsh2009@gmail.com"}
+)
+
 func SendEmail(subject string, body string, attached []string, to []string) error {
 	if utils.APP_ENV != "ONLINE" || utils.MAIL_SMTP == "" || utils.MAIL_USERNAME == "" || utils.MAIL_PASSWORD == "" {
 		fmt.Printf("Send Email: \"%s\" to %s.\n", subject, strings.Join(to, ","))

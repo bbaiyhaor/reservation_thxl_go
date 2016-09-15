@@ -49,30 +49,36 @@ func (tl *TeacherLogic) GetFeedbackByTeacher(reservationId string, sourceId stri
 
 // 咨询师提交反馈
 func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId string,
-	category string, participants []int, problem string, record string, crisisLevel string,
-	keyCase []int, medicalDiagnosis []int, userId string, userType models.UserType) (*models.Reservation, error) {
-	if len(userId) == 0 {
+	category string, participants []int, emphasis string, severity []int, medicalDiagnosis []int, crisis []int,
+	record string, crisisLevel string, userId string, userType models.UserType) (*models.Reservation, error) {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != models.TEACHER {
 		return nil, errors.New("权限不足")
-	} else if len(reservationId) == 0 {
+	} else if reservationId == "" {
 		return nil, errors.New("咨询已下架")
-	} else if len(category) == 0 {
+	} else if category == "" {
 		return nil, errors.New("评估分类为空")
-	} else if len(participants) != len(models.Reservation_Participants) {
+	} else if len(participants) != len(models.PARTICIPANTS) {
 		return nil, errors.New("咨询参与者为空")
-	} else if len(problem) == 0 {
-		return nil, errors.New("问题评估为空")
-	} else if len(record) == 0 {
-		return nil, errors.New("咨询记录为空")
-	} else if len(crisisLevel) == 0 {
-		return nil, errors.New("危机等级为空")
-	} else if len(keyCase) != len(models.KEY_CASE) {
-		return nil, errors.New("重点个案为空")
+	} else if emphasis == "" {
+		return nil, errors.New("重点明细为空")
+	} else if len(severity) != len(models.SEVERITY) {
+		return nil, errors.New("严重程度为空")
 	} else if len(medicalDiagnosis) != len(models.MEDICAL_DIAGNOSIS) {
 		return nil, errors.New("医疗诊断为空")
+	} else if len(crisis) != len(models.CRISIS) {
+		return nil, errors.New("危机情况为空")
+	} else if len(record) == 0 {
+		return nil, errors.New("咨询记录为空")
+	} else if crisisLevel == "" {
+		return nil, errors.New("危机等级为空")
 	} else if strings.EqualFold(reservationId, sourceId) {
 		return nil, errors.New("咨询未被预约，不能反馈")
+	}
+	emphasisInt, err := strconv.Atoi(emphasis)
+	if err != nil || emphasisInt < 0 {
+		return nil, errors.New("重点明细错误")
 	}
 	crisisLevelInt, err := strconv.Atoi(crisisLevel)
 	if err != nil || crisisLevelInt < 0 {
@@ -94,23 +100,21 @@ func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId s
 	} else if !strings.EqualFold(reservation.TeacherId, teacher.Id.Hex()) {
 		return nil, errors.New("只能反馈本人开设的咨询")
 	}
-	if reservation.TeacherFeedback.IsEmpty() && reservation.StudentFeedback.IsEmpty() {
-		workflow.SendFeedbackSMS(reservation)
-	}
 	sendFeedbackSMS := reservation.TeacherFeedback.IsEmpty() && reservation.StudentFeedback.IsEmpty()
 	reservation.TeacherFeedback = models.TeacherFeedback{
-		Category:     category,
-		Participants: participants,
-		Problem:      problem,
-		Record:       record,
+		Category:         category,
+		Participants:     participants,
+		Emphasis:         emphasisInt,
+		Severity:         severity,
+		MedicalDiagnosis: medicalDiagnosis,
+		Crisis:           crisis,
+		Record:           record,
 	}
 	student, err := models.GetStudentById(reservation.StudentId)
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
 	student.CrisisLevel = crisisLevelInt
-	student.KeyCase = keyCase
-	student.MedicalDiagnosis = medicalDiagnosis
 	if models.UpsertReservation(reservation) != nil || models.UpsertStudent(student) != nil {
 		return nil, errors.New("获取数据失败")
 	}

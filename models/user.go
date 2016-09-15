@@ -40,11 +40,6 @@ func (e Experience) IsEmpty() bool {
 	return len(e.Time) == 0 && len(e.Location) == 0 && len(e.Teacher) == 0
 }
 
-var (
-	KEY_CASE          = []string{"通报院系", "联席会议", "服药", "自杀未遂", "家长陪读"}
-	MEDICAL_DIAGNOSIS = []string{"精神分裂诊断", "双相诊断", "抑郁症诊断", "强迫症诊断", "进食障碍诊断", "失眠诊断", "其他精神症状诊断", "躯体疾病诊断"}
-)
-
 type Student struct {
 	Id               bson.ObjectId `bson:"_id"`
 	CreateTime       time.Time     `bson:"create_time"`
@@ -56,28 +51,27 @@ type Student struct {
 	ArchiveCategory  string        `bson:"archive_category"`
 	ArchiveNumber    string        `bson:"archive_number"` // Indexed
 	CrisisLevel      int           `bson:"crisis_level"`
-	KeyCase          []int         `bson:"key_case"`
-	MedicalDiagnosis []int         `bson:"medical_diagnosis"`
-
-	Fullname       string     `bson:"fullname"`
-	Gender         string     `bson:"gender"`
-	Birthday       string     `bson:"birthday"`
-	School         string     `bson:"school"`
-	Grade          string     `bson:"grade"`
-	CurrentAddress string     `bson:"current_address"`
-	FamilyAddress  string     `bson:"family_address"`
-	Mobile         string     `bson:"mobile"`
-	Email          string     `bson:"email"`
-	Experience     Experience `bson:"experience"`
-	FatherAge      string     `bson:"father_age"`
-	FatherJob      string     `bson:"father_job"`
-	FatherEdu      string     `bson:"father_edu"`
-	MotherAge      string     `bson:"mother_age"`
-	MotherJob      string     `bson:"mother_job"`
-	MotherEdu      string     `bson:"mother_edu"`
-	ParentMarriage string     `bson:"parent_marriage"`
-	Significant    string     `bson:"significant"`
-	Problem        string     `bson:"problem"`
+	KeyCase          []int         `bson:"key_case"`          // deprecated
+	MedicalDiagnosis []int         `bson:"medical_diagnosis"` // deprecated
+	Fullname         string        `bson:"fullname"`
+	Gender           string        `bson:"gender"`
+	Birthday         string        `bson:"birthday"`
+	School           string        `bson:"school"`
+	Grade            string        `bson:"grade"`
+	CurrentAddress   string        `bson:"current_address"`
+	FamilyAddress    string        `bson:"family_address"`
+	Mobile           string        `bson:"mobile"`
+	Email            string        `bson:"email"`
+	Experience       Experience    `bson:"experience"`
+	FatherAge        string        `bson:"father_age"`
+	FatherJob        string        `bson:"father_job"`
+	FatherEdu        string        `bson:"father_edu"`
+	MotherAge        string        `bson:"mother_age"`
+	MotherJob        string        `bson:"mother_job"`
+	MotherEdu        string        `bson:"mother_edu"`
+	ParentMarriage   string        `bson:"parent_marriage"`
+	Significant      string        `bson:"significant"`
+	Problem          string        `bson:"problem"`
 }
 
 type Teacher struct {

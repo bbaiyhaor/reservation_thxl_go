@@ -18,19 +18,19 @@ type AdminLogic struct {
 // 管理员添加咨询
 func (al *AdminLogic) AddReservationByAdmin(startTime string, endTime string, teacherUsername string,
 	teacherFullname string, teacherMobile string, force bool, userId string, userType models.UserType) (*models.Reservation, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return nil, errors.New("权限不足")
-	} else if len(startTime) == 0 {
+	} else if startTime == "" {
 		return nil, errors.New("开始时间为空")
-	} else if len(endTime) == 0 {
+	} else if endTime == "" {
 		return nil, errors.New("结束时间为空")
-	} else if len(teacherUsername) == 0 {
+	} else if teacherUsername == "" {
 		return nil, errors.New("咨询师工号为空")
-	} else if len(teacherFullname) == 0 {
+	} else if teacherFullname == "" {
 		return nil, errors.New("咨询师姓名为空")
-	} else if len(teacherMobile) == 0 {
+	} else if teacherMobile == "" {
 		return nil, errors.New("咨询师手机号为空")
 	} else if !utils.IsMobile(teacherMobile) {
 		return nil, errors.New("咨询师手机号格式不正确")
@@ -192,7 +192,7 @@ func (al *AdminLogic) RemoveReservationsByAdmin(reservationIds []string, sourceI
 // 管理员取消预约
 func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceIds []string,
 	userId string, userType models.UserType) (int, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return 0, errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return 0, errors.New("权限不足")
@@ -211,11 +211,14 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 				if reservation.Source != models.TIMETABLE {
 					// 1
 					reservation.Status = models.AVAILABLE
+					studentId := reservation.StudentId
 					reservation.StudentId = ""
 					reservation.StudentFeedback = models.StudentFeedback{}
 					reservation.TeacherFeedback = models.TeacherFeedback{}
 					if models.UpsertReservation(reservation) == nil {
 						removed++
+						reservation.StudentId = studentId
+						workflow.SendCancelSMS(reservation)
 					}
 				} else {
 					// 2
@@ -225,6 +228,7 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 						delete(timedReservation.Timed, date)
 						if models.UpsertReservation(reservation) == nil && models.UpsertTimedReservation(timedReservation) == nil {
 							removed++
+							workflow.SendCancelSMS(reservation)
 						}
 					}
 				}
@@ -267,30 +271,36 @@ func (al *AdminLogic) GetFeedbackByAdmin(reservationId string, sourceId string,
 
 // 管理员提交反馈
 func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId string,
-	category string, participants []int, problem string, record string, crisisLevel string,
-	keyCase []int, medicalDiagnosis []int, userId string, userType models.UserType) (*models.Reservation, error) {
-	if len(userId) == 0 {
+	category string, participants []int, emphasis string, severity []int, medicalDiagnosis []int, crisis []int,
+	record string, crisisLevel string, userId string, userType models.UserType) (*models.Reservation, error) {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return nil, errors.New("权限不足")
-	} else if len(reservationId) == 0 {
+	} else if reservationId == "" {
 		return nil, errors.New("咨询已下架")
-	} else if len(category) == 0 {
+	} else if category == "" {
 		return nil, errors.New("评估分类为空")
-	} else if len(participants) != len(models.Reservation_Participants) {
+	} else if len(participants) != len(models.PARTICIPANTS) {
 		return nil, errors.New("咨询参与者为空")
-	} else if len(problem) == 0 {
-		return nil, errors.New("问题评估为空")
-	} else if len(record) == 0 {
-		return nil, errors.New("咨询记录为空")
-	} else if len(crisisLevel) == 0 {
-		return nil, errors.New("危机等级为空")
-	} else if len(keyCase) != len(models.KEY_CASE) {
-		return nil, errors.New("重点个案为空")
+	} else if emphasis == "" {
+		return nil, errors.New("重点明细为空")
+	} else if len(severity) != len(models.SEVERITY) {
+		return nil, errors.New("严重程度为空")
 	} else if len(medicalDiagnosis) != len(models.MEDICAL_DIAGNOSIS) {
 		return nil, errors.New("医疗诊断为空")
+	} else if len(crisis) != len(models.CRISIS) {
+		return nil, errors.New("危机情况为空")
+	} else if len(record) == 0 {
+		return nil, errors.New("咨询记录为空")
+	} else if crisisLevel == "" {
+		return nil, errors.New("危机等级为空")
 	} else if strings.EqualFold(reservationId, sourceId) {
 		return nil, errors.New("咨询未被预约，不能反馈")
+	}
+	emphasisInt, err := strconv.Atoi(emphasis)
+	if err != nil || emphasisInt < 0 {
+		return nil, errors.New("重点明细错误")
 	}
 	crisisLevelInt, err := strconv.Atoi(crisisLevel)
 	if err != nil || crisisLevelInt < 0 {
@@ -310,18 +320,19 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId strin
 	}
 	sendFeedbackSMS := reservation.TeacherFeedback.IsEmpty() && reservation.StudentFeedback.IsEmpty()
 	reservation.TeacherFeedback = models.TeacherFeedback{
-		Category:     category,
-		Participants: participants,
-		Problem:      problem,
-		Record:       record,
+		Category:         category,
+		Participants:     participants,
+		Emphasis:         emphasisInt,
+		Severity:         severity,
+		MedicalDiagnosis: medicalDiagnosis,
+		Crisis:           crisis,
+		Record:           record,
 	}
 	student, err := models.GetStudentById(reservation.StudentId)
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
 	student.CrisisLevel = crisisLevelInt
-	student.KeyCase = keyCase
-	student.MedicalDiagnosis = medicalDiagnosis
 	if models.UpsertReservation(reservation) != nil || models.UpsertStudent(student) != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -432,21 +443,17 @@ func (al *AdminLogic) GetStudentInfoByAdmin(studentId string,
 	return student, reservations, nil
 }
 
-// 管理员更新学生档案编号
+// 管理员更新学生危机等级
 func (al *AdminLogic) UpdateStudentCrisisLevelByAdmin(studentId string, crisisLevel string,
-	keyCase []int, medicalDiagnosis []int, userId string, userType models.UserType) (*models.Student, error) {
-	if len(userId) == 0 {
+	userId string, userType models.UserType) (*models.Student, error) {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != models.ADMIN {
 		return nil, errors.New("权限不足")
-	} else if len(studentId) == 0 {
+	} else if studentId == "" {
 		return nil, errors.New("学生未注册")
-	} else if len(crisisLevel) == 0 {
+	} else if crisisLevel == "" {
 		return nil, errors.New("危机等级为空")
-	} else if len(keyCase) != len(models.KEY_CASE) {
-		return nil, errors.New("重点个案为空")
-	} else if len(medicalDiagnosis) != len(models.MEDICAL_DIAGNOSIS) {
-		return nil, errors.New("医疗诊断为空")
 	}
 	crisisLevelInt, err := strconv.Atoi(crisisLevel)
 	if err != nil || crisisLevelInt < 0 {
@@ -461,8 +468,6 @@ func (al *AdminLogic) UpdateStudentCrisisLevelByAdmin(studentId string, crisisLe
 		return nil, errors.New("学生未注册")
 	}
 	student.CrisisLevel = crisisLevelInt
-	student.KeyCase = keyCase
-	student.MedicalDiagnosis = medicalDiagnosis
 	if err := models.UpsertStudent(student); err != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -861,8 +866,8 @@ func (al *AdminLogic) ExportReportMonthlyByAdmin(monthlyDate string, userId stri
 	if err = workflow.ExportReportForm(reservations, reportFilename); err != nil {
 		return "", "", err
 	}
-	if err = workflow.ExportKeyCaseReport(reservations, keyCaseFilename); err != nil {
-		return "", "", err
-	}
+	//if err = workflow.ExportKeyCaseReport(reservations, keyCaseFilename); err != nil {
+	//	return "", "", err
+	//}
 	return "/" + utils.ExportFolder + reportFilename, "/" + utils.ExportFolder + keyCaseFilename, nil
 }

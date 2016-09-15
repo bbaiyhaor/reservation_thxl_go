@@ -52,7 +52,7 @@ type StudentFeedback struct {
 }
 
 func (sf StudentFeedback) IsEmpty() bool {
-	return sf.Scores == nil || len(sf.Scores) == 0
+	return len(sf.Scores) == 0
 }
 
 func (sf StudentFeedback) ToJson() map[string]interface{} {
@@ -66,34 +66,69 @@ func (sf StudentFeedback) ToJson() map[string]interface{} {
 }
 
 type TeacherFeedback struct {
-	Category     string `bson:"category"`
-	Participants []int  `bson:"participants"`
-	Problem      string `bson:"problem"`
-	Record       string `bson:"record"`
+	Category         string `bson:"category"`
+	Participants     []int  `bson:"participants"`
+	Problem          string `bson:"problem"`           // deprecated
+	Emphasis         int    `bson:"emphasis"`          // 重点选项
+	Severity         []int  `bson:"severity"`          // 严重程度
+	MedicalDiagnosis []int  `bson:"medical_diagnosis"` // 疑似或明确的医疗诊断
+	Crisis           []int  `bson:"crisis"`            // 危急情况
+	Record           string `bson:"record"`
 }
 
-var Reservation_Participants = [...]string{
-	"学生", "家长", "教师", "辅导员", "其他",
-}
+var (
+	PARTICIPANTS      = [...]string{"学生", "家长", "教师", "辅导员", "其他"}
+	SEVERITY          = [...]string{"缓考", "休学复学", "家属陪读", "家属不知情", "任何其他需要知会院系关注的原因"}
+	MEDICAL_DIAGNOSIS = [...]string{"服药", "精神分裂", "双相情感障碍", "焦虑症（状态）", "抑郁症（状态）",
+		"强迫症", "进食障碍", "失眠", "其他精神症状", "躯体疾病", "不遵医嘱"}
+	CRISIS = [...]string{"自伤", "伤害他人", "自杀念头", "自杀未遂"}
+)
 
 func (tf TeacherFeedback) IsEmpty() bool {
-	return len(tf.Category) == 0 || tf.Participants == nil || len(tf.Participants) != len(Reservation_Participants) ||
-		len(tf.Problem) == 0 || len(tf.Record) == 0
+	return tf.Category == "" || len(tf.Participants) == 0 || len(tf.Severity) == 0 ||
+		len(tf.MedicalDiagnosis) == 0 || len(tf.Crisis) == 0 || tf.Record == ""
 }
 
 func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	var json = make(map[string]interface{})
 	json["category"] = FeedbackAllCategory[tf.Category]
 	participants := ""
-	if len(tf.Participants) == len(Reservation_Participants) {
+	if len(tf.Participants) == len(PARTICIPANTS) {
 		for i := 0; i < len(tf.Participants); i++ {
 			if tf.Participants[i] > 0 {
-				participants += Reservation_Participants[i] + " "
+				participants += PARTICIPANTS[i] + " "
 			}
 		}
 	}
 	json["participants"] = participants
-	json["problem"] = tf.Problem
+	json["emphasis"] = strconv.Itoa(tf.Emphasis)
+	severity := ""
+	if len(tf.Severity) == len(SEVERITY) {
+		for i := 0; i < len(tf.Severity); i++ {
+			if tf.Severity[i] > 0 {
+				severity += SEVERITY[i] + " "
+			}
+		}
+	}
+	json["severity"] = severity
+	medicalDiagnosis := ""
+	if len(tf.MedicalDiagnosis) == len(MEDICAL_DIAGNOSIS) {
+		for i := 0; i < len(tf.MedicalDiagnosis); i++ {
+			if tf.MedicalDiagnosis[i] > 0 {
+				medicalDiagnosis += MEDICAL_DIAGNOSIS[i] + " "
+			}
+		}
+	}
+	json["medical_diagnosis"] = medicalDiagnosis
+	crisis := ""
+	if len(tf.Crisis) == len(CRISIS) {
+		for i := 0; i < len(tf.Crisis); i++ {
+			if tf.Crisis[i] > 0 {
+				crisis += CRISIS[i] + " "
+			}
+		}
+	}
+	json["crisis"] = crisis
 	json["record"] = tf.Record
 	return json
 }
@@ -249,15 +284,21 @@ var FeedbackAllCategory = map[string]string{
 	"G2": "G2 精神障碍发作期干预",
 	"G3": "G3 精神障碍康复期干预",
 	"G4": "G4 创伤后干预",
-	"H1": "H1 人格测验与反馈",
-	"H2": "H2 情绪测验与反馈",
-	"H3": "H3 学业测验与反馈",
-	"H4": "H4 职业测验与反馈",
-	"I1": "I1 躯体疾病转介",
-	"I2": "I2 严重心理问题转介",
-	"I3": "I3 转介至学习发展中心",
-	"I4": "I4 转介至就业指导中心",
-	"I5": "I5 反映学生情况",
+	"H1": "H1 会商（与辅导员）",
+	"H2": "H2 会商（与教师）",
+	"H3": "H3 会商（与家属）",
+	"H4": "H4 会商（与学生）",
+	"H5": "H5 会商（与咨询师）",
+	"H6": "H6 会商（联席会议）",
+	"I1": "I1 人格测验与反馈",
+	"I2": "I2 情绪测验与反馈",
+	"I3": "I3 学业测验与反馈",
+	"I4": "I4 职业测验与反馈",
+	"I5": "I5 新生回访适应正常",
+	"J1": "J1 躯体疾病转介",
+	"J2": "J2 严重心理问题/精神疾病转介",
+	"J3": "J3 转介至学习发展中心",
+	"J4": "J4 转介至就业指导中心",
 	"Y1": "Y1 学习压力团体",
 	"Y2": "Y2 人际关系团体",
 	"Y3": "Y3 恋爱情感团体",

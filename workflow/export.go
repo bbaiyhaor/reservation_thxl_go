@@ -58,11 +58,44 @@ func ExportStudentInfo(student *models.Student, filename string) error {
 				participants := []string{"出席人员"}
 				for j := 0; j < len(r.TeacherFeedback.Participants); j++ {
 					if r.TeacherFeedback.Participants[j] > 0 {
-						participants = append(participants, models.Reservation_Participants[j])
+						participants = append(participants, models.PARTICIPANTS[j])
 					}
 				}
 				data = append(data, participants)
-				data = append(data, []string{"问题评估", r.TeacherFeedback.Problem})
+
+				if r.TeacherFeedback.Emphasis > 0 {
+					data = append(data, []string{"重点明细", "是"})
+				} else {
+					data = append(data, []string{"重点明细", "否"})
+				}
+				severity := []string{"严重程度"}
+				if len(r.TeacherFeedback.Severity) == len(models.SEVERITY) {
+					for i := 0; i < len(r.TeacherFeedback.Severity); i++ {
+						if r.TeacherFeedback.Severity[i] > 0 {
+							severity = append(severity, models.SEVERITY[i])
+						}
+					}
+				}
+				data = append(data, severity)
+				medicalDiagnosis := []string{"疑似或明确的医疗诊断"}
+				if len(r.TeacherFeedback.MedicalDiagnosis) == len(models.MEDICAL_DIAGNOSIS) {
+					for i := 0; i < len(r.TeacherFeedback.MedicalDiagnosis); i++ {
+						if r.TeacherFeedback.MedicalDiagnosis[i] > 0 {
+							medicalDiagnosis = append(medicalDiagnosis, models.MEDICAL_DIAGNOSIS[i])
+						}
+					}
+				}
+				data = append(data, medicalDiagnosis)
+				crisis := []string{"危急情况"}
+				if len(r.TeacherFeedback.Crisis) == len(models.CRISIS) {
+					for i := 0; i < len(r.TeacherFeedback.Crisis); i++ {
+						if r.TeacherFeedback.Crisis[i] > 0 {
+							crisis = append(crisis, models.CRISIS[i])
+						}
+					}
+				}
+				data = append(data, crisis)
+
 				data = append(data, []string{"咨询记录", r.TeacherFeedback.Record})
 			}
 			if !r.StudentFeedback.IsEmpty() {
@@ -131,7 +164,7 @@ func ExportReportForm(reservations []*models.Reservation, filename string) error
 		UnderGraduate: make(map[string]int),
 	}
 	for _, r := range reservations {
-		if r.TeacherFeedback.IsEmpty() || len(r.TeacherFeedback.Participants) != len(models.Reservation_Participants) {
+		if r.TeacherFeedback.IsEmpty() || len(r.TeacherFeedback.Participants) != len(models.PARTICIPANTS) {
 			continue
 		}
 		category := r.TeacherFeedback.Category
@@ -304,259 +337,259 @@ func ExportReportForm(reservations []*models.Reservation, filename string) error
 	return nil
 }
 
-func ExportKeyCaseReport(reservations []*models.Reservation, filename string) error {
-	students := make(map[string]*models.Student)
-	for _, r := range reservations {
-		if r.TeacherFeedback.IsEmpty() {
-			continue
-		}
-		student, err := models.GetStudentById(r.StudentId)
-		if err != nil || student == nil {
-			continue
-		}
-		if student.CrisisLevel > 0 {
-			students[student.Id.Hex()] = student
-		}
-	}
-	keyCase := make(map[int]*MonthlyReport)
-	for index, category := range models.KEY_CASE {
-		keyCase[index] = &MonthlyReport{
-			Category:      category,
-			UnderGraduate: make(map[string]int),
-		}
-	}
-	medicalDiagnosis := make(map[int]*MonthlyReport)
-	for index, category := range models.MEDICAL_DIAGNOSIS {
-		medicalDiagnosis[index] = &MonthlyReport{
-			Category:      category,
-			UnderGraduate: make(map[string]int),
-		}
-	}
-	amount := &MonthlyReport{
-		UnderGraduate: make(map[string]int),
-	}
-	for _, student := range students {
-		if student.CrisisLevel == 0 {
-			continue
-		}
-		switch string(student.Username[4]) {
-		case "0":
-			grade := student.Username[2:4] + "级"
-			for index, value := range student.KeyCase {
-				if value > 0 {
-					if _, exist := keyCase[index].UnderGraduate[grade]; !exist {
-						keyCase[index].UnderGraduate[grade] = 0
-					}
-					if _, exist := amount.UnderGraduate[grade]; !exist {
-						amount.UnderGraduate[grade] = 0
-					}
-					keyCase[index].UnderGraduate[grade]++
-					keyCase[index].Amount++
-					amount.UnderGraduate[grade]++
-					amount.Amount++
-				}
-			}
-			for index, value := range student.MedicalDiagnosis {
-				if value > 0 {
-					if _, exist := medicalDiagnosis[index].UnderGraduate[grade]; !exist {
-						medicalDiagnosis[index].UnderGraduate[grade] = 0
-					}
-					if _, exist := amount.UnderGraduate[grade]; !exist {
-						amount.UnderGraduate[grade] = 0
-					}
-					medicalDiagnosis[index].UnderGraduate[grade]++
-					medicalDiagnosis[index].Amount++
-					amount.UnderGraduate[grade]++
-					amount.Amount++
-				}
-			}
-		case "2":
-			for index, value := range student.KeyCase {
-				if value > 0 {
-					keyCase[index].Master++
-					keyCase[index].Amount++
-					amount.Master++
-					amount.Amount++
-				}
-			}
-			for index, value := range student.MedicalDiagnosis {
-				if value > 0 {
-					medicalDiagnosis[index].Master++
-					medicalDiagnosis[index].Amount++
-					amount.Master++
-					amount.Amount++
-				}
-			}
-		case "3":
-			for index, value := range student.KeyCase {
-				if value > 0 {
-					keyCase[index].Doctor++
-					keyCase[index].Amount++
-					amount.Doctor++
-					amount.Amount++
-				}
-			}
-			for index, value := range student.MedicalDiagnosis {
-				if value > 0 {
-					medicalDiagnosis[index].Doctor++
-					medicalDiagnosis[index].Amount++
-					amount.Doctor++
-					amount.Amount++
-				}
-			}
-		}
-		switch student.Gender {
-		case "男":
-			for index, value := range student.KeyCase {
-				if value > 0 {
-					keyCase[index].Male++
-					amount.Male++
-				}
-			}
-			for index, value := range student.MedicalDiagnosis {
-				if value > 0 {
-					medicalDiagnosis[index].Male++
-					amount.Male++
-				}
-			}
-		case "女":
-			for index, value := range student.KeyCase {
-				if value > 0 {
-					keyCase[index].Female++
-					amount.Female++
-				}
-			}
-			for index, value := range student.MedicalDiagnosis {
-				if value > 0 {
-					medicalDiagnosis[index].Female++
-					amount.Female++
-				}
-			}
-		}
-	}
-	grades := make([]string, 0)
-	for g, _ := range amount.UnderGraduate {
-		grades = append(grades, g)
-	}
-	sort.Sort(sort.Reverse(sort.StringSlice(grades)))
-
-	data := make([][]string, 0)
-	head := []string{""}
-	for _, g := range grades {
-		head = append(head, g)
-	}
-	head = append(head, "硕", "博", "合计（男）", "合计（女）", "男女合计", "辅助总计", "百分比")
-	data = append(data, head)
-	for index, category := range models.KEY_CASE {
-		line := []string{category}
-		for _, g := range grades {
-			if value, exist := keyCase[index].UnderGraduate[g]; exist && value > 0 {
-				line = append(line, strconv.Itoa(value))
-			} else {
-				line = append(line, "")
-			}
-		}
-		if keyCase[index].Master > 0 {
-			line = append(line, strconv.Itoa(keyCase[index].Master))
-		} else {
-			line = append(line, "")
-		}
-		if keyCase[index].Doctor > 0 {
-			line = append(line, strconv.Itoa(keyCase[index].Doctor))
-		} else {
-			line = append(line, "")
-		}
-		if keyCase[index].Male > 0 {
-			line = append(line, strconv.Itoa(keyCase[index].Male))
-		} else {
-			line = append(line, "")
-		}
-		if keyCase[index].Female > 0 {
-			line = append(line, strconv.Itoa(keyCase[index].Female))
-		} else {
-			line = append(line, "")
-		}
-		line = append(line, strconv.Itoa(keyCase[index].Male+keyCase[index].Female))
-		line = append(line, strconv.Itoa(keyCase[index].Amount))
-		line = append(line, fmt.Sprintf("%#.02f%%", float64(keyCase[index].Amount)/(float64(amount.Amount)/float64(100))))
-		data = append(data, line)
-	}
-	data = append(data, []string{""})
-	for index, category := range models.MEDICAL_DIAGNOSIS {
-		line := []string{category}
-		for _, g := range grades {
-			if value, exist := medicalDiagnosis[index].UnderGraduate[g]; exist && value > 0 {
-				line = append(line, strconv.Itoa(value))
-			} else {
-				line = append(line, "")
-			}
-		}
-		if medicalDiagnosis[index].Master > 0 {
-			line = append(line, strconv.Itoa(medicalDiagnosis[index].Master))
-		} else {
-			line = append(line, "")
-		}
-		if medicalDiagnosis[index].Doctor > 0 {
-			line = append(line, strconv.Itoa(medicalDiagnosis[index].Doctor))
-		} else {
-			line = append(line, "")
-		}
-		if medicalDiagnosis[index].Male > 0 {
-			line = append(line, strconv.Itoa(medicalDiagnosis[index].Male))
-		} else {
-			line = append(line, "")
-		}
-		if medicalDiagnosis[index].Female > 0 {
-			line = append(line, strconv.Itoa(medicalDiagnosis[index].Female))
-		} else {
-			line = append(line, "")
-		}
-		line = append(line, strconv.Itoa(medicalDiagnosis[index].Male+medicalDiagnosis[index].Female))
-		line = append(line, strconv.Itoa(medicalDiagnosis[index].Amount))
-		line = append(line, fmt.Sprintf("%#.02f%%", float64(medicalDiagnosis[index].Amount)/(float64(amount.Amount)/float64(100))))
-		data = append(data, line)
-	}
-	amountLine := []string{"总计（人）"}
-	percentLine := []string{"百分比"}
-	for _, g := range grades {
-		amountLine = append(amountLine, strconv.Itoa(amount.UnderGraduate[g]))
-		percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.UnderGraduate[g])/(float64(amount.Amount)/float64(100))))
-	}
-	amountLine = append(amountLine, strconv.Itoa(amount.Master))
-	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Master)/(float64(amount.Amount)/float64(100))))
-	amountLine = append(amountLine, strconv.Itoa(amount.Doctor))
-	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Doctor)/(float64(amount.Amount)/float64(100))))
-	amountLine = append(amountLine, strconv.Itoa(amount.Male))
-	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Male)/(float64(amount.Male+amount.Female)/float64(100))))
-	amountLine = append(amountLine, strconv.Itoa(amount.Female))
-	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Female)/(float64(amount.Male+amount.Female)/float64(100))))
-	amountLine = append(amountLine, strconv.Itoa(amount.Male+amount.Female))
-	percentLine = append(percentLine, "")
-	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Amount)/(float64(amount.Amount)/float64(100))))
-	amountLine = append(amountLine, strconv.Itoa(amount.Amount))
-	data = append(data, amountLine)
-	data = append(data, percentLine)
-
-	// 学生列表
-	data = append(data, []string{""})
-	data = append(data, []string{""})
-	data = append(data, []string{"姓名", "学号", "个案类型"})
-	for _, student := range students {
-		line := []string{student.Fullname, student.Username}
-		for index, value := range student.KeyCase {
-			if value > 0 {
-				line = append(line, models.KEY_CASE[index])
-			}
-		}
-		for index, value := range student.MedicalDiagnosis {
-			if value > 0 {
-				line = append(line, models.MEDICAL_DIAGNOSIS[index])
-			}
-		}
-		data = append(data, line)
-	}
-	if err := utils.WriteToCSV(data, filename); err != nil {
-		return err
-	}
-	return nil
-}
+//func ExportKeyCaseReport(reservations []*models.Reservation, filename string) error {
+//	students := make(map[string]*models.Student)
+//	for _, r := range reservations {
+//		if r.TeacherFeedback.IsEmpty() {
+//			continue
+//		}
+//		student, err := models.GetStudentById(r.StudentId)
+//		if err != nil || student == nil {
+//			continue
+//		}
+//		if student.CrisisLevel > 0 {
+//			students[student.Id.Hex()] = student
+//		}
+//	}
+//	keyCase := make(map[int]*MonthlyReport)
+//	for index, category := range models.KEY_CASE {
+//		keyCase[index] = &MonthlyReport{
+//			Category:      category,
+//			UnderGraduate: make(map[string]int),
+//		}
+//	}
+//	medicalDiagnosis := make(map[int]*MonthlyReport)
+//	for index, category := range models.MEDICAL_DIAGNOSIS {
+//		medicalDiagnosis[index] = &MonthlyReport{
+//			Category:      category,
+//			UnderGraduate: make(map[string]int),
+//		}
+//	}
+//	amount := &MonthlyReport{
+//		UnderGraduate: make(map[string]int),
+//	}
+//	for _, student := range students {
+//		if student.CrisisLevel == 0 {
+//			continue
+//		}
+//		switch string(student.Username[4]) {
+//		case "0":
+//			grade := student.Username[2:4] + "级"
+//			for index, value := range student.KeyCase {
+//				if value > 0 {
+//					if _, exist := keyCase[index].UnderGraduate[grade]; !exist {
+//						keyCase[index].UnderGraduate[grade] = 0
+//					}
+//					if _, exist := amount.UnderGraduate[grade]; !exist {
+//						amount.UnderGraduate[grade] = 0
+//					}
+//					keyCase[index].UnderGraduate[grade]++
+//					keyCase[index].Amount++
+//					amount.UnderGraduate[grade]++
+//					amount.Amount++
+//				}
+//			}
+//			for index, value := range student.MedicalDiagnosis {
+//				if value > 0 {
+//					if _, exist := medicalDiagnosis[index].UnderGraduate[grade]; !exist {
+//						medicalDiagnosis[index].UnderGraduate[grade] = 0
+//					}
+//					if _, exist := amount.UnderGraduate[grade]; !exist {
+//						amount.UnderGraduate[grade] = 0
+//					}
+//					medicalDiagnosis[index].UnderGraduate[grade]++
+//					medicalDiagnosis[index].Amount++
+//					amount.UnderGraduate[grade]++
+//					amount.Amount++
+//				}
+//			}
+//		case "2":
+//			for index, value := range student.KeyCase {
+//				if value > 0 {
+//					keyCase[index].Master++
+//					keyCase[index].Amount++
+//					amount.Master++
+//					amount.Amount++
+//				}
+//			}
+//			for index, value := range student.MedicalDiagnosis {
+//				if value > 0 {
+//					medicalDiagnosis[index].Master++
+//					medicalDiagnosis[index].Amount++
+//					amount.Master++
+//					amount.Amount++
+//				}
+//			}
+//		case "3":
+//			for index, value := range student.KeyCase {
+//				if value > 0 {
+//					keyCase[index].Doctor++
+//					keyCase[index].Amount++
+//					amount.Doctor++
+//					amount.Amount++
+//				}
+//			}
+//			for index, value := range student.MedicalDiagnosis {
+//				if value > 0 {
+//					medicalDiagnosis[index].Doctor++
+//					medicalDiagnosis[index].Amount++
+//					amount.Doctor++
+//					amount.Amount++
+//				}
+//			}
+//		}
+//		switch student.Gender {
+//		case "男":
+//			for index, value := range student.KeyCase {
+//				if value > 0 {
+//					keyCase[index].Male++
+//					amount.Male++
+//				}
+//			}
+//			for index, value := range student.MedicalDiagnosis {
+//				if value > 0 {
+//					medicalDiagnosis[index].Male++
+//					amount.Male++
+//				}
+//			}
+//		case "女":
+//			for index, value := range student.KeyCase {
+//				if value > 0 {
+//					keyCase[index].Female++
+//					amount.Female++
+//				}
+//			}
+//			for index, value := range student.MedicalDiagnosis {
+//				if value > 0 {
+//					medicalDiagnosis[index].Female++
+//					amount.Female++
+//				}
+//			}
+//		}
+//	}
+//	grades := make([]string, 0)
+//	for g, _ := range amount.UnderGraduate {
+//		grades = append(grades, g)
+//	}
+//	sort.Sort(sort.Reverse(sort.StringSlice(grades)))
+//
+//	data := make([][]string, 0)
+//	head := []string{""}
+//	for _, g := range grades {
+//		head = append(head, g)
+//	}
+//	head = append(head, "硕", "博", "合计（男）", "合计（女）", "男女合计", "辅助总计", "百分比")
+//	data = append(data, head)
+//	for index, category := range models.KEY_CASE {
+//		line := []string{category}
+//		for _, g := range grades {
+//			if value, exist := keyCase[index].UnderGraduate[g]; exist && value > 0 {
+//				line = append(line, strconv.Itoa(value))
+//			} else {
+//				line = append(line, "")
+//			}
+//		}
+//		if keyCase[index].Master > 0 {
+//			line = append(line, strconv.Itoa(keyCase[index].Master))
+//		} else {
+//			line = append(line, "")
+//		}
+//		if keyCase[index].Doctor > 0 {
+//			line = append(line, strconv.Itoa(keyCase[index].Doctor))
+//		} else {
+//			line = append(line, "")
+//		}
+//		if keyCase[index].Male > 0 {
+//			line = append(line, strconv.Itoa(keyCase[index].Male))
+//		} else {
+//			line = append(line, "")
+//		}
+//		if keyCase[index].Female > 0 {
+//			line = append(line, strconv.Itoa(keyCase[index].Female))
+//		} else {
+//			line = append(line, "")
+//		}
+//		line = append(line, strconv.Itoa(keyCase[index].Male+keyCase[index].Female))
+//		line = append(line, strconv.Itoa(keyCase[index].Amount))
+//		line = append(line, fmt.Sprintf("%#.02f%%", float64(keyCase[index].Amount)/(float64(amount.Amount)/float64(100))))
+//		data = append(data, line)
+//	}
+//	data = append(data, []string{""})
+//	for index, category := range models.MEDICAL_DIAGNOSIS {
+//		line := []string{category}
+//		for _, g := range grades {
+//			if value, exist := medicalDiagnosis[index].UnderGraduate[g]; exist && value > 0 {
+//				line = append(line, strconv.Itoa(value))
+//			} else {
+//				line = append(line, "")
+//			}
+//		}
+//		if medicalDiagnosis[index].Master > 0 {
+//			line = append(line, strconv.Itoa(medicalDiagnosis[index].Master))
+//		} else {
+//			line = append(line, "")
+//		}
+//		if medicalDiagnosis[index].Doctor > 0 {
+//			line = append(line, strconv.Itoa(medicalDiagnosis[index].Doctor))
+//		} else {
+//			line = append(line, "")
+//		}
+//		if medicalDiagnosis[index].Male > 0 {
+//			line = append(line, strconv.Itoa(medicalDiagnosis[index].Male))
+//		} else {
+//			line = append(line, "")
+//		}
+//		if medicalDiagnosis[index].Female > 0 {
+//			line = append(line, strconv.Itoa(medicalDiagnosis[index].Female))
+//		} else {
+//			line = append(line, "")
+//		}
+//		line = append(line, strconv.Itoa(medicalDiagnosis[index].Male+medicalDiagnosis[index].Female))
+//		line = append(line, strconv.Itoa(medicalDiagnosis[index].Amount))
+//		line = append(line, fmt.Sprintf("%#.02f%%", float64(medicalDiagnosis[index].Amount)/(float64(amount.Amount)/float64(100))))
+//		data = append(data, line)
+//	}
+//	amountLine := []string{"总计（人）"}
+//	percentLine := []string{"百分比"}
+//	for _, g := range grades {
+//		amountLine = append(amountLine, strconv.Itoa(amount.UnderGraduate[g]))
+//		percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.UnderGraduate[g])/(float64(amount.Amount)/float64(100))))
+//	}
+//	amountLine = append(amountLine, strconv.Itoa(amount.Master))
+//	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Master)/(float64(amount.Amount)/float64(100))))
+//	amountLine = append(amountLine, strconv.Itoa(amount.Doctor))
+//	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Doctor)/(float64(amount.Amount)/float64(100))))
+//	amountLine = append(amountLine, strconv.Itoa(amount.Male))
+//	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Male)/(float64(amount.Male+amount.Female)/float64(100))))
+//	amountLine = append(amountLine, strconv.Itoa(amount.Female))
+//	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Female)/(float64(amount.Male+amount.Female)/float64(100))))
+//	amountLine = append(amountLine, strconv.Itoa(amount.Male+amount.Female))
+//	percentLine = append(percentLine, "")
+//	percentLine = append(percentLine, fmt.Sprintf("%#.02f%%", float64(amount.Amount)/(float64(amount.Amount)/float64(100))))
+//	amountLine = append(amountLine, strconv.Itoa(amount.Amount))
+//	data = append(data, amountLine)
+//	data = append(data, percentLine)
+//
+//	// 学生列表
+//	data = append(data, []string{""})
+//	data = append(data, []string{""})
+//	data = append(data, []string{"姓名", "学号", "个案类型"})
+//	for _, student := range students {
+//		line := []string{student.Fullname, student.Username}
+//		for index, value := range student.KeyCase {
+//			if value > 0 {
+//				line = append(line, models.KEY_CASE[index])
+//			}
+//		}
+//		for index, value := range student.MedicalDiagnosis {
+//			if value > 0 {
+//				line = append(line, models.MEDICAL_DIAGNOSIS[index])
+//			}
+//		}
+//		data = append(data, line)
+//	}
+//	if err := utils.WriteToCSV(data, filename); err != nil {
+//		return err
+//	}
+//	return nil
+//}

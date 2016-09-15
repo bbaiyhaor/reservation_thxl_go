@@ -51,7 +51,7 @@ func UpsertStudent(student *Student) error {
 }
 
 func GetStudentById(studentId string) (*Student, error) {
-	if len(studentId) == 0 || !bson.IsObjectIdHex(studentId) {
+	if studentId == "" || !bson.IsObjectIdHex(studentId) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := Mongo.C("student")

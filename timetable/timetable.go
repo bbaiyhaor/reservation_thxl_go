@@ -28,7 +28,7 @@ func main() {
 	utils.MAIL_SMTP = *mailSmtp
 	utils.MAIL_USERNAME = *mailUsername
 	utils.MAIL_PASSWORD = *mailPassword
-	mailToList := strings.Split(mailTo, ",")
+	mailToList := strings.Split(*mailTo, ",")
 	log.Printf("loading config: %s %s %s %s %s %s", utils.APP_ENV, utils.SMS_UID, utils.SMS_KEY, utils.MAIL_SMTP, utils.MAIL_USERNAME, utils.MAIL_PASSWORD)
 	// 数据库连接
 	mongoDbDialInfo := mgo.DialInfo{

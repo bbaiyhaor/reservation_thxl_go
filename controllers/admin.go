@@ -243,11 +243,27 @@ func GetFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, u
 		return nil
 	}
 	feedback["category"] = reservation.TeacherFeedback.Category
-	feedback["participants"] = reservation.TeacherFeedback.Participants
+	if len(reservation.TeacherFeedback.Participants) != len(models.PARTICIPANTS) {
+		feedback["participants"] = make([]int, len(models.PARTICIPANTS))
+	} else {
+		feedback["participants"] = reservation.TeacherFeedback.Participants
+	}
 	feedback["emphasis"] = reservation.TeacherFeedback.Emphasis
-	feedback["severity"] = reservation.TeacherFeedback.Severity
-	feedback["medical_diagnosis"] = reservation.TeacherFeedback.MedicalDiagnosis
-	feedback["crisis"] = reservation.TeacherFeedback.Crisis
+	if len(reservation.TeacherFeedback.Severity) != len(models.SEVERITY) {
+		feedback["severity"] = make([]int, len(models.SEVERITY))
+	} else {
+		feedback["severity"] = reservation.TeacherFeedback.Severity
+	}
+	if len(reservation.TeacherFeedback.MedicalDiagnosis) != len(models.MEDICAL_DIAGNOSIS) {
+		feedback["medical_diagnosis"] = make([]int, len(models.MEDICAL_DIAGNOSIS))
+	} else {
+		feedback["medical_diagnosis"] = reservation.TeacherFeedback.MedicalDiagnosis
+	}
+	if len(reservation.TeacherFeedback.Crisis) != len(models.CRISIS) {
+		feedback["crisis"] = make([]int, len(models.CRISIS))
+	} else {
+		feedback["crisis"] = reservation.TeacherFeedback.Crisis
+	}
 	feedback["record"] = reservation.TeacherFeedback.Record
 	feedback["crisis_level"] = student.CrisisLevel
 	result["feedback"] = feedback

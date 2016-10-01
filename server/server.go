@@ -98,7 +98,7 @@ func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, models
 }
 
 func main() {
-	conf := flag.String("conf", "../config/thxl.conf", "conf file path")
+	conf := flag.String("conf", "../deploy/thxl.conf", "conf file path")
 	isSmock := flag.Bool("smock", true, "is smock server")
 	flag.Parse()
 	config.InitWithParams(*conf, *isSmock)

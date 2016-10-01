@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	conf := flag.String("conf", "../config/thxl.conf", "conf file path")
+	conf := flag.String("conf", "../deploy/thxl.conf", "conf file path")
 	isSmock := flag.Bool("smock", true, "is smock server")
 	mailTo := flag.String("mail-to", "shudiwsh2009@gmail.com", "mail to list")
 	flag.Parse()

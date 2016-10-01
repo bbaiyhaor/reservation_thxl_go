@@ -14,7 +14,7 @@ type ReservationLogic struct {
 
 // 学生查看前后一周内的所有咨询
 func (rl *ReservationLogic) GetReservationsByStudent(userId string, userType models.UserType) ([]*models.Reservation, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != models.STUDENT {
 		return nil, errors.New("请重新登录")
@@ -35,17 +35,20 @@ func (rl *ReservationLogic) GetReservationsByStudent(userId string, userType mod
 	for _, r := range reservations {
 		if r.Status == models.AVAILABLE && r.StartTime.Before(utils.GetNow()) {
 			continue
-		} else if strings.EqualFold(r.StudentId, student.Id.Hex()) {
+		} else if r.StudentId == student.Id.Hex() {
 			if !r.TeacherFeedback.IsEmpty() && r.TeacherFeedback.Participants[0] == 0 {
 				// 学生未参与的咨询不展示给学生（家长、老师或者辅导员参加）
 				continue
 			}
 			result = append(result, r)
-		} else if strings.EqualFold(r.TeacherId, student.BindedTeacherId) && r.Status == models.AVAILABLE {
-			result = append(result, r)
-		} else if len(student.BindedTeacherId) == 0 && r.Status == models.AVAILABLE {
+		} else if student.BindedTeacherId == "" || student.BindedTeacherId == r.TeacherId {
 			result = append(result, r)
 		}
+		//} else if r.TeacherId == student.BindedTeacherId && r.Status == models.AVAILABLE {
+		//	result = append(result, r)
+		//} else if student.BindedTeacherId == "" && r.Status == models.AVAILABLE {
+		//	result = append(result, r)
+		//}
 	}
 	timedReservations, err := models.GetTimedReservationsAll()
 	if err != nil {

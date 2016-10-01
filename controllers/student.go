@@ -61,7 +61,7 @@ func ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId st
 		}
 		if res.Status == models.AVAILABLE {
 			resJson["status"] = models.AVAILABLE.String()
-		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now().In(utils.Location)) {
+		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now().In(utils.Location)) && res.StudentId == student.Id.Hex() {
 			resJson["status"] = models.FEEDBACK.String()
 		} else {
 			resJson["status"] = models.RESERVATED.String()

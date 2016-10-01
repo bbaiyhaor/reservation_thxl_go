@@ -3,11 +3,11 @@ package utils
 import (
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 	"os"
 	"path/filepath"
-	"fmt"
 )
 
 const (

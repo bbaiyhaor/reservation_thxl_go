@@ -1,32 +1,34 @@
 package workflow
 
 import (
-	"fmt"
 	"github.com/scorredoira/email"
-	"github.com/shudiwsh2009/reservation_thxl_go/utils"
+	"github.com/shudiwsh2009/reservation_thxl_go/config"
+	"log"
+	"net/mail"
 	"net/smtp"
 	"strings"
 )
 
-var (
-	EMAIL_TO_SELF      = []string{"thxlfzzx@qq.com"}
-	EMAIL_TO_DEVELOPER = []string{"shudiwsh2009@gmail.com"}
-)
-
-func SendEmail(subject string, body string, attached []string, to []string) error {
-	if utils.APP_ENV != "ONLINE" || utils.MAIL_SMTP == "" || utils.MAIL_USERNAME == "" || utils.MAIL_PASSWORD == "" {
-		fmt.Printf("Send Email: \"%s\" to %s.\n", subject, strings.Join(to, ","))
+func SendEmail(m *email.Message) error {
+	if config.Instance().IsSmockServer() {
+		log.Printf("SMOCK Send Email: \"%s\" to %s.\n", m.Subject, strings.Join(config.Instance().EmailAddressDev, ","))
 		return nil
 	}
-	if len(to) == 0 {
+
+	auth := smtp.PlainAuth("", config.Instance().SMTPUser, config.Instance().SMTPPassword, config.Instance().SMTPHost)
+	if err := email.Send(config.Instance().SMTPHost, auth, m); err != nil {
+		log.Printf("Fail to send email %+v", m)
+		return err
+	}
+	return nil
+}
+
+func EmailWarn(subject string, body string) error {
+	if len(config.Instance().EmailAddressDev) == 0 {
 		return nil
 	}
 	m := email.NewMessage(subject, body)
-	m.From = utils.MAIL_USERNAME
-	m.To = to
-	for _, file := range attached {
-		m.Attach(file)
-	}
-	return email.Send(fmt.Sprintf("%s:25", utils.MAIL_SMTP),
-		smtp.PlainAuth("", utils.MAIL_USERNAME, utils.MAIL_PASSWORD, utils.MAIL_SMTP), m)
+	m.From = mail.Address{Name: "", Address: config.Instance().SMTPUser}
+	m.To = config.Instance().EmailAddressDev
+	return SendEmail(m)
 }

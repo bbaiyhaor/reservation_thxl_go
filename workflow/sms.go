@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"io/ioutil"
@@ -127,14 +128,14 @@ func sendSMS(mobile string, content string) error {
 	if m := utils.IsMobile(mobile); !m {
 		return errors.New("手机号格式不正确")
 	}
-	if utils.APP_ENV != "ONLINE" || utils.SMS_UID == "" || utils.SMS_KEY == "" {
-		log.Printf("STAGING Send SMS: \"%s\" to %s", content, mobile)
+	if config.Instance().IsSmockServer() {
+		log.Printf("SMOCK Send SMS: \"%s\" to %s", content, mobile)
 		return nil
 	}
 	requestUrl := "http://utf8.sms.webchinese.cn"
 	payload := url.Values{
-		"Uid":     {utils.SMS_UID},
-		"Key":     {utils.SMS_KEY},
+		"Uid":     {config.Instance().SMSUid},
+		"Key":     {config.Instance().SMSKey},
 		"smsMob":  {mobile},
 		"smsText": {content},
 	}
@@ -151,8 +152,7 @@ func sendSMS(mobile string, content string) error {
 	errCode := string(responseBody)
 	if errMsg, ok := SMS_ERROR_MSG[errCode]; ok {
 		log.Printf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg)
-		SendEmail("thxlfzzx报警：短信发送失败", fmt.Sprintf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg),
-			[]string{}, EMAIL_TO_DEVELOPER)
+		EmailWarn("thxlfzzx报警：短信发送失败", fmt.Sprintf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg))
 		return errors.New(fmt.Sprintf("短信发送失败：%s", errMsg))
 	}
 	log.Printf("Send SMS \"%s\" to %s: return %s", content, mobile, errCode)

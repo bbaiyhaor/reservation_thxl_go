@@ -4,4 +4,6 @@
 ~$*
 *.swp
 *~
-reservation_thxl_go
+server/server
+timetable/timetable
+reminder/reminder

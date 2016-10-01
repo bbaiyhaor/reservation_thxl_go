@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"github.com/gorilla/mux"
+	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"github.com/shudiwsh2009/reservation_thxl_go/controllers"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
@@ -97,50 +98,39 @@ func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, models
 }
 
 func main() {
-	appEnv := flag.String("app-env", "STAGING", "app environment")
-	smsUid := flag.String("sms-uid", "", "sms uid")
-	smsKey := flag.String("sms-key", "", "sms key")
-	mailSmtp := flag.String("mail-smtp", "", "mail smtp")
-	mailUsername := flag.String("mail-username", "", "mail username")
-	mailPassword := flag.String("mail-password", "", "mail password")
+	conf := flag.String("conf", "../config/thxl.conf", "conf file path")
+	isSmock := flag.Bool("smock", true, "is smock server")
 	flag.Parse()
-	utils.APP_ENV = *appEnv
-	utils.SMS_UID = *smsUid
-	utils.SMS_KEY = *smsKey
-	utils.MAIL_SMTP = *mailSmtp
-	utils.MAIL_USERNAME = *mailUsername
-	utils.MAIL_PASSWORD = *mailPassword
-	log.Printf("loading config: %s %s %s %s %s %s", utils.APP_ENV, utils.SMS_UID, utils.SMS_KEY, utils.MAIL_SMTP, utils.MAIL_USERNAME, utils.MAIL_PASSWORD)
+	config.InitWithParams(*conf, *isSmock)
+	log.Printf("config loaded: %+v\n", conf)
 	// 数据库连接
-	mongoDbDialInfo := mgo.DialInfo{
-		Addrs:    []string{"127.0.0.1:27017"},
-		Timeout:  60 * time.Second,
-		Database: "admin",
-		Username: "admin",
-		Password: "THXLFZZX",
-	}
 	var session *mgo.Session
 	var err error
-	if utils.APP_ENV == "ONLINE" {
-		session, err = mgo.DialWithInfo(&mongoDbDialInfo)
-	} else {
+	if config.Instance().IsSmockServer() {
 		session, err = mgo.Dial("127.0.0.1:27017")
+	} else {
+		mongoDbDialInfo := mgo.DialInfo{
+			Addrs:    []string{config.Instance().MongoHost},
+			Timeout:  60 * time.Second,
+			Database: config.Instance().MongoDatabase,
+			Username: config.Instance().MongoUser,
+			Password: config.Instance().MongoPassword,
+		}
+		session, err = mgo.DialWithInfo(&mongoDbDialInfo)
 	}
 	if err != nil {
-		log.Printf("连接数据库失败：%v", err)
-		return
+		log.Fatalf("连接数据库失败：%v", err)
 	}
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
 	models.Mongo = session.DB("reservation_thxl")
 	// 时区
 	if utils.Location, err = time.LoadLocation("Asia/Shanghai"); err != nil {
-		log.Printf("初始化时区失败：%v", err)
-		return
+		log.Fatalf("初始化时区失败：%v", err)
 	}
 	// 初始化档案
 	if err := workflow.ImportArchiveFromCSVFile(); err != nil {
-		log.Printf("初始化档案失败：%v", err)
+		log.Fatalf("初始化档案失败：%v", err)
 	}
 
 	// TODO: Remove the following test codes

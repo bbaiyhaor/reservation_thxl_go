@@ -22,7 +22,7 @@ func main() {
 	mailTo := flag.String("mail-to", "shudiwsh2009@gmail.com", "mail to list")
 	flag.Parse()
 	config.InitWithParams(*conf, *isSmock)
-	log.Printf("config loaded: %+v\n", conf)
+	log.Printf("config loaded: %+v", conf)
 	// 数据库连接
 	var session *mgo.Session
 	var err error

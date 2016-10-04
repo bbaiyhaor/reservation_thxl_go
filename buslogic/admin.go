@@ -39,11 +39,11 @@ func (al *AdminLogic) AddReservationByAdmin(startTime string, endTime string, te
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
-	start, err := time.ParseInLocation(utils.TIME_PATTERN, startTime, utils.Location)
+	start, err := time.ParseInLocation("2006-01-02 15:04", startTime, time.Local)
 	if err != nil {
 		return nil, errors.New("开始时间格式错误")
 	}
-	end, err := time.ParseInLocation(utils.TIME_PATTERN, endTime, utils.Location)
+	end, err := time.ParseInLocation("2006-01-02 15:04", endTime, time.Local)
 	if err != nil {
 		return nil, errors.New("结束时间格式错误")
 	}
@@ -109,17 +109,17 @@ func (al *AdminLogic) EditReservationByAdmin(reservationId string, sourceId stri
 	} else if reservation.Status == models.RESERVATED {
 		return nil, errors.New("不能编辑已被预约的咨询")
 	}
-	start, err := time.ParseInLocation(utils.TIME_PATTERN, startTime, utils.Location)
+	start, err := time.ParseInLocation("2006-01-02 15:04", startTime, time.Local)
 	if err != nil {
 		return nil, errors.New("开始时间格式错误")
 	}
-	end, err := time.ParseInLocation(utils.TIME_PATTERN, endTime, utils.Location)
+	end, err := time.ParseInLocation("2006-01-02 15:04", endTime, time.Local)
 	if err != nil {
 		return nil, errors.New("结束时间格式错误")
 	}
 	if start.After(end) {
 		return nil, errors.New("开始时间不能晚于结束时间")
-	} else if start.Before(utils.GetNow()) {
+	} else if start.Before(time.Now()) {
 		return nil, errors.New("不能编辑已过期咨询")
 	}
 	teacher, err := models.GetTeacherByUsername(teacherUsername)
@@ -173,8 +173,8 @@ func (al *AdminLogic) RemoveReservationsByAdmin(reservationIds []string, sourceI
 		} else if strings.EqualFold(reservationId, sourceIds[index]) {
 			// Source为TIMETABLE且未预约，rId=sourceId：加入exception
 			if timedReservation, err := models.GetTimedReservationById(sourceIds[index]); err == nil {
-				if time, err := time.ParseInLocation(utils.TIME_PATTERN, startTimes[index], utils.Location); err == nil {
-					date := time.Format(utils.DATE_PATTERN)
+				if time, err := time.ParseInLocation("2006-01-02 15:04", startTimes[index], time.Local); err == nil {
+					date := time.Format("2006-01-02")
 					timedReservation.Exceptions[date] = true
 					if models.UpsertTimedReservation(timedReservation) == nil {
 						removed++
@@ -207,7 +207,7 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 			// 1、Source为ADD，无SourceId：置为AVAILABLE
 			// 2、Source为TIMETABLE且已预约：置为DELETED并去除timed
 			if reservation, err := models.GetReservationById(reservationId); err == nil &&
-				reservation.Status == models.RESERVATED { // && reservation.StartTime.After(utils.GetNow()) {
+				reservation.Status == models.RESERVATED { // && reservation.StartTime.After(time.Now()) {
 				if reservation.Source != models.TIMETABLE {
 					// 1
 					isAdminSet := reservation.IsAdminSet
@@ -228,7 +228,7 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 					// 2
 					reservation.Status = models.DELETED
 					if timedReservation, err := models.GetTimedReservationById(sourceIds[index]); err == nil {
-						date := reservation.StartTime.In(utils.Location).Format(utils.DATE_PATTERN)
+						date := reservation.StartTime.Format("2006-01-02")
 						delete(timedReservation.Timed, date)
 						if models.UpsertReservation(reservation) == nil && models.UpsertTimedReservation(timedReservation) == nil {
 							removed++
@@ -263,7 +263,7 @@ func (al *AdminLogic) GetFeedbackByAdmin(reservationId string, sourceId string,
 	reservation, err := models.GetReservationById(reservationId)
 	if err != nil || reservation.Status == models.DELETED {
 		return nil, nil, errors.New("咨询已下架")
-	} else if reservation.StartTime.After(utils.GetNow()) {
+	} else if reservation.StartTime.After(time.Now()) {
 		return nil, nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == models.AVAILABLE {
 		return nil, nil, errors.New("咨询未被预约,不能反馈")
@@ -319,7 +319,7 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId strin
 	reservation, err := models.GetReservationById(reservationId)
 	if err != nil || reservation.Status == models.DELETED {
 		return nil, errors.New("咨询已下架")
-	} else if reservation.StartTime.After(utils.GetNow()) {
+	} else if reservation.StartTime.After(time.Now()) {
 		return nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == models.AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
@@ -402,7 +402,7 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 		reservation, err = models.GetReservationById(reservationId)
 		if err != nil || reservation.Status == models.DELETED {
 			return nil, errors.New("咨询已下架")
-			//		} else if reservation.StartTime.Before(utils.GetNow()) {
+			//		} else if reservation.StartTime.Before(time.Now()) {
 			//			// 允许指定过期咨询，作为补录（网页正常情况不显示过期咨询，要通过查询咨询的方式来补录）
 			//			return nil, errors.New("咨询已过期")
 		} else if reservation.Status != models.AVAILABLE {
@@ -414,16 +414,16 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 		if err != nil || timedReservation.Status == models.DELETED {
 			return nil, errors.New("咨询已下架")
 		}
-		start, err := time.ParseInLocation(utils.TIME_PATTERN, startTime, utils.Location)
+		start, err := time.ParseInLocation("2006-01-02 15:04", startTime, time.Local)
 		if err != nil {
 			return nil, errors.New("开始时间格式错误")
-			//		} else if start.Before(utils.GetNow()) {
+			//		} else if start.Before(time.Now()) {
 			//			// 允许指定过期咨询，作为补录（网页正常情况不显示过期咨询，要通过查询咨询的方式来补录）
 			//			return nil, errors.New("咨询已过期")
-		} else if !strings.EqualFold(start.Format(utils.CLOCK_PATTERN),
-			timedReservation.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN)) {
+		} else if !strings.EqualFold(start.Format("15:04"),
+			timedReservation.StartTime.Format("15:04")) {
 			return nil, errors.New("开始时间不匹配")
-		} else if timedReservation.Timed[start.Format(utils.DATE_PATTERN)] {
+		} else if timedReservation.Timed[start.Format("2006-01-02")] {
 			return nil, errors.New("咨询已被预约")
 		}
 		end := utils.ConcatTime(start, timedReservation.EndTime)
@@ -432,7 +432,7 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 		if err != nil {
 			return nil, errors.New("获取数据失败")
 		}
-		timedReservation.Timed[start.Format(utils.DATE_PATTERN)] = true
+		timedReservation.Timed[start.Format("2006-01-02")] = true
 		if models.UpsertTimedReservation(timedReservation) != nil {
 			return nil, errors.New("获取数据失败")
 		}
@@ -639,7 +639,7 @@ func (al *AdminLogic) ExportStudentByAdmin(studentId string, userId string, user
 		return "", errors.New("请先分配档案号")
 	}
 	filename := "student_" + student.ArchiveNumber + "_" + student.Username + "_" +
-		utils.GetNow().Format(utils.DATE_PATTERN) + utils.CsvSuffix
+		time.Now().Format("2006-01-02") + utils.CsvSuffix
 	if err = workflow.ExportStudentInfo(student, filename); err != nil {
 		return "", err
 	}
@@ -735,13 +735,13 @@ func (al *AdminLogic) ExportTodayReservationTimetableByAdmin(userId string, user
 	if err != nil || admin.UserType != models.ADMIN {
 		return "", errors.New("管理员账户出错,请联系技术支持")
 	}
-	today := utils.GetToday()
+	today := utils.BeginOfDay(time.Now())
 	tomorrow := today.AddDate(0, 0, 1)
 	reservations, err := models.GetReservationsBetweenTime(today, tomorrow)
 	if err != nil {
 		return "", errors.New("获取数据失败")
 	}
-	todayDate := today.Format(utils.DATE_PATTERN)
+	todayDate := today.Format("2006-01-02")
 	if timedReservations, err := models.GetTimedReservationsByWeekday(today.Weekday()); err == nil {
 		for _, tr := range timedReservations {
 			if !tr.Exceptions[todayDate] && !tr.Timed[todayDate] {
@@ -819,11 +819,11 @@ func (al *AdminLogic) GetTeacherWorkloadByAdmin(fromDate string, toDate string,
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
-	from, err := time.ParseInLocation(utils.DATE_PATTERN, fromDate, utils.Location)
+	from, err := time.ParseInLocation("2006-01-02", fromDate, time.Local)
 	if err != nil {
 		return nil, errors.New("开始日期格式错误")
 	}
-	to, err := time.ParseInLocation(utils.DATE_PATTERN, toDate, utils.Location)
+	to, err := time.ParseInLocation("2006-01-02", toDate, time.Local)
 	if err != nil {
 		return nil, errors.New("结束日期格式错误")
 	}
@@ -869,11 +869,11 @@ func (al *AdminLogic) ExportReportFormByAdmin(fromDate string, toDate string, us
 	if err != nil || admin.UserType != models.ADMIN {
 		return "", errors.New("管理员账户出错,请联系技术支持")
 	}
-	from, err := time.ParseInLocation(utils.DATE_PATTERN, fromDate, utils.Location)
+	from, err := time.ParseInLocation("2006-01-02", fromDate, time.Local)
 	if err != nil {
 		return "", errors.New("开始日期格式错误")
 	}
-	to, err := time.ParseInLocation(utils.DATE_PATTERN, toDate, utils.Location)
+	to, err := time.ParseInLocation("2006-01-02", toDate, time.Local)
 	if err != nil {
 		return "", errors.New("结束日期格式错误")
 	}
@@ -905,11 +905,11 @@ func (al *AdminLogic) ExportReportMonthlyByAdmin(monthlyDate string, userId stri
 	if err != nil || admin.UserType != models.ADMIN {
 		return "", "", errors.New("管理员账户出错,请联系技术支持")
 	}
-	date, err := time.ParseInLocation(utils.DATE_PATTERN, monthlyDate, utils.Location)
+	date, err := time.ParseInLocation("2006-01-02", monthlyDate, time.Local)
 	if err != nil {
 		return "", "", errors.New("开始日期格式错误")
 	}
-	from := time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, utils.Location)
+	from := time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, time.Local)
 	to := from.AddDate(0, 1, 0)
 	reservations, err := models.GetReservatedReservationsBetweenTime(from, to)
 	if err != nil {

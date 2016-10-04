@@ -3,7 +3,6 @@ package controllers
 import (
 	"github.com/shudiwsh2009/reservation_thxl_go/buslogic"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"net/http"
 	"strconv"
 	"time"
@@ -33,8 +32,8 @@ func ViewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId st
 	for _, res := range reservations {
 		resJson := make(map[string]interface{})
 		resJson["reservation_id"] = res.Id.Hex()
-		resJson["start_time"] = res.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
-		resJson["end_time"] = res.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		resJson["start_time"] = res.StartTime.Format("2006-01-02 15:04")
+		resJson["end_time"] = res.EndTime.Format("2006-01-02 15:04")
 		resJson["source"] = res.Source
 		resJson["source_id"] = res.SourceId
 		resJson["student_id"] = res.StudentId
@@ -48,7 +47,7 @@ func ViewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId st
 		}
 		if res.Status == models.AVAILABLE {
 			resJson["status"] = models.AVAILABLE.String()
-		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now().In(utils.Location)) {
+		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now()) {
 			resJson["status"] = models.FEEDBACK.String()
 		} else {
 			resJson["status"] = models.RESERVATED.String()
@@ -210,11 +209,11 @@ func GetStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId stri
 	var reservationJson = make([]interface{}, 0)
 	for _, res := range reservations {
 		resJson := make(map[string]interface{})
-		resJson["start_time"] = res.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
-		resJson["end_time"] = res.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		resJson["start_time"] = res.StartTime.Format("2006-01-02 15:04")
+		resJson["end_time"] = res.EndTime.Format("2006-01-02 15:04")
 		if res.Status == models.AVAILABLE {
 			resJson["status"] = models.AVAILABLE.String()
-		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now().In(utils.Location)) {
+		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now()) {
 			resJson["status"] = models.FEEDBACK.String()
 		} else {
 			resJson["status"] = models.RESERVATED.String()
@@ -295,11 +294,11 @@ func QueryStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId st
 	var reservationJson = make([]interface{}, 0)
 	for _, res := range reservations {
 		resJson := make(map[string]interface{})
-		resJson["start_time"] = res.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
-		resJson["end_time"] = res.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		resJson["start_time"] = res.StartTime.Format("2006-01-02 15:04")
+		resJson["end_time"] = res.EndTime.Format("2006-01-02 15:04")
 		if res.Status == models.AVAILABLE {
 			resJson["status"] = models.AVAILABLE.String()
-		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now().In(utils.Location)) {
+		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now()) {
 			resJson["status"] = models.FEEDBACK.String()
 		} else {
 			resJson["status"] = models.RESERVATED.String()

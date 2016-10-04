@@ -3,7 +3,6 @@ package controllers
 import (
 	"github.com/shudiwsh2009/reservation_thxl_go/buslogic"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"net/http"
 	"strconv"
 	"time"
@@ -52,8 +51,8 @@ func ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId st
 	for _, res := range reservations {
 		resJson := make(map[string]interface{})
 		resJson["reservation_id"] = res.Id.Hex()
-		resJson["start_time"] = res.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
-		resJson["end_time"] = res.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
+		resJson["start_time"] = res.StartTime.Format("2006-01-02 15:04")
+		resJson["end_time"] = res.EndTime.Format("2006-01-02 15:04")
 		resJson["source"] = res.Source.String()
 		resJson["source_id"] = res.SourceId
 		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
@@ -61,7 +60,7 @@ func ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId st
 		}
 		if res.Status == models.AVAILABLE {
 			resJson["status"] = models.AVAILABLE.String()
-		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now().In(utils.Location)) && res.StudentId == student.Id.Hex() {
+		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now()) && res.StudentId == student.Id.Hex() {
 			resJson["status"] = models.FEEDBACK.String()
 		} else {
 			resJson["status"] = models.RESERVATED.String()
@@ -112,8 +111,8 @@ func MakeReservationByStudent(w http.ResponseWriter, r *http.Request, userId str
 		ErrorHandler(w, r, err)
 		return nil
 	}
-	reservationJson["start_time"] = reservation.StartTime.In(utils.Location).Format(utils.TIME_PATTERN)
-	reservationJson["end_time"] = reservation.EndTime.In(utils.Location).Format(utils.TIME_PATTERN)
+	reservationJson["start_time"] = reservation.StartTime.Format("2006-01-02 15:04")
+	reservationJson["end_time"] = reservation.EndTime.Format("2006-01-02 15:04")
 	if teacher, err := ul.GetTeacherById(reservation.TeacherId); err == nil {
 		reservationJson["teacher_fullname"] = teacher.Fullname
 	}

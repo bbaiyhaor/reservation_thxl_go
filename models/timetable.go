@@ -23,8 +23,8 @@ type TimedReservation struct {
 func (tr TimedReservation) ToReservation(date time.Time) *Reservation {
 	return &Reservation{
 		Id:              tr.Id,
-		CreateTime:      utils.GetNow(),
-		UpdateTime:      utils.GetNow(),
+		CreateTime:      time.Now(),
+		UpdateTime:      time.Now(),
 		StartTime:       utils.ConcatTime(date, tr.StartTime),
 		EndTime:         utils.ConcatTime(date, tr.EndTime),
 		Status:          AVAILABLE,

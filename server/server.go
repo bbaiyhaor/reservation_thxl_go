@@ -7,7 +7,6 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"github.com/shudiwsh2009/reservation_thxl_go/controllers"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"github.com/shudiwsh2009/reservation_thxl_go/workflow"
 	"gopkg.in/mgo.v2"
 	"log"
@@ -124,10 +123,6 @@ func main() {
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
 	models.Mongo = session.DB("reservation_thxl")
-	// 时区
-	if utils.Location, err = time.LoadLocation("Asia/Shanghai"); err != nil {
-		log.Fatalf("初始化时区失败：%v", err)
-	}
 	// 初始化档案
 	if err := workflow.ImportArchiveFromCSVFile(); err != nil {
 		log.Fatalf("初始化档案失败：%v", err)

@@ -61,7 +61,7 @@ func (sl *StudentLogic) MakeReservationByStudent(reservationId string, sourceId 
 		return nil, errors.New("获取数据失败")
 	}
 	for _, r := range studentReservations {
-		if r.Status == models.RESERVATED && r.StartTime.After(utils.GetNow()) {
+		if r.Status == models.RESERVATED && r.StartTime.After(time.Now()) {
 			return nil, errors.New("你好！你已有一个咨询预约，请完成这次咨询后再预约下一次，或致电62782007取消已有预约。")
 		}
 	}
@@ -71,7 +71,7 @@ func (sl *StudentLogic) MakeReservationByStudent(reservationId string, sourceId 
 		reservation, err = models.GetReservationById(reservationId)
 		if err != nil || reservation.Status == models.DELETED {
 			return nil, errors.New("咨询已下架")
-		} else if reservation.StartTime.Before(utils.GetNow()) {
+		} else if reservation.StartTime.Before(time.Now()) {
 			return nil, errors.New("咨询已过期")
 		} else if reservation.Status != models.AVAILABLE {
 			return nil, errors.New("咨询已被预约")
@@ -84,15 +84,15 @@ func (sl *StudentLogic) MakeReservationByStudent(reservationId string, sourceId 
 		if err != nil || timedReservation.Status == models.DELETED {
 			return nil, errors.New("咨询已下架")
 		}
-		start, err := time.ParseInLocation(utils.TIME_PATTERN, startTime, utils.Location)
+		start, err := time.ParseInLocation("2006-01-02 15:04", startTime, time.Local)
 		if err != nil {
 			return nil, errors.New("开始时间格式错误")
-		} else if start.Before(utils.GetNow()) {
+		} else if start.Before(time.Now()) {
 			return nil, errors.New("咨询已过期")
-		} else if !strings.EqualFold(start.Format(utils.CLOCK_PATTERN),
-			timedReservation.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN)) {
+		} else if !strings.EqualFold(start.Format("15:04"),
+			timedReservation.StartTime.Format("15:04")) {
 			return nil, errors.New("开始时间不匹配")
-		} else if timedReservation.Timed[start.Format(utils.DATE_PATTERN)] {
+		} else if timedReservation.Timed[start.Format("2006-01-02")] {
 			return nil, errors.New("咨询已被预约")
 		} else if len(student.BindedTeacherId) != 0 && !strings.EqualFold(student.BindedTeacherId, timedReservation.TeacherId) {
 			return nil, errors.New("只能预约匹配咨询师")
@@ -102,7 +102,7 @@ func (sl *StudentLogic) MakeReservationByStudent(reservationId string, sourceId 
 		if err != nil {
 			return nil, errors.New("获取数据失败")
 		}
-		timedReservation.Timed[start.Format(utils.DATE_PATTERN)] = true
+		timedReservation.Timed[start.Format("2006-01-02")] = true
 		if models.UpsertTimedReservation(timedReservation) != nil {
 			return nil, errors.New("获取数据失败")
 		}
@@ -167,7 +167,7 @@ func (sl *StudentLogic) GetFeedbackByStudent(reservationId string, sourceId stri
 	reservation, err := models.GetReservationById(reservationId)
 	if err != nil || reservation.Status == models.DELETED {
 		return nil, errors.New("咨询已下架")
-	} else if reservation.StartTime.After(utils.GetNow()) {
+	} else if reservation.StartTime.After(time.Now()) {
 		return nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == models.AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
@@ -200,7 +200,7 @@ func (sl *StudentLogic) SubmitFeedbackByStudent(reservationId string, sourceId s
 	reservation, err := models.GetReservationById(reservationId)
 	if err != nil || reservation.Status == models.DELETED {
 		return nil, errors.New("咨询已下架")
-	} else if reservation.StartTime.After(utils.GetNow()) {
+	} else if reservation.StartTime.After(time.Now()) {
 		return nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == models.AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")

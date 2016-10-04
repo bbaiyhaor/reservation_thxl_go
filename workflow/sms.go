@@ -40,8 +40,8 @@ var (
 )
 
 func SendSuccessSMS(reservation *models.Reservation) error {
-	startTime := reservation.StartTime.In(utils.Location)
-	endTime := reservation.EndTime.In(utils.Location)
+	startTime := reservation.StartTime
+	endTime := reservation.EndTime
 	student, err := models.GetStudentById(reservation.StudentId)
 	if err != nil {
 		return errors.New("学生未注册")
@@ -65,8 +65,8 @@ func SendSuccessSMS(reservation *models.Reservation) error {
 }
 
 func SendCancelSMS(reservation *models.Reservation) error {
-	startTime := reservation.StartTime.In(utils.Location)
-	endTime := reservation.EndTime.In(utils.Location)
+	startTime := reservation.StartTime
+	endTime := reservation.EndTime
 	student, err := models.GetStudentById(reservation.StudentId)
 	if err != nil {
 		return errors.New("学生未注册")
@@ -90,8 +90,8 @@ func SendCancelSMS(reservation *models.Reservation) error {
 }
 
 func SendReminderSMS(reservation *models.Reservation) error {
-	startTime := reservation.StartTime.In(utils.Location)
-	endTime := reservation.EndTime.In(utils.Location)
+	startTime := reservation.StartTime
+	endTime := reservation.EndTime
 	student, err := models.GetStudentById(reservation.StudentId)
 	if err != nil {
 		return errors.New("学生未注册")

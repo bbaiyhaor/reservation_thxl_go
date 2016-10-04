@@ -44,20 +44,15 @@ func main() {
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
 	models.Mongo = session.DB("reservation_thxl")
-	// 时区
-	if utils.Location, err = time.LoadLocation("Asia/Shanghai"); err != nil {
-		log.Printf("初始化时区失败：%v", err)
-		return
-	}
 	// timetable
-	today := utils.GetToday()
+	today := utils.BeginOfDay(time.Now())
 	tomorrow := today.AddDate(0, 0, 1)
 	reservations, err := models.GetReservationsBetweenTime(today, tomorrow)
 	if err != nil {
 		log.Printf("%v", err)
 		return
 	}
-	todayDate := today.Format(utils.DATE_PATTERN)
+	todayDate := today.Format("2006-01-02")
 	if timedReservations, err := models.GetTimedReservationsByWeekday(today.Weekday()); err == nil {
 		for _, tr := range timedReservations {
 			if !tr.Exceptions[todayDate] && !tr.Timed[todayDate] {

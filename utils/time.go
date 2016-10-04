@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -15,31 +14,19 @@ var Weekdays = [...]string{
 	"六",
 }
 
-const (
-	TIME_PATTERN  = "2006-01-02 15:04"
-	DATE_PATTERN  = "2006-01-02"
-	CLOCK_PATTERN = "15:04"
-)
-
-var (
-	Location *time.Location
-)
-
 func ConcatTime(date time.Time, clock time.Time) time.Time {
-	return time.Date(date.In(Location).Year(), date.In(Location).Month(), date.In(Location).Day(),
-		clock.In(Location).Hour(), clock.In(Location).Minute(), clock.In(Location).Second(),
-		clock.In(Location).Nanosecond(), Location)
+	return time.Date(date.Year(), date.Month(), date.Day(), clock.Hour(), clock.Minute(),
+		clock.Second(), clock.Nanosecond(), time.Local)
 }
 
-func GetToday() time.Time {
-	now := time.Now().In(Location)
-	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, Location)
+func BeginOfDay(tm time.Time) time.Time {
+	return time.Date(tm.Year(), tm.Month(), tm.Day(), 0, 0, 0, 0, tm.Location())
 }
 
-func GetNow() time.Time {
-	return time.Now().In(Location)
+func BeginOfYesterday(tm time.Time) time.Time {
+	return BeginOfDay(tm.Add(-24 * time.Hour))
 }
 
-func ParseClock(clock string) (time.Time, error) {
-	return time.ParseInLocation(TIME_PATTERN, fmt.Sprintf("%s %s", DATE_PATTERN, clock), Location)
+func BeginOfTomorrow(tm time.Time) time.Time {
+	return BeginOfDay(tm.Add(24 * time.Hour))
 }

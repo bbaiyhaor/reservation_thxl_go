@@ -6,6 +6,7 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"sort"
 	"strconv"
+	"time"
 )
 
 func ExportStudentInfo(student *models.Student, filename string) error {
@@ -52,7 +53,7 @@ func ExportStudentInfo(student *models.Student, filename string) error {
 			}
 			data = append(data, []string{"咨询小结" + strconv.Itoa(i+1)})
 			data = append(data, []string{"咨询师", teacher.Username, teacher.Fullname})
-			data = append(data, []string{"咨询日期", r.StartTime.In(utils.Location).Format(utils.DATE_PATTERN)})
+			data = append(data, []string{"咨询日期", r.StartTime.Format("2006-01-02")})
 			if !r.TeacherFeedback.IsEmpty() {
 				data = append(data, []string{"评估分类", models.FeedbackAllCategory[r.TeacherFeedback.Category]})
 				participants := []string{"出席人员"}
@@ -116,8 +117,8 @@ func ExportStudentInfo(student *models.Student, filename string) error {
 
 func ExportTodayReservationTimetable(reservations []*models.Reservation, filename string) error {
 	data := make([][]string, 0)
-	today := utils.GetToday()
-	data = append(data, []string{today.Format(utils.DATE_PATTERN)})
+	today := utils.BeginOfDay(time.Now())
+	data = append(data, []string{today.Format("2006-01-02")})
 	data = append(data, []string{"时间", "咨询师", "学生姓名", "联系方式"})
 	for _, r := range reservations {
 		teacher, err := models.GetTeacherById(r.TeacherId)
@@ -125,10 +126,10 @@ func ExportTodayReservationTimetable(reservations []*models.Reservation, filenam
 			continue
 		}
 		if student, err := models.GetStudentById(r.StudentId); err == nil {
-			data = append(data, []string{r.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN) + " - " + r.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN),
+			data = append(data, []string{r.StartTime.Format("15:04") + " - " + r.EndTime.Format("15:04"),
 				teacher.Fullname, student.Fullname, student.Mobile})
 		} else {
-			data = append(data, []string{r.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN) + " - " + r.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN),
+			data = append(data, []string{r.StartTime.Format("15:04") + " - " + r.EndTime.Format("15:04"),
 				teacher.Fullname, "", ""})
 		}
 	}

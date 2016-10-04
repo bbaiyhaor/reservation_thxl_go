@@ -3,10 +3,10 @@ package buslogic
 import (
 	"errors"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"github.com/shudiwsh2009/reservation_thxl_go/workflow"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type TeacherLogic struct {
@@ -33,7 +33,7 @@ func (tl *TeacherLogic) GetFeedbackByTeacher(reservationId string, sourceId stri
 	reservation, err := models.GetReservationById(reservationId)
 	if err != nil || reservation.Status == models.DELETED {
 		return nil, nil, errors.New("咨询已下架")
-	} else if reservation.StartTime.After(utils.GetNow()) {
+	} else if reservation.StartTime.After(time.Now()) {
 		return nil, nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == models.AVAILABLE {
 		return nil, nil, errors.New("咨询未被预约,不能反馈")
@@ -93,7 +93,7 @@ func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId s
 	reservation, err := models.GetReservationById(reservationId)
 	if err != nil || reservation.Status == models.DELETED {
 		return nil, errors.New("咨询已下架")
-	} else if reservation.StartTime.After(utils.GetNow()) {
+	} else if reservation.StartTime.After(time.Now()) {
 		return nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == models.AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")

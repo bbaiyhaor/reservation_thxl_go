@@ -25,15 +25,15 @@ func (rl *ReservationLogic) GetReservationsByStudent(userId string, userType mod
 	} else if student.UserType != models.STUDENT {
 		return nil, errors.New("请重新登录")
 	}
-	from := utils.GetNow().AddDate(0, 0, -7)
-	to := utils.GetNow().AddDate(0, 0, 7)
+	from := time.Now().AddDate(0, 0, -7)
+	to := time.Now().AddDate(0, 0, 7)
 	reservations, err := models.GetReservationsBetweenTime(from, to)
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
 	var result []*models.Reservation
 	for _, r := range reservations {
-		if r.Status == models.AVAILABLE && r.StartTime.Before(utils.GetNow()) {
+		if r.Status == models.AVAILABLE && r.StartTime.Before(time.Now()) {
 			continue
 		} else if r.StudentId == student.Id.Hex() {
 			if !r.TeacherFeedback.IsEmpty() && r.TeacherFeedback.Participants[0] == 0 {
@@ -54,7 +54,7 @@ func (rl *ReservationLogic) GetReservationsByStudent(userId string, userType mod
 	if err != nil {
 		return result, nil
 	}
-	today := utils.GetToday()
+	today := utils.BeginOfDay(time.Now())
 	for _, tr := range timedReservations {
 		if tr.Status != models.AVAILABLE {
 			continue
@@ -67,10 +67,10 @@ func (rl *ReservationLogic) GetReservationsByStudent(userId string, userType mod
 			minusWeekday += 7
 		}
 		date := today.AddDate(0, 0, minusWeekday)
-		if utils.ConcatTime(date, tr.StartTime).Before(utils.GetNow()) {
+		if utils.ConcatTime(date, tr.StartTime).Before(time.Now()) {
 			date = today.AddDate(0, 0, 7)
 		}
-		if !tr.Exceptions[date.Format(utils.DATE_PATTERN)] && !tr.Timed[date.Format(utils.DATE_PATTERN)] {
+		if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
 			result = append(result, tr.ToReservation(date))
 		}
 	}
@@ -91,21 +91,21 @@ func (rl *ReservationLogic) GetReservationsByTeacher(userId string, userType mod
 	} else if teacher.UserType != models.TEACHER {
 		return nil, errors.New("权限不足")
 	}
-	from := utils.GetNow().AddDate(0, 0, -7)
+	from := time.Now().AddDate(0, 0, -7)
 	reservations, err := models.GetReservationsAfterTime(from)
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
 	var result []*models.Reservation
 	for _, r := range reservations {
-		if r.Status == models.AVAILABLE && r.StartTime.Before(utils.GetNow()) {
+		if r.Status == models.AVAILABLE && r.StartTime.Before(time.Now()) {
 			continue
 		} else if strings.EqualFold(r.TeacherId, teacher.Id.Hex()) {
 			result = append(result, r)
 		}
 	}
 	if timedReservations, err := models.GetTimedReservationsByTeacherId(teacher.Id.Hex()); err == nil {
-		today := utils.GetToday()
+		today := utils.BeginOfDay(time.Now())
 		for _, tr := range timedReservations {
 			if tr.Status != models.AVAILABLE {
 				continue
@@ -115,16 +115,16 @@ func (rl *ReservationLogic) GetReservationsByTeacher(userId string, userType mod
 				minusWeekday += 7
 			}
 			date := today.AddDate(0, 0, minusWeekday)
-			if utils.ConcatTime(date, tr.StartTime).Before(utils.GetNow()) {
+			if utils.ConcatTime(date, tr.StartTime).Before(time.Now()) {
 				date = today.AddDate(0, 0, 7)
 			}
-			if !tr.Exceptions[date.Format(utils.DATE_PATTERN)] && !tr.Timed[date.Format(utils.DATE_PATTERN)] {
+			if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
 				result = append(result, tr.ToReservation(date))
 			}
 			for i := 1; i <= 3; i++ {
 				// 改变i的上阈值可以改变预设咨询的查看范围
 				date = date.AddDate(0, 0, 7)
-				if !tr.Exceptions[date.Format(utils.DATE_PATTERN)] && !tr.Timed[date.Format(utils.DATE_PATTERN)] {
+				if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
 					result = append(result, tr.ToReservation(date))
 				}
 			}
@@ -145,20 +145,20 @@ func (rl *ReservationLogic) GetReservationsByAdmin(userId string, userType model
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
-	from := utils.GetNow().AddDate(0, 0, -7)
+	from := time.Now().AddDate(0, 0, -7)
 	reservations, err := models.GetReservationsAfterTime(from)
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
 	var result []*models.Reservation
 	for _, r := range reservations {
-		if r.Status == models.AVAILABLE && r.StartTime.Before(utils.GetNow()) {
+		if r.Status == models.AVAILABLE && r.StartTime.Before(time.Now()) {
 			continue
 		}
 		result = append(result, r)
 	}
 	if timedReservations, err := models.GetTimedReservationsAll(); err == nil {
-		today := utils.GetToday()
+		today := utils.BeginOfDay(time.Now())
 		for _, tr := range timedReservations {
 			if tr.Status != models.AVAILABLE {
 				continue
@@ -168,16 +168,16 @@ func (rl *ReservationLogic) GetReservationsByAdmin(userId string, userType model
 				minusWeekday += 7
 			}
 			date := today.AddDate(0, 0, minusWeekday)
-			if utils.ConcatTime(date, tr.StartTime).Before(utils.GetNow()) {
+			if utils.ConcatTime(date, tr.StartTime).Before(time.Now()) {
 				date = today.AddDate(0, 0, 7)
 			}
-			if !tr.Exceptions[date.Format(utils.DATE_PATTERN)] && !tr.Timed[date.Format(utils.DATE_PATTERN)] {
+			if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
 				result = append(result, tr.ToReservation(date))
 			}
 			for i := 1; i <= 3; i++ {
 				// 改变i的上阈值可以改变预设咨询的查看范围
 				date = date.AddDate(0, 0, 7)
-				if !tr.Exceptions[date.Format(utils.DATE_PATTERN)] && !tr.Timed[date.Format(utils.DATE_PATTERN)] {
+				if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
 					result = append(result, tr.ToReservation(date))
 				}
 			}
@@ -198,7 +198,7 @@ func (rl *ReservationLogic) GetReservationsDailyByAdmin(fromDate string, userId 
 	if err != nil || admin.UserType != models.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
-	from, err := time.ParseInLocation(utils.DATE_PATTERN, fromDate, utils.Location)
+	from, err := time.ParseInLocation("2006-01-02", fromDate, time.Local)
 	if err != nil {
 		return nil, errors.New("时间格式错误")
 	}

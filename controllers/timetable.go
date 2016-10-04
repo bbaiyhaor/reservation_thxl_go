@@ -3,7 +3,6 @@ package controllers
 import (
 	"github.com/shudiwsh2009/reservation_thxl_go/buslogic"
 	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"net/http"
 	"strings"
 )
@@ -25,8 +24,8 @@ func ViewTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId
 			trJson := make(map[string]interface{})
 			trJson["timed_reservation_id"] = tr.Id.Hex()
 			trJson["weekday"] = tr.Weekday
-			trJson["start_clock"] = tr.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
-			trJson["end_clock"] = tr.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
+			trJson["start_clock"] = tr.StartTime.Format("15:04")
+			trJson["end_clock"] = tr.EndTime.Format("15:04")
 			trJson["status"] = tr.Status.String()
 			trJson["teacher_id"] = tr.TeacherId
 			if teacher, err := ul.GetTeacherById(tr.TeacherId); err == nil {
@@ -65,8 +64,8 @@ func AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId s
 	}
 	timedReservationJson["timed_reservation_id"] = timedReservation.Id.Hex()
 	timedReservationJson["weekday"] = timedReservation.Weekday
-	timedReservationJson["start_clock"] = timedReservation.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
-	timedReservationJson["end_clock"] = timedReservation.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
+	timedReservationJson["start_clock"] = timedReservation.StartTime.Format("15:04")
+	timedReservationJson["end_clock"] = timedReservation.EndTime.Format("15:04")
 	timedReservationJson["status"] = timedReservation.Status.String()
 	timedReservationJson["teacher_id"] = timedReservation.TeacherId
 	if teacher, err := ul.GetTeacherById(timedReservation.TeacherId); err == nil {
@@ -102,8 +101,8 @@ func EditTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId 
 	}
 	timedReservationJson["timed_reservation_id"] = timedReservation.Id.Hex()
 	timedReservationJson["weekday"] = timedReservation.Weekday
-	timedReservationJson["start_clock"] = timedReservation.StartTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
-	timedReservationJson["end_clock"] = timedReservation.EndTime.In(utils.Location).Format(utils.CLOCK_PATTERN)
+	timedReservationJson["start_clock"] = timedReservation.StartTime.Format("15:04")
+	timedReservationJson["end_clock"] = timedReservation.EndTime.Format("15:04")
 	timedReservationJson["status"] = timedReservation.Status.String()
 	timedReservationJson["teacher_id"] = timedReservation.TeacherId
 	if teacher, err := ul.GetTeacherById(timedReservation.TeacherId); err == nil {

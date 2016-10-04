@@ -59,11 +59,11 @@ func (al *AdminLogic) AddTimetableByAdmin(weekday string, startClock string, end
 	if err != nil {
 		return nil, errors.New("星期格式错误")
 	}
-	start, err := utils.ParseClock(startClock)
+	start, err := time.ParseInLocation("2006-01-02 15:04", "2006-01-02 "+startClock, time.Local)
 	if err != nil {
 		return nil, errors.New("开始时间格式错误")
 	}
-	end, err := utils.ParseClock(endClock)
+	end, err := time.ParseInLocation("2006-01-02 15:04", "2006-01-02 "+endClock, time.Local)
 	if err != nil {
 		return nil, errors.New("结束时间格式错误")
 	}
@@ -129,11 +129,11 @@ func (al *AdminLogic) EditTimetableByAdmin(timedReservationId string, weekday st
 	if err != nil {
 		return nil, errors.New("星期格式错误")
 	}
-	start, err := utils.ParseClock(startClock)
+	start, err := time.ParseInLocation("2006-01-02 15:04", "2006-01-02"+startClock, time.Local)
 	if err != nil {
 		return nil, errors.New("开始时间格式错误")
 	}
-	end, err := utils.ParseClock(endClock)
+	end, err := time.ParseInLocation("2006-01-02 15:04", "2006-01-02"+endClock, time.Local)
 	if err != nil {
 		return nil, errors.New("结束时间格式错误")
 	}

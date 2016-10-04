@@ -38,13 +38,8 @@ func main() {
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
 	models.Mongo = session.DB("reservation_thxl")
-	// 时区
-	if utils.Location, err = time.LoadLocation("Asia/Shanghai"); err != nil {
-		log.Printf("初始化时区失败：%v", err)
-		return
-	}
 	// Reminder
-	today := utils.GetToday()
+	today := utils.BeginOfDay(time.Now())
 	from := today.AddDate(0, 0, 1)
 	to := today.AddDate(0, 0, 2)
 	reservations, err := models.GetReservationsBetweenTime(from, to)

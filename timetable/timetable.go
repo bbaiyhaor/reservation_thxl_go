@@ -44,6 +44,10 @@ func main() {
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
 	models.Mongo = session.DB("reservation_thxl")
+	// 时区
+	if time.Local, err = time.LoadLocation("Asia/Shanghai"); err != nil {
+		log.Fatalf("初始化时区失败：%v", err)
+	}
 	// timetable
 	today := utils.BeginOfDay(time.Now())
 	tomorrow := today.AddDate(0, 0, 1)

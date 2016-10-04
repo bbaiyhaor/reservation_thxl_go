@@ -29,7 +29,7 @@ function refreshDataTable(reservations) {
       <div class="table_head table_cell">状态</div>\
     </div>\
     <div class="clearfix"></div>\
-  ';      
+  ';
   for (var i = 0; i < reservations.length; ++i) {
     $('#col_time').append('<div class="table_cell" id="cell_time_' + i + '">'
       + reservations[i].start_time.substr(2) + '-'

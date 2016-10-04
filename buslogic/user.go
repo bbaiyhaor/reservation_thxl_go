@@ -97,6 +97,17 @@ func (ul *UserLogic) GetStudentById(userId string) (*models.Student, error) {
 	return student, nil
 }
 
+func (ul *UserLogic) GetStudentByUsername(studentUsername string) (*models.Student, error) {
+	if studentUsername == "" {
+		return nil, errors.New("学号为空")
+	}
+	student, err := models.GetStudentByUsername(studentUsername)
+	if err != nil {
+		return nil, errors.New("学生未注册")
+	}
+	return student, nil
+}
+
 // 获取咨询师
 func (ul *UserLogic) GetTeacherByUsername(username string) (*models.Teacher, error) {
 	if len(username) == 0 {

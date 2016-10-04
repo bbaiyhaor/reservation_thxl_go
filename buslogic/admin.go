@@ -210,15 +210,19 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 				reservation.Status == models.RESERVATED { // && reservation.StartTime.After(utils.GetNow()) {
 				if reservation.Source != models.TIMETABLE {
 					// 1
+					isAdminSet := reservation.IsAdminSet
 					reservation.Status = models.AVAILABLE
 					studentId := reservation.StudentId
 					reservation.StudentId = ""
 					reservation.StudentFeedback = models.StudentFeedback{}
 					reservation.TeacherFeedback = models.TeacherFeedback{}
+					reservation.IsAdminSet = false
 					if models.UpsertReservation(reservation) == nil {
 						removed++
 						reservation.StudentId = studentId
-						workflow.SendCancelSMS(reservation)
+						if !isAdminSet {
+							workflow.SendCancelSMS(reservation)
+						}
 					}
 				} else {
 					// 2
@@ -228,7 +232,9 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 						delete(timedReservation.Timed, date)
 						if models.UpsertReservation(reservation) == nil && models.UpsertTimedReservation(timedReservation) == nil {
 							removed++
-							workflow.SendCancelSMS(reservation)
+							if !reservation.IsAdminSet {
+								workflow.SendCancelSMS(reservation)
+							}
 						}
 					}
 				}
@@ -344,6 +350,10 @@ func (al *AdminLogic) SubmitFeedbackByAdmin(reservationId string, sourceId strin
 
 // 管理员指定某次预约的学生
 func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, startTime string, studentUsername string,
+	fullname string, gender string, birthday string, school string, grade string, currentAddress string,
+	familyAddress string, mobile string, email string, experienceTime string, experienceLocation string,
+	experienceTeacher string, fatherAge string, fatherJob string, fatherEdu string, motherAge string, motherJob string,
+	motherEdu string, parentMarriage string, siginificant string, problem string,
 	userId string, userType models.UserType) (*models.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
@@ -353,6 +363,30 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 		return nil, errors.New("咨询已下架")
 	} else if len(studentUsername) == 0 {
 		return nil, errors.New("学生学号为空")
+	} else if len(fullname) == 0 {
+		return nil, errors.New("姓名为空")
+	} else if len(gender) == 0 {
+		return nil, errors.New("性别为空")
+	} else if len(birthday) == 0 {
+		return nil, errors.New("出生日期为空")
+	} else if len(school) == 0 {
+		return nil, errors.New("院系为空")
+	} else if len(grade) == 0 {
+		return nil, errors.New("年纪为空")
+	} else if len(currentAddress) == 0 {
+		return nil, errors.New("现在住址为空")
+	} else if len(familyAddress) == 0 {
+		return nil, errors.New("家庭住址为空")
+	} else if len(mobile) == 0 {
+		return nil, errors.New("手机号为空")
+	} else if len(email) == 0 {
+		return nil, errors.New("邮箱为空")
+	} else if len(problem) == 0 {
+		return nil, errors.New("问题为空")
+	} else if !utils.IsMobile(mobile) {
+		return nil, errors.New("手机号格式不正确")
+	} else if !utils.IsEmail(email) {
+		return nil, errors.New("邮箱格式不正确")
 	}
 	admin, err := models.GetAdminById(userId)
 	if err != nil || admin.UserType != models.ADMIN {
@@ -405,12 +439,35 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 	} else {
 		return nil, errors.New("咨询已被预约")
 	}
+	// 更新学生信息
+	student.Fullname = fullname
+	student.Gender = gender
+	student.Birthday = birthday
+	student.School = school
+	student.Grade = grade
+	student.CurrentAddress = currentAddress
+	student.FamilyAddress = familyAddress
+	student.Mobile = mobile
+	student.Email = email
+	student.Experience.Time = experienceTime
+	student.Experience.Location = experienceLocation
+	student.Experience.Teacher = experienceTeacher
+	student.FatherAge = fatherAge
+	student.FatherJob = fatherJob
+	student.FatherEdu = fatherEdu
+	student.MotherAge = motherAge
+	student.MotherJob = motherJob
+	student.MotherEdu = motherEdu
+	student.ParentMarriage = parentMarriage
+	student.Significant = siginificant
+	student.Problem = problem
 	student.BindedTeacherId = reservation.TeacherId
-	if err = models.UpsertStudent(student); err != nil {
+	if models.UpsertStudent(student) != nil {
 		return nil, errors.New("获取数据失败")
 	}
 	// 更新咨询信息
 	reservation.StudentId = student.Id.Hex()
+	reservation.IsAdminSet = true
 	reservation.Status = models.RESERVATED
 	if err = models.UpsertReservation(reservation); err != nil {
 		return nil, errors.New("获取数据失败")

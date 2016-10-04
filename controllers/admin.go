@@ -326,13 +326,37 @@ func SetStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, us
 	sourceId := r.PostFormValue("source_id")
 	startTime := r.PostFormValue("start_time")
 	studentUsername := r.PostFormValue("student_username")
+	fullname := r.PostFormValue("student_fullname")
+	gender := r.PostFormValue("student_gender")
+	birthday := r.PostFormValue("student_birthday")
+	school := r.PostFormValue("student_school")
+	grade := r.PostFormValue("student_grade")
+	currentAddress := r.PostFormValue("student_current_address")
+	familyAddress := r.PostFormValue("student_family_address")
+	mobile := r.PostFormValue("student_mobile")
+	email := r.PostFormValue("student_email")
+	experienceTime := r.PostFormValue("student_experience_time")
+	experienceLocation := r.PostFormValue("student_experience_location")
+	experienceTeacher := r.PostFormValue("student_experience_teacher")
+	fatherAge := r.PostFormValue("student_father_age")
+	fatherJob := r.PostFormValue("student_father_job")
+	fatherEdu := r.PostFormValue("student_father_edu")
+	motherAge := r.PostFormValue("student_mother_age")
+	motherJob := r.PostFormValue("student_mother_job")
+	motherEdu := r.PostFormValue("student_mother_edu")
+	parentMarriage := r.PostFormValue("student_parent_marriage")
+	siginificant := r.PostFormValue("student_significant")
+	problem := r.PostFormValue("student_problem")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var al = buslogic.AdminLogic{}
 	var ul = buslogic.UserLogic{}
 
 	var reservationJson = make(map[string]interface{})
-	reservation, err := al.SetStudentByAdmin(reservationId, sourceId, startTime, studentUsername, userId, userType)
+	reservation, err := al.SetStudentByAdmin(reservationId, sourceId, startTime, studentUsername, fullname, gender,
+		birthday, school, grade, currentAddress, familyAddress, mobile, email, experienceTime,
+		experienceLocation, experienceTeacher, fatherAge, fatherJob, fatherEdu, motherAge, motherJob, motherEdu,
+		parentMarriage, siginificant, problem, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil
@@ -433,6 +457,63 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 		reservationJson = append(reservationJson, resJson)
 	}
 	result["reservations"] = reservationJson
+
+	return result
+}
+
+func SearchStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+	studentUsername := r.PostFormValue("student_username")
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+	var ul = buslogic.UserLogic{}
+
+	var studentJson = make(map[string]interface{})
+	student, err := ul.GetStudentByUsername(studentUsername)
+	if err != nil {
+		ErrorHandler(w, r, err)
+		return nil
+	}
+	studentJson["student_id"] = student.Id.Hex()
+	studentJson["student_username"] = student.Username
+	studentJson["student_fullname"] = student.Fullname
+	studentJson["student_archive_category"] = student.ArchiveCategory
+	studentJson["student_archive_number"] = student.ArchiveNumber
+	studentJson["student_crisis_level"] = student.CrisisLevel
+	studentJson["student_gender"] = student.Gender
+	studentJson["student_email"] = student.Email
+	studentJson["student_school"] = student.School
+	studentJson["student_grade"] = student.Grade
+	studentJson["student_current_address"] = student.CurrentAddress
+	studentJson["student_mobile"] = student.Mobile
+	studentJson["student_birthday"] = student.Birthday
+	studentJson["student_family_address"] = student.FamilyAddress
+	if !student.Experience.IsEmpty() {
+		studentJson["student_experience_time"] = student.Experience.Time
+		studentJson["student_experience_location"] = student.Experience.Location
+		studentJson["student_experience_teacher"] = student.Experience.Teacher
+	}
+	studentJson["student_father_age"] = student.FatherAge
+	studentJson["student_father_job"] = student.FatherJob
+	studentJson["student_father_edu"] = student.FatherEdu
+	studentJson["student_mother_age"] = student.MotherAge
+	studentJson["student_mother_job"] = student.MotherJob
+	studentJson["student_mother_edu"] = student.MotherEdu
+	studentJson["student_parent_marriage"] = student.ParentMarriage
+	studentJson["student_significant"] = student.Significant
+	studentJson["student_problem"] = student.Problem
+	if len(student.BindedTeacherId) != 0 {
+		teacher, err := ul.GetTeacherById(student.BindedTeacherId)
+		if err != nil {
+			studentJson["student_binded_teacher_username"] = "无"
+			studentJson["student_binded_teacher_fullname"] = ""
+		}
+		studentJson["student_binded_teacher_username"] = teacher.Username
+		studentJson["student_binded_teacher_fullname"] = teacher.Fullname
+	} else {
+		studentJson["student_binded_teacher_username"] = "无"
+		studentJson["student_binded_teacher_fullname"] = ""
+	}
+	result["student_info"] = studentJson
 
 	return result
 }

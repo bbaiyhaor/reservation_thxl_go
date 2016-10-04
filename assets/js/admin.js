@@ -699,13 +699,72 @@ function successFeedback(index) {
 function setStudent(index) {
   $('body').append('\
     <div id="pop_set_student" class="pop_window" style="width: 50%;">\
-      请输入您要制定的学生学号（必须为已注册学生）：<br>\
-      <input id="student_username_' + index + '"/><br>\
+      请输入您要指定的学生学号（必须为已注册学生）：<br>\
+      <input id="student_username_' + index + '" oninput="searchStudent(' + index + ');"/>\
+      <span id="search_student_' + index + '_span" style="color: red;"></span><br>\
+      <div style="text-align:left; margin-left: 20%">\
+      <div style="text-align:center;font-size:23px">学生信息登记表</div><br>\
+      姓　　名：<input id="student_fullname_' + index + '"><br>\
+      性　　别：<select id="student_gender_' + index + '"><option value="">请选择</option><option value="男">男</option><option value="女">女</option></select><br>\
+      出生日期：<input id="student_birthday_' + index + '"><br>\
+      系　　别：<input id="student_school_' + index + '"><br>\
+      年　　级：<input id="student_grade_' + index + '"><br>\
+      现在住址：<input id="student_current_address_' + index + '"><br>\
+      家庭住址：<input id="student_family_address_' + index + '"><br>\
+      联系电话：<input id="student_mobile_' + index + '"><br>\
+      邮　　箱：<input id="student_email_' + index + '"><br>\
+      咨询经历：<br>\
+      时间：<input id="student_experience_time_' + index + '"><br>\
+      地点：<input id="student_experience_location_' + index + '" style="width:60px">\
+      咨询师：<input id="student_experience_teacher_' + index + '" style="width:60px"><br>\
+      父　　亲<br>\
+      年龄：<input id="student_father_age_' + index + '" style="width:20px"> 职业：<input id="student_father_job_' + index + '" style="width:40px"> 学历：<input id="student_father_edu_' + index + '" style="width:40px"><br>\
+      母　　亲<br>\
+      年龄：<input id="student_mother_age_' + index + '" style="width:20px"> 职业：<input id="student_mother_job_' + index + '" style="width:40px"> 学历：<input id="student_mother_edu_' + index + '" style="width:40px"><br>\
+      父母婚姻状况：<select id="student_parent_marriage_' + index + '"><option value="">请选择</option><option value="良好">良好</option><option value="一般">一般</option><option value="离婚">离婚</option><option value="再婚">再婚</option></select><br>\
+      在近三个月里，是否发生了对你有重大意义的事（如亲友的死亡、法律诉讼、失恋等）？<br>\
+      <textarea id="student_significant_' + index + '"></textarea><br>\
+      你现在需要接受帮助的主要问题是什么？<br>\
+      <textarea id="student_problem_' + index + '"></textarea><br>\
+      </div>\
       <button type="button" onclick="setStudentConfirm(' + index + ');">确认</button>\
       <button type="button" style="margin-left:20px" onclick="$(\'#pop_set_student\').remove();">取消</button>\
     </div>\
   ');
   optimize('#pop_set_student');
+}
+
+function searchStudent(index) {
+  $.post('/admin/student/search', {
+    student_username: $('#student_username_' + index).val(),
+  }, function(data, textStatus, xhr) {
+    if (data.state == 'SUCCESS') {
+      $('#student_fullname_' + index).val(data.student_info.student_fullname);
+      $('#student_gender_' + index).val(data.student_info.student_gender);
+      $('#student_birthday_' + index).val(data.student_info.student_birthday);
+      $('#student_school_' + index).val(data.student_info.student_school);
+      $('#student_grade_' + index).val(data.student_info.student_grade);
+      $('#student_current_address_' + index).val(data.student_info.student_current_address);
+      $('#student_family_address_' + index).val(data.student_info.student_family_address);
+      $('#student_mobile_' + index).val(data.student_info.student_mobile);
+      $('#student_email_' + index).val(data.student_info.student_email);
+      $('#student_experience_time_' + index).val(data.student_info.student_experience_time);
+      $('#student_experience_location_' + index).val(data.student_info.student_experience_location);
+      $('#student_experience_teacher_' + index).val(data.student_info.student_experience_teacher);
+      $('#student_father_age_' + index).val(data.student_info.student_father_age);
+      $('#student_father_job_' + index).val(data.student_info.student_father_job);
+      $('#student_father_edu_' + index).val(data.student_info.student_father_edu);
+      $('#student_mother_age_' + index).val(data.student_info.student_mother_age);
+      $('#student_mother_job_' + index).val(data.student_info.student_mother_job);
+      $('#student_mother_edu_' + index).val(data.student_info.student_mother_edu);
+      $('#student_parent_marriage_' + index).val(data.student_info.student_parent_marriage);
+      $('#student_significant_' + index).val(data.student_info.student_significant);
+      $('#student_problem_' + index).val(data.student_info.student_problem);
+      $('#search_student_' + index + "_span").text('载入成功');
+    } else {
+      $('#search_student_' + index + "_span").text(data.message);
+    }
+  });
 }
 
 function setStudentConfirm(index) {
@@ -714,6 +773,27 @@ function setStudentConfirm(index) {
     source_id: reservations[index].source_id,
     start_time: reservations[index].start_time,
     student_username: $('#student_username_' + index).val(),
+    student_fullname: $('#student_fullname_' + index).val(),
+    student_gender: $('#student_gender_' + index).val(),
+    student_birthday: $('#student_birthday_' + index).val(),
+    student_school: $('#student_school_' + index).val(),
+    student_grade: $('#student_grade_' + index).val(),
+    student_current_address: $('#student_current_address_' + index).val(),
+    student_family_address: $('#student_family_address_' + index).val(),
+    student_mobile: $('#student_mobile_' + index).val(),
+    student_email: $('#student_email_' + index).val(),
+    student_experience_time: $('#student_experience_time_' + index).val(),
+    student_experience_location: $('#student_experience_location_' + index).val(),
+    student_experience_teacher: $('#student_experience_teacher_' + index).val(),
+    student_father_age: $('#student_father_age_' + index).val(),
+    student_father_job: $('#student_father_job_' + index).val(),
+    student_father_edu: $('#student_father_edu_' + index).val(),
+    student_mother_age: $('#student_mother_age_' + index).val(),
+    student_mother_job: $('#student_mother_job_' + index).val(),
+    student_mother_edu: $('#student_mother_edu_' + index).val(),
+    student_parent_marriage: $('#student_parent_marriage_' + index).val(),
+    student_significant: $('#student_significant_' + index).val(),
+    student_problem: $('#student_problem_' + index).val(),
   }, function(data, textStatus, xhr) {
     if (data.state == 'SUCCESS') {
       successSetStudent();

@@ -12,8 +12,8 @@ import (
 	"log"
 	"net/mail"
 	"sort"
-	"time"
 	"strings"
+	"time"
 )
 
 func main() {

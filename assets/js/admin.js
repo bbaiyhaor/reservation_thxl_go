@@ -423,12 +423,19 @@ function searchTeacher(index) {
 function removeReservations() {
   $('body').append('\
     <div id="pop_remove_reservations" class="pop_window" style="width: 50%">\
-      确认删除选中的咨询记录？\
-      <br>\
+      确认删除选中的咨询记录？<br>\
+      <div id="pop_remove_reservations_div"></div>\
       <button type="button" onclick="$(\'#pop_remove_reservations\').remove();removeReservationsConfirm();">确认</button>\
       <button type="button" onclick="$(\'#pop_remove_reservations\').remove();">取消</button>\
     </div>\
   ');
+  for (var i = 0; i < reservations.length; i++) {
+    if ($('#cell_checkbox_' + i)[0].checked) {
+      $('#pop_remove_reservations_div').append('\
+        <span>' + reservations[i].teacher_fullname + '　　　　' + reservations[i].start_time + '至' + reservations[i].end_time + '</span><br>\
+      ');
+    }
+  }
   optimize('#pop_remove_reservations');
 }
 
@@ -467,12 +474,19 @@ function removeReservationsConfirm() {
 function cancelReservations() {
   $('body').append('\
     <div id="pop_cancel_reservations" class="pop_window" style="width: 50%">\
-      确认取消选中的预约？\
-      <br>\
+      确认取消选中的预约？<br>\
+      <div id="pop_cancel_reservations_div"></div>\
       <button type="button" onclick="$(\'#pop_cancel_reservations\').remove();cancelReservationsConfirm();">确认</button>\
       <button type="button" onclick="$(\'#pop_cancel_reservations\').remove();">取消</button>\
     </div>\
   ');
+  for (var i = 0; i < reservations.length; i++) {
+    if ($('#cell_checkbox_' + i)[0].checked) {
+      $('#pop_cancel_reservations_div').append('\
+        <span>' + reservations[i].teacher_fullname + '　　　　' + reservations[i].start_time + '至' + reservations[i].end_time + '</span><br>\
+      ');
+    }
+  }
   optimize('#pop_cancel_reservations');
 }
 

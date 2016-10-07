@@ -16,7 +16,7 @@ func main() {
 	isSmock := flag.Bool("smock", true, "is smock server")
 	flag.Parse()
 	config.InitWithParams(*conf, *isSmock)
-	log.Printf("config loaded: %+v", conf)
+	log.Printf("config loaded: %+v", *config.Instance())
 	// 数据库连接
 	var session *mgo.Session
 	var err error

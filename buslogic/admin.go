@@ -1,11 +1,11 @@
 package buslogic
 
 import (
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/workflow"
 	"errors"
 	"fmt"
-	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxl_go/utils"
-	"github.com/shudiwsh2009/reservation_thxl_go/workflow"
 	"sort"
 	"strconv"
 	"strings"

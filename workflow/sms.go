@@ -1,12 +1,12 @@
 package workflow
 
 import (
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/shudiwsh2009/reservation_thxl_go/config"
-	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"io/ioutil"
 	"log"
 	"net/http"

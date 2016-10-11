@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/shudiwsh2009/reservation_thxl_go/buslogic"
-	"github.com/shudiwsh2009/reservation_thxl_go/models"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
 	"net/http"
 	"strconv"
 	"time"

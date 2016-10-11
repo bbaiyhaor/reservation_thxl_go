@@ -1,8 +1,8 @@
 package workflow
 
 import (
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
 	"github.com/scorredoira/email"
-	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"log"
 	"net/mail"
 	"net/smtp"

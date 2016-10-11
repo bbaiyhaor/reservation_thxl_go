@@ -1,8 +1,8 @@
 package controllers
 
 import (
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
 	"encoding/json"
-	"github.com/shudiwsh2009/reservation_thxl_go/models"
 	"html/template"
 	"log"
 	"net/http"

@@ -1,13 +1,13 @@
 package main
 
 import (
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/controllers"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/workflow"
 	"encoding/json"
 	"flag"
 	"github.com/gorilla/mux"
-	"github.com/shudiwsh2009/reservation_thxl_go/config"
-	"github.com/shudiwsh2009/reservation_thxl_go/controllers"
-	"github.com/shudiwsh2009/reservation_thxl_go/models"
-	"github.com/shudiwsh2009/reservation_thxl_go/workflow"
 	"gopkg.in/mgo.v2"
 	"log"
 	"net/http"

@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/shudiwsh2009/reservation_thxl_go/utils"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"gopkg.in/mgo.v2/bson"
 	"strings"
 	"time"

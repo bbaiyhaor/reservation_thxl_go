@@ -142,12 +142,12 @@ func sendSMS(mobile string, content string) error {
 	requestBody := bytes.NewBufferString(payload.Encode())
 	response, err := http.Post(requestUrl, "application/x-www-form-urlencoded;charset=utf8", requestBody)
 	if err != nil {
-		return errors.New("短信发送失败")
+		return err
 	}
 	defer response.Body.Close()
 	responseBody, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return errors.New("短信发送失败")
+		return err
 	}
 	errCode := string(responseBody)
 	if errMsg, ok := SMS_ERROR_MSG[errCode]; ok {

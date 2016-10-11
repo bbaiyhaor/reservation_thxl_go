@@ -57,6 +57,7 @@ func main() {
 			if err = workflow.SendReminderSMS(reservation); err == nil {
 				succCnt++
 			} else {
+				log.Printf("发送短信失败：%+v %+v", reservation, err)
 				failCnt++
 			}
 		}

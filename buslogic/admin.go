@@ -210,7 +210,7 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 				reservation.Status == models.RESERVATED { // && reservation.StartTime.After(time.Now()) {
 				if reservation.Source != models.TIMETABLE {
 					// 1
-					isAdminSet := reservation.IsAdminSet
+					//isAdminSet := reservation.IsAdminSet
 					reservation.Status = models.AVAILABLE
 					studentId := reservation.StudentId
 					reservation.StudentId = ""
@@ -220,9 +220,10 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 					if models.UpsertReservation(reservation) == nil {
 						removed++
 						reservation.StudentId = studentId
-						if !isAdminSet {
-							workflow.SendCancelSMS(reservation)
-						}
+						//if !isAdminSet {
+						//	workflow.SendCancelSMS(reservation)
+						//}
+						workflow.SendCancelSMS(reservation)
 					}
 				} else {
 					// 2
@@ -232,9 +233,10 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 						delete(timedReservation.Timed, date)
 						if models.UpsertReservation(reservation) == nil && models.UpsertTimedReservation(timedReservation) == nil {
 							removed++
-							if !reservation.IsAdminSet {
-								workflow.SendCancelSMS(reservation)
-							}
+							//if !reservation.IsAdminSet {
+							//	workflow.SendCancelSMS(reservation)
+							//}
+							workflow.SendCancelSMS(reservation)
 						}
 					}
 				}
@@ -396,8 +398,8 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 	if err != nil {
 		return nil, errors.New("学生未注册")
 	}
-	reservation := &models.Reservation{}
-	if len(sourceId) == 0 {
+	var reservation *models.Reservation
+	if sourceId == "" {
 		// Source为ADD，无SourceId：直接指定
 		reservation, err = models.GetReservationById(reservationId)
 		if err != nil || reservation.Status == models.DELETED {
@@ -408,7 +410,7 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 		} else if reservation.Status != models.AVAILABLE {
 			return nil, errors.New("咨询已被预约")
 		}
-	} else if strings.EqualFold(reservationId, sourceId) {
+	} else if reservationId == sourceId {
 		// Source为TIMETABLE且未被预约
 		timedReservation, err := models.GetTimedReservationById(sourceId)
 		if err != nil || timedReservation.Status == models.DELETED {
@@ -420,8 +422,7 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 			//		} else if start.Before(time.Now()) {
 			//			// 允许指定过期咨询，作为补录（网页正常情况不显示过期咨询，要通过查询咨询的方式来补录）
 			//			return nil, errors.New("咨询已过期")
-		} else if !strings.EqualFold(start.Format("15:04"),
-			timedReservation.StartTime.Format("15:04")) {
+		} else if start.Format("15:04") != timedReservation.StartTime.Format("15:04") {
 			return nil, errors.New("开始时间不匹配")
 		} else if timedReservation.Timed[start.Format("2006-01-02")] {
 			return nil, errors.New("咨询已被预约")
@@ -472,6 +473,8 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 	if err = models.UpsertReservation(reservation); err != nil {
 		return nil, errors.New("获取数据失败")
 	}
+	// send success sms
+	workflow.SendSuccessSMS(reservation)
 	return reservation, nil
 }
 

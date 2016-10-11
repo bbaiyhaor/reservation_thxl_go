@@ -51,16 +51,16 @@ func SendSuccessSMS(reservation *models.Reservation) error {
 	if err := sendSMS(student.Mobile, studentSMS); err != nil {
 		return err
 	}
-	teacher, err := models.GetTeacherById(reservation.TeacherId)
-	if err != nil {
-		return errors.New("咨询师未注册")
-	}
-	teacherSMS := fmt.Sprintf(SMS_SUCCESS_TEACHER, teacher.Fullname, student.Fullname,
-		utils.Weekdays[startTime.Weekday()], startTime.Month(), startTime.Day(),
-		startTime.Format("15:04"), endTime.Format("15:04"))
-	if err := sendSMS(teacher.Mobile, teacherSMS); err != nil {
-		return err
-	}
+	//teacher, err := models.GetTeacherById(reservation.TeacherId)
+	//if err != nil {
+	//	return errors.New("咨询师未注册")
+	//}
+	//teacherSMS := fmt.Sprintf(SMS_SUCCESS_TEACHER, teacher.Fullname, student.Fullname,
+	//	utils.Weekdays[startTime.Weekday()], startTime.Month(), startTime.Day(),
+	//	startTime.Format("15:04"), endTime.Format("15:04"))
+	//if err := sendSMS(teacher.Mobile, teacherSMS); err != nil {
+	//	return err
+	//}
 	return nil
 }
 
@@ -76,16 +76,16 @@ func SendCancelSMS(reservation *models.Reservation) error {
 	if err := sendSMS(student.Mobile, studentSMS); err != nil {
 		return err
 	}
-	teacher, err := models.GetTeacherById(reservation.TeacherId)
-	if err != nil {
-		return errors.New("咨询师未注册")
-	}
-	teacherSMS := fmt.Sprintf(SMS_CANCEL_TEACHER, teacher.Fullname, student.Fullname,
-		utils.Weekdays[startTime.Weekday()], startTime.Month(), startTime.Day(),
-		startTime.Format("15:04"), endTime.Format("15:04"))
-	if err := sendSMS(teacher.Mobile, teacherSMS); err != nil {
-		return err
-	}
+	//teacher, err := models.GetTeacherById(reservation.TeacherId)
+	//if err != nil {
+	//	return errors.New("咨询师未注册")
+	//}
+	//teacherSMS := fmt.Sprintf(SMS_CANCEL_TEACHER, teacher.Fullname, student.Fullname,
+	//	utils.Weekdays[startTime.Weekday()], startTime.Month(), startTime.Day(),
+	//	startTime.Format("15:04"), endTime.Format("15:04"))
+	//if err := sendSMS(teacher.Mobile, teacherSMS); err != nil {
+	//	return err
+	//}
 	return nil
 }
 
@@ -100,15 +100,15 @@ func SendReminderSMS(reservation *models.Reservation) error {
 	if err := sendSMS(student.Mobile, studentSMS); err != nil {
 		return err
 	}
-	teacher, err := models.GetTeacherById(reservation.TeacherId)
-	if err != nil {
-		return errors.New("咨询师未注册")
-	}
-	teacherSMS := fmt.Sprintf(SMS_REMINDER_TEACHER, teacher.Fullname, student.Fullname,
-		startTime.Format("15:04"), endTime.Format("15:04"))
-	if err := sendSMS(teacher.Mobile, teacherSMS); err != nil {
-		return err
-	}
+	//teacher, err := models.GetTeacherById(reservation.TeacherId)
+	//if err != nil {
+	//	return errors.New("咨询师未注册")
+	//}
+	//teacherSMS := fmt.Sprintf(SMS_REMINDER_TEACHER, teacher.Fullname, student.Fullname,
+	//	startTime.Format("15:04"), endTime.Format("15:04"))
+	//if err := sendSMS(teacher.Mobile, teacherSMS); err != nil {
+	//	return err
+	//}
 	return nil
 }
 

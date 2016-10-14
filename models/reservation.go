@@ -143,6 +143,7 @@ type Reservation struct {
 	Source          ReservationSource `bson:"source"`
 	SourceId        string            `bson:"source_id"`
 	IsAdminSet      bool              `bson:"is_admin_set"`
+	SendSms         bool              `bson:"send_sms"`
 	TeacherId       string            `bson:"teacher_id"` // indexed
 	StudentId       string            `bson:"student_id"` // indexed
 	StudentFeedback StudentFeedback   `bson:"student_feedback"`

@@ -346,6 +346,11 @@ func SetStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, us
 	parentMarriage := r.PostFormValue("student_parent_marriage")
 	siginificant := r.PostFormValue("student_significant")
 	problem := r.PostFormValue("student_problem")
+	sendSms, err := strconv.ParseBool(r.PostFormValue("student_sms"))
+	if err != nil {
+		ErrorHandler(w, r, errors.New("参数错误，请联系管理员"))
+		return nil
+	}
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
 	var al = buslogic.AdminLogic{}
@@ -355,7 +360,7 @@ func SetStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, us
 	reservation, err := al.SetStudentByAdmin(reservationId, sourceId, startTime, studentUsername, fullname, gender,
 		birthday, school, grade, currentAddress, familyAddress, mobile, email, experienceTime,
 		experienceLocation, experienceTeacher, fatherAge, fatherJob, fatherEdu, motherAge, motherJob, motherEdu,
-		parentMarriage, siginificant, problem, userId, userType)
+		parentMarriage, siginificant, problem, sendSms, userId, userType)
 	if err != nil {
 		ErrorHandler(w, r, err)
 		return nil

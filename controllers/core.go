@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strings"
 )
 
 func EntryPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
@@ -134,7 +133,7 @@ type ErrorMsg struct {
 
 func ErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 	state := "FAILED"
-	if strings.EqualFold(err.Error(), models.CHECK_MESSAGE) {
+	if err.Error() == models.CHECK_MESSAGE {
 		state = models.CHECK_MESSAGE
 	} else {
 		log.Printf("error %s %v", r.URL.Path, err)

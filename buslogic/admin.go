@@ -210,20 +210,20 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 				reservation.Status == models.RESERVATED { // && reservation.StartTime.After(time.Now()) {
 				if reservation.Source != models.TIMETABLE {
 					// 1
-					//isAdminSet := reservation.IsAdminSet
+					sendSms := reservation.SendSms
 					reservation.Status = models.AVAILABLE
 					studentId := reservation.StudentId
 					reservation.StudentId = ""
 					reservation.StudentFeedback = models.StudentFeedback{}
 					reservation.TeacherFeedback = models.TeacherFeedback{}
 					reservation.IsAdminSet = false
+					reservation.SendSms = false
 					if models.UpsertReservation(reservation) == nil {
 						removed++
 						reservation.StudentId = studentId
-						//if !isAdminSet {
-						//	workflow.SendCancelSMS(reservation)
-						//}
-						workflow.SendCancelSMS(reservation)
+						if sendSms {
+							workflow.SendCancelSMS(reservation)
+						}
 					}
 				} else {
 					// 2
@@ -233,10 +233,9 @@ func (al *AdminLogic) CancelReservationsByAdmin(reservationIds []string, sourceI
 						delete(timedReservation.Timed, date)
 						if models.UpsertReservation(reservation) == nil && models.UpsertTimedReservation(timedReservation) == nil {
 							removed++
-							//if !reservation.IsAdminSet {
-							//	workflow.SendCancelSMS(reservation)
-							//}
-							workflow.SendCancelSMS(reservation)
+							if reservation.SendSms {
+								workflow.SendCancelSMS(reservation)
+							}
 						}
 					}
 				}
@@ -355,7 +354,7 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 	fullname string, gender string, birthday string, school string, grade string, currentAddress string,
 	familyAddress string, mobile string, email string, experienceTime string, experienceLocation string,
 	experienceTeacher string, fatherAge string, fatherJob string, fatherEdu string, motherAge string, motherJob string,
-	motherEdu string, parentMarriage string, siginificant string, problem string,
+	motherEdu string, parentMarriage string, siginificant string, problem string, sendSms bool,
 	userId string, userType models.UserType) (*models.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
@@ -469,12 +468,15 @@ func (al *AdminLogic) SetStudentByAdmin(reservationId string, sourceId string, s
 	// 更新咨询信息
 	reservation.StudentId = student.Id.Hex()
 	reservation.IsAdminSet = true
+	reservation.SendSms = sendSms
 	reservation.Status = models.RESERVATED
 	if err = models.UpsertReservation(reservation); err != nil {
 		return nil, errors.New("获取数据失败")
 	}
 	// send success sms
-	workflow.SendSuccessSMS(reservation)
+	if sendSms {
+		workflow.SendSuccessSMS(reservation)
+	}
 	return reservation, nil
 }
 

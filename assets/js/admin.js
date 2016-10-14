@@ -714,9 +714,11 @@ function setStudent(index) {
   $('body').append('\
     <div id="pop_set_student" class="pop_window" style="width: 50%;">\
       请输入您要指定的学生学号（必须为已注册学生）：<br>\
-      <input id="student_username_' + index + '" oninput="searchStudent(' + index + ');"/>\
-      <span id="search_student_' + index + '_span" style="color: red;"></span><br>\
-      <div style="text-align:left; margin-left: 20%">\
+      <input id="student_username_' + index + '" oninput="searchStudent(' + index + ');"/><br>\
+      <span id="search_student_' + index + '_span" style="color: red;"></span>\
+      <input class="checkbox" type="checkbox" id="student_sms_' + index + '"/>是否发送提醒短信给学生<br>\
+      <br>\
+      <div style="text-align:left; margin: 0 20% 0 20%">\
       <div style="text-align:center;font-size:23px">学生信息登记表</div><br>\
       姓　　名：<input id="student_fullname_' + index + '"><br>\
       性　　别：<select id="student_gender_' + index + '"><option value="">请选择</option><option value="男">男</option><option value="女">女</option></select><br>\
@@ -808,6 +810,7 @@ function setStudentConfirm(index) {
     student_parent_marriage: $('#student_parent_marriage_' + index).val(),
     student_significant: $('#student_significant_' + index).val(),
     student_problem: $('#student_problem_' + index).val(),
+    student_sms: $('#student_sms_' + index)[0].checked,
   }, function(data, textStatus, xhr) {
     if (data.state == 'SUCCESS') {
       successSetStudent();

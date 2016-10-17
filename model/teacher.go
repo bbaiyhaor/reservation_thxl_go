@@ -1,36 +1,42 @@
 package model
 
 import (
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
 	"errors"
 	"gopkg.in/mgo.v2/bson"
 	"time"
 )
 
 type Teacher struct {
-	Id         bson.ObjectId `bson:"_id"`
-	CreateTime time.Time     `bson:"create_time"`
-	UpdateTime time.Time     `bson:"update_time"`
-	Username   string        `bson:"username"` // Indexed
-	Password   string        `bson:"password"`
-	Fullname   string        `bson:"fullname"`
-	Mobile     string        `bson:"mobile"`
-	UserType   UserType      `bson:"user_type"`
+	Id                bson.ObjectId `bson:"_id"`
+	CreateTime        time.Time     `bson:"create_time"`
+	UpdateTime        time.Time     `bson:"update_time"`
+	Username          string        `bson:"username"` // Indexed
+	Password          string        `bson:"password"` // will be deprecated soon
+	EncryptedPassword string        `bson:"encrypted_password"`
+	Fullname          string        `bson:"fullname"`
+	Mobile            string        `bson:"mobile"`
+	UserType          UserType      `bson:"user_type"`
 }
 
 func (m *Model) AddTeacher(username string, password string, fullname string, mobile string) (*Teacher, error) {
 	if len(username) == 0 || len(password) == 0 || len(fullname) == 0 || len(mobile) == 0 {
 		return nil, errors.New("字段不合法")
 	}
+	encryptedPassword, err := util.EncryptPassword(password)
+	if err != nil {
+		return nil, errors.New("加密出错，请联系技术支持")
+	}
 	collection := m.mongo.C("teacher")
 	newTeacher := &Teacher{
-		Id:         bson.NewObjectId(),
-		CreateTime: time.Now(),
-		UpdateTime: time.Now(),
-		Username:   username,
-		Password:   password,
-		Fullname:   fullname,
-		Mobile:     mobile,
-		UserType:   TEACHER,
+		Id:                bson.NewObjectId(),
+		CreateTime:        time.Now(),
+		UpdateTime:        time.Now(),
+		Username:          username,
+		EncryptedPassword: encryptedPassword,
+		Fullname:          fullname,
+		Mobile:            mobile,
+		UserType:          TEACHER,
 	}
 	if err := collection.Insert(newTeacher); err != nil {
 		return nil, err

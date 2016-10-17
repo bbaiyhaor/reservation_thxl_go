@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
 	"errors"
-	"strings"
 )
 
 const (
@@ -20,8 +19,18 @@ func (w *Workflow) StudentLogin(username string, password string) (*model.Studen
 		return nil, errors.New("密码为空")
 	}
 	student, err := w.model.GetStudentByUsername(username)
-	if err == nil && strings.EqualFold(student.Password, password) {
-		return student, nil
+	if err == nil {
+		if student.EncryptedPassword != "" {
+			if util.ValidatePassword(password, student.EncryptedPassword) {
+				return student, nil
+			}
+		} else if password == student.Password {
+			if encryptedPassword, err := util.EncryptPassword(password); err == nil {
+				student.EncryptedPassword = encryptedPassword
+				w.model.UpsertStudent(student)
+			}
+			return student, nil
+		}
 	}
 	return nil, errors.New("用户名或密码不正确")
 }
@@ -34,9 +43,18 @@ func (w *Workflow) TeacherLogin(username string, password string) (*model.Teache
 		return nil, errors.New("密码为空")
 	}
 	teacher, err := w.model.GetTeacherByUsername(username)
-	if err == nil && (strings.EqualFold(password, teacher.Password) ||
-		(teacher.UserType == model.TEACHER && strings.EqualFold(password, TeacherDefaultPassword))) {
-		return teacher, nil
+	if err == nil {
+		if teacher.EncryptedPassword != "" {
+			if util.ValidatePassword(password, teacher.EncryptedPassword) {
+				return teacher, nil
+			}
+		} else if password == teacher.Password {
+			if encryptedPassword, err := util.EncryptPassword(password); err == nil {
+				teacher.EncryptedPassword = encryptedPassword
+				w.model.UpsertTeacher(teacher)
+			}
+			return teacher, nil
+		}
 	}
 	return nil, errors.New("用户名或密码不正确")
 }
@@ -49,9 +67,18 @@ func (w *Workflow) AdminLogin(username string, password string) (*model.Admin, e
 		return nil, errors.New("密码为空")
 	}
 	admin, err := w.model.GetAdminByUsername(username)
-	if err == nil && (strings.EqualFold(password, admin.Password) ||
-		(admin.UserType == model.ADMIN && strings.EqualFold(password, AdminDefaultPassword))) {
-		return admin, nil
+	if err == nil {
+		if admin.EncryptedPassword != "" {
+			if util.ValidatePassword(password, admin.EncryptedPassword) {
+				return admin, nil
+			}
+		} else if password == admin.Password {
+			if encryptedPassword, err := util.EncryptPassword(password); err == nil {
+				admin.EncryptedPassword = encryptedPassword
+				w.model.UpsertAdmin(admin)
+			}
+			return admin, nil
+		}
 	}
 	return nil, errors.New("用户名或密码不正确")
 }

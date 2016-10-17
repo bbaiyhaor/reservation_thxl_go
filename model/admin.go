@@ -7,31 +7,15 @@ import (
 )
 
 type Admin struct {
-	Id         bson.ObjectId `bson:"_id"`
-	CreateTime time.Time     `bson:"create_time"`
-	UpdateTime time.Time     `bson:"update_time"`
-	Username   string        `bson:"username"` // Indexed
-	Password   string        `bson:"password"`
-	UserType   UserType      `bson:"user_type"`
-}
-
-func (m *Model) AddAdmin(username string, password string) (*Admin, error) {
-	if len(username) == 0 || len(password) == 0 {
-		return nil, errors.New("字段不合法")
-	}
-	collection := m.mongo.C("admin")
-	newAdmin := &Admin{
-		Id:         bson.NewObjectId(),
-		CreateTime: time.Now(),
-		UpdateTime: time.Now(),
-		Username:   username,
-		Password:   password,
-		UserType:   ADMIN,
-	}
-	if err := collection.Insert(newAdmin); err != nil {
-		return nil, err
-	}
-	return newAdmin, nil
+	Id                bson.ObjectId `bson:"_id"`
+	CreateTime        time.Time     `bson:"create_time"`
+	UpdateTime        time.Time     `bson:"update_time"`
+	Username          string        `bson:"username"` // Indexed
+	Password          string        `bson:"password"` // will be deprecated soon
+	EncryptedPassword string        `bson:"encrypted_password"`
+	Fullname          string        `bson:"fullname"`
+	Mobile            string        `bson:"mobile"`
+	UserType          UserType      `bson:"user_type"`
 }
 
 func (m *Model) UpsertAdmin(admin *Admin) error {

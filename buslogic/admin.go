@@ -590,7 +590,12 @@ func (w *Workflow) ResetStudentPasswordByAdmin(studentId string, password string
 	if err != nil {
 		return nil, errors.New("学生未注册")
 	}
-	student.Password = password
+	//student.Password = password
+	encryptedPassword, err := util.EncryptPassword(password)
+	if err != nil {
+		return nil, errors.New("加密出错，请联系技术支持")
+	}
+	student.EncryptedPassword = encryptedPassword
 	if err := w.model.UpsertStudent(student); err != nil {
 		return nil, errors.New("获取数据失败")
 	}

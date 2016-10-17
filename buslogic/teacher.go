@@ -1,46 +1,42 @@
 package buslogic
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/workflow"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	"errors"
 	"strconv"
 	"strings"
 	"time"
 )
 
-type TeacherLogic struct {
-}
-
 // 咨询师拉取反馈
-func (tl *TeacherLogic) GetFeedbackByTeacher(reservationId string, sourceId string,
-	userId string, userType models.UserType) (*models.Student, *models.Reservation, error) {
+func (w *Workflow) GetFeedbackByTeacher(reservationId string, sourceId string,
+	userId string, userType model.UserType) (*model.Student, *model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, nil, errors.New("请先登录")
-	} else if userType != models.TEACHER {
+	} else if userType != model.TEACHER {
 		return nil, nil, errors.New("权限不足")
 	} else if len(reservationId) == 0 {
 		return nil, nil, errors.New("咨询已下架")
 	} else if strings.EqualFold(reservationId, sourceId) {
 		return nil, nil, errors.New("咨询未被预约，不能反馈")
 	}
-	teacher, err := models.GetTeacherById(userId)
+	teacher, err := w.model.GetTeacherById(userId)
 	if err != nil {
 		return nil, nil, errors.New("咨询师账户失效")
-	} else if teacher.UserType != models.TEACHER {
+	} else if teacher.UserType != model.TEACHER {
 		return nil, nil, errors.New("权限不足")
 	}
-	reservation, err := models.GetReservationById(reservationId)
-	if err != nil || reservation.Status == models.DELETED {
+	reservation, err := w.model.GetReservationById(reservationId)
+	if err != nil || reservation.Status == model.DELETED {
 		return nil, nil, errors.New("咨询已下架")
 	} else if reservation.StartTime.After(time.Now()) {
 		return nil, nil, errors.New("咨询未开始,暂不能反馈")
-	} else if reservation.Status == models.AVAILABLE {
+	} else if reservation.Status == model.AVAILABLE {
 		return nil, nil, errors.New("咨询未被预约,不能反馈")
 	} else if !strings.EqualFold(reservation.TeacherId, teacher.Id.Hex()) {
 		return nil, nil, errors.New("只能反馈本人开设的咨询")
 	}
-	student, err := models.GetStudentById(reservation.StudentId)
+	student, err := w.model.GetStudentById(reservation.StudentId)
 	if err != nil {
 		return nil, nil, errors.New("获取数据失败")
 	}
@@ -48,26 +44,26 @@ func (tl *TeacherLogic) GetFeedbackByTeacher(reservationId string, sourceId stri
 }
 
 // 咨询师提交反馈
-func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId string,
+func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string,
 	category string, participants []int, emphasis string, severity []int, medicalDiagnosis []int, crisis []int,
-	record string, crisisLevel string, userId string, userType models.UserType) (*models.Reservation, error) {
+	record string, crisisLevel string, userId string, userType model.UserType) (*model.Reservation, error) {
 	if userId == "" {
 		return nil, errors.New("请先登录")
-	} else if userType != models.TEACHER {
+	} else if userType != model.TEACHER {
 		return nil, errors.New("权限不足")
 	} else if reservationId == "" {
 		return nil, errors.New("咨询已下架")
 	} else if category == "" {
 		return nil, errors.New("评估分类为空")
-	} else if len(participants) != len(models.PARTICIPANTS) {
+	} else if len(participants) != len(model.PARTICIPANTS) {
 		return nil, errors.New("咨询参与者为空")
 	} else if emphasis == "" {
 		return nil, errors.New("重点明细为空")
-	} else if len(severity) != len(models.SEVERITY) {
+	} else if len(severity) != len(model.SEVERITY) {
 		return nil, errors.New("严重程度为空")
-	} else if len(medicalDiagnosis) != len(models.MEDICAL_DIAGNOSIS) {
+	} else if len(medicalDiagnosis) != len(model.MEDICAL_DIAGNOSIS) {
 		return nil, errors.New("医疗诊断为空")
-	} else if len(crisis) != len(models.CRISIS) {
+	} else if len(crisis) != len(model.CRISIS) {
 		return nil, errors.New("危机情况为空")
 	} else if len(record) == 0 {
 		return nil, errors.New("咨询记录为空")
@@ -84,24 +80,24 @@ func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId s
 	if err != nil || crisisLevelInt < 0 {
 		return nil, errors.New("危机等级错误")
 	}
-	teacher, err := models.GetTeacherById(userId)
+	teacher, err := w.model.GetTeacherById(userId)
 	if err != nil {
 		return nil, errors.New("咨询师账户失效")
-	} else if teacher.UserType != models.TEACHER {
+	} else if teacher.UserType != model.TEACHER {
 		return nil, errors.New("权限不足")
 	}
-	reservation, err := models.GetReservationById(reservationId)
-	if err != nil || reservation.Status == models.DELETED {
+	reservation, err := w.model.GetReservationById(reservationId)
+	if err != nil || reservation.Status == model.DELETED {
 		return nil, errors.New("咨询已下架")
 	} else if reservation.StartTime.After(time.Now()) {
 		return nil, errors.New("咨询未开始,暂不能反馈")
-	} else if reservation.Status == models.AVAILABLE {
+	} else if reservation.Status == model.AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
 	} else if !strings.EqualFold(reservation.TeacherId, teacher.Id.Hex()) {
 		return nil, errors.New("只能反馈本人开设的咨询")
 	}
 	sendFeedbackSMS := reservation.TeacherFeedback.IsEmpty() && reservation.StudentFeedback.IsEmpty()
-	reservation.TeacherFeedback = models.TeacherFeedback{
+	reservation.TeacherFeedback = model.TeacherFeedback{
 		Category:         category,
 		Participants:     participants,
 		Emphasis:         emphasisInt,
@@ -110,44 +106,44 @@ func (tl *TeacherLogic) SubmitFeedbackByTeacher(reservationId string, sourceId s
 		Crisis:           crisis,
 		Record:           record,
 	}
-	student, err := models.GetStudentById(reservation.StudentId)
+	student, err := w.model.GetStudentById(reservation.StudentId)
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
 	student.CrisisLevel = crisisLevelInt
-	if models.UpsertReservation(reservation) != nil || models.UpsertStudent(student) != nil {
+	if w.model.UpsertReservation(reservation) != nil || w.model.UpsertStudent(student) != nil {
 		return nil, errors.New("获取数据失败")
 	}
 	if sendFeedbackSMS && participants[0] > 0 {
-		workflow.SendFeedbackSMS(reservation)
+		w.SendFeedbackSMS(reservation)
 	}
 	return reservation, nil
 }
 
 // 咨询师查看学生信息
-func (tl *TeacherLogic) GetStudentInfoByTeacher(studentId string,
-	userId string, userType models.UserType) (*models.Student, []*models.Reservation, error) {
+func (w *Workflow) GetStudentInfoByTeacher(studentId string,
+	userId string, userType model.UserType) (*model.Student, []*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, nil, errors.New("请先登录")
-	} else if userType != models.TEACHER {
+	} else if userType != model.TEACHER {
 		return nil, nil, errors.New("权限不足")
 	} else if len(studentId) == 0 {
 		return nil, nil, errors.New("咨询未被预约")
 	}
-	teacher, err := models.GetTeacherById(userId)
+	teacher, err := w.model.GetTeacherById(userId)
 	if err != nil {
 		return nil, nil, errors.New("咨询师账户失效")
-	} else if teacher.UserType != models.TEACHER {
+	} else if teacher.UserType != model.TEACHER {
 		return nil, nil, errors.New("权限不足")
 	}
-	student, err := models.GetStudentById(studentId)
+	student, err := w.model.GetStudentById(studentId)
 	if err != nil {
 		return nil, nil, errors.New("学生未注册")
 	}
 	if !strings.EqualFold(student.BindedTeacherId, teacher.Id.Hex()) {
 		return nil, nil, errors.New("只能查看本人绑定的学生")
 	}
-	reservations, err := models.GetReservationsByStudentId(student.Id.Hex())
+	reservations, err := w.model.GetReservationsByStudentId(student.Id.Hex())
 	if err != nil {
 		return nil, nil, errors.New("获取数据失败")
 	}
@@ -155,29 +151,29 @@ func (tl *TeacherLogic) GetStudentInfoByTeacher(studentId string,
 }
 
 // 咨询师查询学生信息
-func (tl *TeacherLogic) QueryStudentInfoByTeacher(studentUsername string,
-	userId string, userType models.UserType) (*models.Student, []*models.Reservation, error) {
+func (w *Workflow) QueryStudentInfoByTeacher(studentUsername string,
+	userId string, userType model.UserType) (*model.Student, []*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, nil, errors.New("请先登录")
-	} else if userType != models.TEACHER {
+	} else if userType != model.TEACHER {
 		return nil, nil, errors.New("权限不足")
 	} else if len(studentUsername) == 0 {
 		return nil, nil, errors.New("学号为空")
 	}
-	teacher, err := models.GetTeacherById(userId)
+	teacher, err := w.model.GetTeacherById(userId)
 	if err != nil {
 		return nil, nil, errors.New("咨询师账户失效")
-	} else if teacher.UserType != models.TEACHER {
+	} else if teacher.UserType != model.TEACHER {
 		return nil, nil, errors.New("权限不足")
 	}
-	student, err := models.GetStudentByUsername(studentUsername)
-	if err != nil || student.UserType != models.STUDENT {
+	student, err := w.model.GetStudentByUsername(studentUsername)
+	if err != nil || student.UserType != model.STUDENT {
 		return nil, nil, errors.New("学生未注册")
 	}
 	if !strings.EqualFold(student.BindedTeacherId, teacher.Id.Hex()) {
 		return nil, nil, errors.New("只能查看本人绑定的学生")
 	}
-	reservations, err := models.GetReservationsByStudentId(student.Id.Hex())
+	reservations, err := w.model.GetReservationsByStudentId(student.Id.Hex())
 	if err != nil {
 		return nil, nil, errors.New("获取数据失败")
 	}

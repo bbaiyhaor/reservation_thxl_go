@@ -1,20 +1,17 @@
-package controllers
+package service
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	"net/http"
 	"strings"
 )
 
-func ViewTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) ViewTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
-	var ul = buslogic.UserLogic{}
 
-	timedReservations, err := al.ViewTimetableByAdmin(userId, userType)
+	timedReservations, err := s.w.ViewTimetableByAdmin(userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	var timetable = make(map[string]interface{})
@@ -28,7 +25,7 @@ func ViewTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId
 			trJson["end_clock"] = tr.EndTime.Format("15:04")
 			trJson["status"] = tr.Status.String()
 			trJson["teacher_id"] = tr.TeacherId
-			if teacher, err := ul.GetTeacherById(tr.TeacherId); err == nil {
+			if teacher, err := s.w.GetTeacherById(tr.TeacherId); err == nil {
 				trJson["teacher_username"] = teacher.Username
 				trJson["teacher_fullname"] = teacher.Fullname
 				trJson["teacher_mobile"] = teacher.Mobile
@@ -42,7 +39,7 @@ func ViewTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId
 	return result
 }
 
-func AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	weekday := r.PostFormValue("weekday")
 	startTime := r.PostFormValue("start_clock")
 	endTime := r.PostFormValue("end_clock")
@@ -52,14 +49,12 @@ func AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId s
 	force := strings.EqualFold(r.PostFormValue("force"), "FORCE")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
-	var ul = buslogic.UserLogic{}
 
 	var timedReservationJson = make(map[string]interface{})
-	timedReservation, err := al.AddTimetableByAdmin(weekday, startTime, endTime, teacherUsername, teacherFullname,
+	timedReservation, err := s.w.AddTimetableByAdmin(weekday, startTime, endTime, teacherUsername, teacherFullname,
 		teacherMobile, force, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	timedReservationJson["timed_reservation_id"] = timedReservation.Id.Hex()
@@ -68,7 +63,7 @@ func AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId s
 	timedReservationJson["end_clock"] = timedReservation.EndTime.Format("15:04")
 	timedReservationJson["status"] = timedReservation.Status.String()
 	timedReservationJson["teacher_id"] = timedReservation.TeacherId
-	if teacher, err := ul.GetTeacherById(timedReservation.TeacherId); err == nil {
+	if teacher, err := s.w.GetTeacherById(timedReservation.TeacherId); err == nil {
 		timedReservationJson["teacher_username"] = teacher.Username
 		timedReservationJson["teacher_fullname"] = teacher.Fullname
 		timedReservationJson["teacher_mobile"] = teacher.Mobile
@@ -78,7 +73,7 @@ func AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId s
 	return result
 }
 
-func EditTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) EditTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	timedReservationId := r.PostFormValue("timed_reservation_id")
 	weekday := r.PostFormValue("weekday")
 	startTime := r.PostFormValue("start_clock")
@@ -89,14 +84,12 @@ func EditTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId 
 	force := strings.EqualFold(r.PostFormValue("force"), "FORCE")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
-	var ul = buslogic.UserLogic{}
 
 	var timedReservationJson = make(map[string]interface{})
-	timedReservation, err := al.EditTimetableByAdmin(timedReservationId, weekday, startTime, endTime, teacherUsername,
+	timedReservation, err := s.w.EditTimetableByAdmin(timedReservationId, weekday, startTime, endTime, teacherUsername,
 		teacherFullname, teacherMobile, force, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	timedReservationJson["timed_reservation_id"] = timedReservation.Id.Hex()
@@ -105,7 +98,7 @@ func EditTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId 
 	timedReservationJson["end_clock"] = timedReservation.EndTime.Format("15:04")
 	timedReservationJson["status"] = timedReservation.Status.String()
 	timedReservationJson["teacher_id"] = timedReservation.TeacherId
-	if teacher, err := ul.GetTeacherById(timedReservation.TeacherId); err == nil {
+	if teacher, err := s.w.GetTeacherById(timedReservation.TeacherId); err == nil {
 		timedReservationJson["teacher_username"] = teacher.Username
 		timedReservationJson["teacher_fullname"] = teacher.Fullname
 		timedReservationJson["teacher_mobile"] = teacher.Mobile
@@ -115,16 +108,15 @@ func EditTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId 
 	return result
 }
 
-func RemoveTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) RemoveTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	r.ParseForm()
 	timedReservationIds := []string(r.Form["timed_reservation_ids"])
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	removed, err := al.RemoveTimetablesByAdmin(timedReservationIds, userId, userType)
+	removed, err := s.w.RemoveTimetablesByAdmin(timedReservationIds, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	result["removed_count"] = removed
@@ -132,16 +124,15 @@ func RemoveTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, user
 	return result
 }
 
-func OpenTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) OpenTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	r.ParseForm()
 	timedReservationIds := []string(r.Form["timed_reservation_ids"])
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	opened, err := al.OpenTimetablesByAdmin(timedReservationIds, userId, userType)
+	opened, err := s.w.OpenTimetablesByAdmin(timedReservationIds, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	result["opened_count"] = opened
@@ -149,16 +140,15 @@ func OpenTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId
 	return result
 }
 
-func CloseTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) CloseTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	r.ParseForm()
 	timedReservationIds := []string(r.Form["timed_reservation_ids"])
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	closed, err := al.CloseTimetablesByAdmin(timedReservationIds, userId, userType)
+	closed, err := s.w.CloseTimetablesByAdmin(timedReservationIds, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	result["closed_count"] = closed

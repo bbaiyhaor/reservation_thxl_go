@@ -1,8 +1,7 @@
-package controllers
+package service
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	"errors"
 	"net/http"
 	"net/url"
@@ -11,14 +10,12 @@ import (
 	"time"
 )
 
-func ViewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) ViewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var rl = buslogic.ReservationLogic{}
-	var ul = buslogic.UserLogic{}
 
-	reservations, err := rl.GetReservationsByAdmin(userId, userType)
+	reservations, err := s.w.GetReservationsByAdmin(userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	var array = make([]interface{}, 0)
@@ -30,21 +27,21 @@ func ViewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 		resJson["source"] = res.Source.String()
 		resJson["source_id"] = res.SourceId
 		resJson["student_id"] = res.StudentId
-		if student, err := ul.GetStudentById(res.StudentId); err == nil {
+		if student, err := s.w.GetStudentById(res.StudentId); err == nil {
 			resJson["student_crisis_level"] = student.CrisisLevel
 		}
 		resJson["teacher_id"] = res.TeacherId
-		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
+		if teacher, err := s.w.GetTeacherById(res.TeacherId); err == nil {
 			resJson["teacher_username"] = teacher.Username
 			resJson["teacher_fullname"] = teacher.Fullname
 			resJson["teacher_mobile"] = teacher.Mobile
 		}
-		if res.Status == models.AVAILABLE {
-			resJson["status"] = models.AVAILABLE.String()
-		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now()) {
-			resJson["status"] = models.FEEDBACK.String()
+		if res.Status == model.AVAILABLE {
+			resJson["status"] = model.AVAILABLE.String()
+		} else if res.Status == model.RESERVATED && res.StartTime.Before(time.Now()) {
+			resJson["status"] = model.FEEDBACK.String()
 		} else {
-			resJson["status"] = models.RESERVATED.String()
+			resJson["status"] = model.RESERVATED.String()
 		}
 		array = append(array, resJson)
 	}
@@ -53,21 +50,19 @@ func ViewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 	return result
 }
 
-func ViewDailyReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) ViewDailyReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	queryForm, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil || len(queryForm["from_date"]) == 0 {
-		ErrorHandler(w, r, errors.New("参数错误"))
+		s.ErrorHandler(w, r, errors.New("参数错误"))
 		return nil
 	}
 	fromDate := queryForm["from_date"][0]
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var rl = buslogic.ReservationLogic{}
-	var ul = buslogic.UserLogic{}
 
-	reservations, err := rl.GetReservationsDailyByAdmin(fromDate, userId, userType)
+	reservations, err := s.w.GetReservationsDailyByAdmin(fromDate, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	var array = make([]interface{}, 0)
@@ -79,21 +74,21 @@ func ViewDailyReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId
 		resJson["source"] = res.Source.String()
 		resJson["source_id"] = res.SourceId
 		resJson["student_id"] = res.StudentId
-		if student, err := ul.GetStudentById(res.StudentId); err == nil {
+		if student, err := s.w.GetStudentById(res.StudentId); err == nil {
 			resJson["student_crisis_level"] = student.CrisisLevel
 		}
 		resJson["teacher_id"] = res.TeacherId
-		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
+		if teacher, err := s.w.GetTeacherById(res.TeacherId); err == nil {
 			resJson["teacher_username"] = teacher.Username
 			resJson["teacher_fullname"] = teacher.Fullname
 			resJson["teacher_mobile"] = teacher.Mobile
 		}
-		if res.Status == models.AVAILABLE {
-			resJson["status"] = models.AVAILABLE.String()
-		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now()) {
-			resJson["status"] = models.FEEDBACK.String()
+		if res.Status == model.AVAILABLE {
+			resJson["status"] = model.AVAILABLE.String()
+		} else if res.Status == model.RESERVATED && res.StartTime.Before(time.Now()) {
+			resJson["status"] = model.FEEDBACK.String()
 		} else {
-			resJson["status"] = models.RESERVATED.String()
+			resJson["status"] = model.RESERVATED.String()
 		}
 		array = append(array, resJson)
 	}
@@ -102,13 +97,12 @@ func ViewDailyReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId
 	return result
 }
 
-func ExportTodayReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) ExportTodayReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	url, err := al.ExportTodayReservationTimetableByAdmin(userId, userType)
+	url, err := s.w.ExportTodayReservationTimetableByAdmin(userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	result["url"] = url
@@ -116,7 +110,7 @@ func ExportTodayReservationsByAdmin(w http.ResponseWriter, r *http.Request, user
 	return result
 }
 
-func AddReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) AddReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	startTime := r.PostFormValue("start_time")
 	endTime := r.PostFormValue("end_time")
 	teacherUsername := r.PostFormValue("teacher_username")
@@ -125,14 +119,12 @@ func AddReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	force := strings.EqualFold(r.PostFormValue("force"), "FORCE")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
-	var ul = buslogic.UserLogic{}
 
 	var reservationJson = make(map[string]interface{})
-	reservation, err := al.AddReservationByAdmin(startTime, endTime, teacherUsername, teacherFullname,
+	reservation, err := s.w.AddReservationByAdmin(startTime, endTime, teacherUsername, teacherFullname,
 		teacherMobile, force, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	reservationJson["reservation_id"] = reservation.Id
@@ -142,7 +134,7 @@ func AddReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	reservationJson["source_id"] = reservation.SourceId
 	reservationJson["student_id"] = reservation.StudentId
 	reservationJson["teacher_id"] = reservation.TeacherId
-	if teacher, err := ul.GetTeacherById(reservation.TeacherId); err == nil {
+	if teacher, err := s.w.GetTeacherById(reservation.TeacherId); err == nil {
 		reservationJson["teacher_username"] = teacher.Username
 		reservationJson["teacher_fullname"] = teacher.Fullname
 		reservationJson["teacher_mobile"] = teacher.Mobile
@@ -152,7 +144,7 @@ func AddReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	return result
 }
 
-func EditReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) EditReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 	originalStartTime := r.PostFormValue("original_start_time")
@@ -164,14 +156,12 @@ func EditReservationByAdmin(w http.ResponseWriter, r *http.Request, userId strin
 	force := strings.EqualFold(r.PostFormValue("force"), "FORCE")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
-	var ul = buslogic.UserLogic{}
 
 	var reservationJson = make(map[string]interface{})
-	reservation, err := al.EditReservationByAdmin(reservationId, sourceId, originalStartTime,
+	reservation, err := s.w.EditReservationByAdmin(reservationId, sourceId, originalStartTime,
 		startTime, endTime, teacherUsername, teacherFullname, teacherMobile, force, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	reservationJson["reservation_id"] = reservation.Id
@@ -181,7 +171,7 @@ func EditReservationByAdmin(w http.ResponseWriter, r *http.Request, userId strin
 	reservationJson["source_id"] = reservation.SourceId
 	reservationJson["student_id"] = reservation.StudentId
 	reservationJson["teacher_id"] = reservation.TeacherId
-	if teacher, err := ul.GetTeacherById(reservation.TeacherId); err == nil {
+	if teacher, err := s.w.GetTeacherById(reservation.TeacherId); err == nil {
 		reservationJson["teacher_username"] = teacher.Username
 		reservationJson["teacher_fullname"] = teacher.Fullname
 		reservationJson["teacher_mobile"] = teacher.Mobile
@@ -191,18 +181,17 @@ func EditReservationByAdmin(w http.ResponseWriter, r *http.Request, userId strin
 	return result
 }
 
-func RemoveReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) RemoveReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	r.ParseForm()
 	reservationIds := []string(r.Form["reservation_ids"])
 	sourceIds := []string(r.Form["source_ids"])
 	startTimes := []string(r.Form["start_times"])
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	removed, err := al.RemoveReservationsByAdmin(reservationIds, sourceIds, startTimes, userId, userType)
+	removed, err := s.w.RemoveReservationsByAdmin(reservationIds, sourceIds, startTimes, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	result["removed_count"] = removed
@@ -210,17 +199,16 @@ func RemoveReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId st
 	return result
 }
 
-func CancelReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) CancelReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	r.ParseForm()
 	reservationIds := []string(r.Form["reservation_ids"])
 	sourceIds := []string(r.Form["source_ids"])
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	removed, err := al.CancelReservationsByAdmin(reservationIds, sourceIds, userId, userType)
+	removed, err := s.w.CancelReservationsByAdmin(reservationIds, sourceIds, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	result["removed_count"] = removed
@@ -228,38 +216,37 @@ func CancelReservationByAdmin(w http.ResponseWriter, r *http.Request, userId str
 	return result
 }
 
-func GetFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) GetFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
 	var feedback = make(map[string]interface{})
-	student, reservation, err := al.GetFeedbackByAdmin(reservationId, sourceId, userId, userType)
+	student, reservation, err := s.w.GetFeedbackByAdmin(reservationId, sourceId, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	feedback["category"] = reservation.TeacherFeedback.Category
-	if len(reservation.TeacherFeedback.Participants) != len(models.PARTICIPANTS) {
-		feedback["participants"] = make([]int, len(models.PARTICIPANTS))
+	if len(reservation.TeacherFeedback.Participants) != len(model.PARTICIPANTS) {
+		feedback["participants"] = make([]int, len(model.PARTICIPANTS))
 	} else {
 		feedback["participants"] = reservation.TeacherFeedback.Participants
 	}
 	feedback["emphasis"] = reservation.TeacherFeedback.Emphasis
-	if len(reservation.TeacherFeedback.Severity) != len(models.SEVERITY) {
-		feedback["severity"] = make([]int, len(models.SEVERITY))
+	if len(reservation.TeacherFeedback.Severity) != len(model.SEVERITY) {
+		feedback["severity"] = make([]int, len(model.SEVERITY))
 	} else {
 		feedback["severity"] = reservation.TeacherFeedback.Severity
 	}
-	if len(reservation.TeacherFeedback.MedicalDiagnosis) != len(models.MEDICAL_DIAGNOSIS) {
-		feedback["medical_diagnosis"] = make([]int, len(models.MEDICAL_DIAGNOSIS))
+	if len(reservation.TeacherFeedback.MedicalDiagnosis) != len(model.MEDICAL_DIAGNOSIS) {
+		feedback["medical_diagnosis"] = make([]int, len(model.MEDICAL_DIAGNOSIS))
 	} else {
 		feedback["medical_diagnosis"] = reservation.TeacherFeedback.MedicalDiagnosis
 	}
-	if len(reservation.TeacherFeedback.Crisis) != len(models.CRISIS) {
-		feedback["crisis"] = make([]int, len(models.CRISIS))
+	if len(reservation.TeacherFeedback.Crisis) != len(model.CRISIS) {
+		feedback["crisis"] = make([]int, len(model.CRISIS))
 	} else {
 		feedback["crisis"] = reservation.TeacherFeedback.Crisis
 	}
@@ -270,7 +257,7 @@ func GetFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, u
 	return result
 }
 
-func SubmitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) SubmitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 	category := r.PostFormValue("category")
@@ -284,7 +271,6 @@ func SubmitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	crisisLevel := r.PostFormValue("crisis_level")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
 	participantsInt := make([]int, 0)
 	for _, p := range participants {
@@ -310,17 +296,17 @@ func SubmitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string
 			crisisInt = append(crisisInt, ci)
 		}
 	}
-	_, err := al.SubmitFeedbackByAdmin(reservationId, sourceId, category, participantsInt, emphasis, severityInt,
+	_, err := s.w.SubmitFeedbackByAdmin(reservationId, sourceId, category, participantsInt, emphasis, severityInt,
 		medicalDiagnosisInt, crisisInt, record, crisisLevel, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 
 	return result
 }
 
-func SetStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) SetStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 	startTime := r.PostFormValue("start_time")
@@ -348,21 +334,19 @@ func SetStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, us
 	problem := r.PostFormValue("student_problem")
 	sendSms, err := strconv.ParseBool(r.PostFormValue("student_sms"))
 	if err != nil {
-		ErrorHandler(w, r, errors.New("参数错误，请联系管理员"))
+		s.ErrorHandler(w, r, errors.New("参数错误，请联系管理员"))
 		return nil
 	}
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
-	var ul = buslogic.UserLogic{}
 
 	var reservationJson = make(map[string]interface{})
-	reservation, err := al.SetStudentByAdmin(reservationId, sourceId, startTime, studentUsername, fullname, gender,
+	reservation, err := s.w.SetStudentByAdmin(reservationId, sourceId, startTime, studentUsername, fullname, gender,
 		birthday, school, grade, currentAddress, familyAddress, mobile, email, experienceTime,
 		experienceLocation, experienceTeacher, fatherAge, fatherJob, fatherEdu, motherAge, motherJob, motherEdu,
 		parentMarriage, siginificant, problem, sendSms, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	reservationJson["reservation_id"] = reservation.Id
@@ -372,7 +356,7 @@ func SetStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, us
 	reservationJson["source_id"] = reservation.SourceId
 	reservationJson["student_id"] = reservation.StudentId
 	reservationJson["teacher_id"] = reservation.TeacherId
-	if teacher, err := ul.GetTeacherById(reservation.TeacherId); err == nil {
+	if teacher, err := s.w.GetTeacherById(reservation.TeacherId); err == nil {
 		reservationJson["teacher_username"] = teacher.Username
 		reservationJson["teacher_fullname"] = teacher.Fullname
 		reservationJson["teacher_mobile"] = teacher.Mobile
@@ -382,17 +366,15 @@ func SetStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, us
 	return result
 }
 
-func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	studentId := r.PostFormValue("student_id")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
-	var ul = buslogic.UserLogic{}
 
 	var studentJson = make(map[string]interface{})
-	student, reservations, err := al.GetStudentInfoByAdmin(studentId, userId, userType)
+	student, reservations, err := s.w.GetStudentInfoByAdmin(studentId, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	studentJson["student_id"] = student.Id.Hex()
@@ -424,7 +406,7 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	studentJson["student_significant"] = student.Significant
 	studentJson["student_problem"] = student.Problem
 	if len(student.BindedTeacherId) != 0 {
-		teacher, err := ul.GetTeacherById(student.BindedTeacherId)
+		teacher, err := s.w.GetTeacherById(student.BindedTeacherId)
 		if err != nil {
 			studentJson["student_binded_teacher_username"] = "无"
 			studentJson["student_binded_teacher_fullname"] = ""
@@ -442,16 +424,16 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 		resJson := make(map[string]interface{})
 		resJson["start_time"] = res.StartTime.Format("2006-01-02 15:04")
 		resJson["end_time"] = res.EndTime.Format("2006-01-02 15:04")
-		if res.Status == models.AVAILABLE {
-			resJson["status"] = models.AVAILABLE.String()
-		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now()) {
-			resJson["status"] = models.FEEDBACK.String()
+		if res.Status == model.AVAILABLE {
+			resJson["status"] = model.AVAILABLE.String()
+		} else if res.Status == model.RESERVATED && res.StartTime.Before(time.Now()) {
+			resJson["status"] = model.FEEDBACK.String()
 		} else {
-			resJson["status"] = models.RESERVATED.String()
+			resJson["status"] = model.RESERVATED.String()
 		}
 		resJson["student_id"] = res.StudentId
 		resJson["teacher_id"] = res.TeacherId
-		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
+		if teacher, err := s.w.GetTeacherById(res.TeacherId); err == nil {
 			resJson["teacher_username"] = teacher.Username
 			resJson["teacher_fullname"] = teacher.Fullname
 			resJson["teacher_mobile"] = teacher.Mobile
@@ -465,16 +447,15 @@ func GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string
 	return result
 }
 
-func SearchStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) SearchStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	studentUsername := r.PostFormValue("student_username")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var ul = buslogic.UserLogic{}
 
 	var studentJson = make(map[string]interface{})
-	student, err := ul.GetStudentByUsername(studentUsername)
+	student, err := s.w.GetStudentByUsername(studentUsername)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	studentJson["student_id"] = student.Id.Hex()
@@ -506,7 +487,7 @@ func SearchStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string,
 	studentJson["student_significant"] = student.Significant
 	studentJson["student_problem"] = student.Problem
 	if len(student.BindedTeacherId) != 0 {
-		teacher, err := ul.GetTeacherById(student.BindedTeacherId)
+		teacher, err := s.w.GetTeacherById(student.BindedTeacherId)
 		if err != nil {
 			studentJson["student_binded_teacher_username"] = "无"
 			studentJson["student_binded_teacher_fullname"] = ""
@@ -522,79 +503,74 @@ func SearchStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string,
 	return result
 }
 
-func UpdateStudentCrisisLevelByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) UpdateStudentCrisisLevelByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	studentId := r.PostFormValue("student_id")
 	crisisLevel := r.PostFormValue("crisis_level")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	_, err := al.UpdateStudentCrisisLevelByAdmin(studentId, crisisLevel, userId, userType)
+	_, err := s.w.UpdateStudentCrisisLevelByAdmin(studentId, crisisLevel, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 
 	return result
 }
 
-func UpdateStudentArchiveNumberByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) UpdateStudentArchiveNumberByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	studentId := r.PostFormValue("student_id")
 	archiveCategory := r.PostFormValue("archive_category")
 	archiveNumber := r.PostFormValue("archive_number")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	_, err := al.UpdateStudentArchiveNumberByAdmin(studentId, archiveCategory, archiveNumber, userId, userType)
+	_, err := s.w.UpdateStudentArchiveNumberByAdmin(studentId, archiveCategory, archiveNumber, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 
 	return result
 }
 
-func ResetStudentPasswordByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) ResetStudentPasswordByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	studentId := r.PostFormValue("student_id")
 	password := r.PostFormValue("password")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	_, err := al.ResetStudentPasswordByAdmin(studentId, password, userId, userType)
+	_, err := s.w.ResetStudentPasswordByAdmin(studentId, password, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 
 	return result
 }
 
-func DeleteStudentAccountByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) DeleteStudentAccountByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	studentId := r.PostFormValue("student_id")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	err := al.DeleteStudentAccountByAdmin(studentId, userId, userType)
+	err := s.w.DeleteStudentAccountByAdmin(studentId, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 
 	return result
 }
 
-func ExportStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) ExportStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	studentId := r.PostFormValue("student_id")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	url, err := al.ExportStudentByAdmin(studentId, userId, userType)
+	url, err := s.w.ExportStudentByAdmin(studentId, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	result["url"] = url
@@ -602,21 +578,19 @@ func ExportStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string,
 	return result
 }
 
-func UnbindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) UnbindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	studentId := r.PostFormValue("student_id")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
-	var ul = buslogic.UserLogic{}
 
 	var studentJson = make(map[string]interface{})
-	student, err := al.UnbindStudentByAdmin(studentId, userId, userType)
+	student, err := s.w.UnbindStudentByAdmin(studentId, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	if len(student.BindedTeacherId) != 0 {
-		teacher, err := ul.GetTeacherById(student.BindedTeacherId)
+		teacher, err := s.w.GetTeacherById(student.BindedTeacherId)
 		if err != nil {
 			studentJson["student_binded_teacher_username"] = "无"
 			studentJson["student_binded_teacher_fullname"] = ""
@@ -632,21 +606,19 @@ func UnbindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string,
 	return result
 }
 
-func BindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) BindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	studentId := r.PostFormValue("student_id")
 	teacherUsername := r.PostFormValue("teacher_username")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
-	var ul = buslogic.UserLogic{}
 
 	var studentJson = make(map[string]interface{})
-	student, err := al.BindStudentByAdmin(studentId, teacherUsername, userId, userType)
+	student, err := s.w.BindStudentByAdmin(studentId, teacherUsername, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	} else if len(student.BindedTeacherId) != 0 {
-		teacher, err := ul.GetTeacherById(student.BindedTeacherId)
+		teacher, err := s.w.GetTeacherById(student.BindedTeacherId)
 		if err != nil {
 			studentJson["student_binded_teacher_username"] = "无"
 			studentJson["student_binded_teacher_fullname"] = ""
@@ -662,17 +634,15 @@ func BindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, u
 	return result
 }
 
-func QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	studentUsername := r.PostFormValue("student_username")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
-	var ul = buslogic.UserLogic{}
 
 	var studentJson = make(map[string]interface{})
-	student, reservations, err := al.QueryStudentInfoByAdmin(studentUsername, userId, userType)
+	student, reservations, err := s.w.QueryStudentInfoByAdmin(studentUsername, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	studentJson["student_id"] = student.Id.Hex()
@@ -706,7 +676,7 @@ func QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 	studentJson["student_significant"] = student.Significant
 	studentJson["student_problem"] = student.Problem
 	if len(student.BindedTeacherId) != 0 {
-		teacher, err := ul.GetTeacherById(student.BindedTeacherId)
+		teacher, err := s.w.GetTeacherById(student.BindedTeacherId)
 		if err != nil {
 			studentJson["student_binded_teacher_username"] = "无"
 			studentJson["student_binded_teacher_fullname"] = ""
@@ -724,16 +694,16 @@ func QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 		resJson := make(map[string]interface{})
 		resJson["start_time"] = res.StartTime.Format("2006-01-02 15:04")
 		resJson["end_time"] = res.EndTime.Format("2006-01-02 15:04")
-		if res.Status == models.AVAILABLE {
-			resJson["status"] = models.AVAILABLE.String()
-		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now()) {
-			resJson["status"] = models.FEEDBACK.String()
+		if res.Status == model.AVAILABLE {
+			resJson["status"] = model.AVAILABLE.String()
+		} else if res.Status == model.RESERVATED && res.StartTime.Before(time.Now()) {
+			resJson["status"] = model.FEEDBACK.String()
 		} else {
-			resJson["status"] = models.RESERVATED.String()
+			resJson["status"] = model.RESERVATED.String()
 		}
 		resJson["student_id"] = res.StudentId
 		resJson["teacher_id"] = res.TeacherId
-		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
+		if teacher, err := s.w.GetTeacherById(res.TeacherId); err == nil {
 			resJson["teacher_username"] = teacher.Username
 			resJson["teacher_fullname"] = teacher.Fullname
 			resJson["teacher_mobile"] = teacher.Mobile
@@ -747,19 +717,18 @@ func QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 	return result
 }
 
-func SearchTeacherByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) SearchTeacherByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	teacherUsername := r.PostFormValue("teacher_username")
 	teacherFullname := r.PostFormValue("teacher_fullname")
 	teacherMoble := r.PostFormValue("teacher_mobile")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
 	var teacherJson = make(map[string]interface{})
-	teacher, err := al.SearchTeacherByAdmin(teacherFullname, teacherUsername, teacherMoble,
+	teacher, err := s.w.SearchTeacherByAdmin(teacherFullname, teacherUsername, teacherMoble,
 		userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	teacherJson["teacher_id"] = teacher.Id.Hex()
@@ -771,16 +740,15 @@ func SearchTeacherByAdmin(w http.ResponseWriter, r *http.Request, userId string,
 	return result
 }
 
-func GetTeacherWorkloadByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) GetTeacherWorkloadByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	fromDate := r.PostFormValue("from_date")
 	toDate := r.PostFormValue("to_date")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	workload, err := al.GetTeacherWorkloadByAdmin(fromDate, toDate, userId, userType)
+	workload, err := s.w.GetTeacherWorkloadByAdmin(fromDate, toDate, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	result["workload"] = workload
@@ -788,16 +756,15 @@ func GetTeacherWorkloadByAdmin(w http.ResponseWriter, r *http.Request, userId st
 	return result
 }
 
-func ExportReportFormByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) ExportReportFormByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	fromDate := r.PostFormValue("from_date")
 	toDate := r.PostFormValue("to_date")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	url, err := al.ExportReportFormByAdmin(fromDate, toDate, userId, userType)
+	url, err := s.w.ExportReportFormByAdmin(fromDate, toDate, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	result["url"] = url
@@ -805,15 +772,14 @@ func ExportReportFormByAdmin(w http.ResponseWriter, r *http.Request, userId stri
 	return result
 }
 
-func ExportReportMonthlyByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) ExportReportMonthlyByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	monthlyDate := r.PostFormValue("monthly_date")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var al = buslogic.AdminLogic{}
 
-	reportUrl, keyCaseUrl, err := al.ExportReportMonthlyByAdmin(monthlyDate, userId, userType)
+	reportUrl, keyCaseUrl, err := s.w.ExportReportMonthlyByAdmin(monthlyDate, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	result["report"] = reportUrl

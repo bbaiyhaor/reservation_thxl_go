@@ -1,9 +1,9 @@
-package workflow
+package buslogic
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
 	"bytes"
 	"errors"
 	"fmt"
@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 const (
@@ -39,16 +40,16 @@ var (
 	}
 )
 
-func SendSuccessSMS(reservation *models.Reservation) error {
+func (w *Workflow) SendSuccessSMS(reservation *model.Reservation) error {
 	startTime := reservation.StartTime
 	endTime := reservation.EndTime
-	student, err := models.GetStudentById(reservation.StudentId)
+	student, err := w.model.GetStudentById(reservation.StudentId)
 	if err != nil {
 		return errors.New("学生未注册")
 	}
-	studentSMS := fmt.Sprintf(SMS_SUCCESS_STUDENT, student.Fullname, utils.Weekdays[startTime.Weekday()],
+	studentSMS := fmt.Sprintf(SMS_SUCCESS_STUDENT, student.Fullname, util.Weekdays[startTime.Weekday()],
 		startTime.Month(), startTime.Day(), startTime.Format("15:04"), endTime.Format("15:04"))
-	if err := sendSMS(student.Mobile, studentSMS); err != nil {
+	if err := w.sendSMS(student.Mobile, studentSMS); err != nil {
 		return err
 	}
 	//teacher, err := models.GetTeacherById(reservation.TeacherId)
@@ -58,22 +59,22 @@ func SendSuccessSMS(reservation *models.Reservation) error {
 	//teacherSMS := fmt.Sprintf(SMS_SUCCESS_TEACHER, teacher.Fullname, student.Fullname,
 	//	utils.Weekdays[startTime.Weekday()], startTime.Month(), startTime.Day(),
 	//	startTime.Format("15:04"), endTime.Format("15:04"))
-	//if err := sendSMS(teacher.Mobile, teacherSMS); err != nil {
+	//if err := w.sendSMS(teacher.Mobile, teacherSMS); err != nil {
 	//	return err
 	//}
 	return nil
 }
 
-func SendCancelSMS(reservation *models.Reservation) error {
+func (w *Workflow) SendCancelSMS(reservation *model.Reservation) error {
 	startTime := reservation.StartTime
 	endTime := reservation.EndTime
-	student, err := models.GetStudentById(reservation.StudentId)
+	student, err := w.model.GetStudentById(reservation.StudentId)
 	if err != nil {
 		return errors.New("学生未注册")
 	}
-	studentSMS := fmt.Sprintf(SMS_CANCEL_STUDENT, student.Fullname, utils.Weekdays[startTime.Weekday()],
+	studentSMS := fmt.Sprintf(SMS_CANCEL_STUDENT, student.Fullname, util.Weekdays[startTime.Weekday()],
 		startTime.Month(), startTime.Day(), startTime.Format("15:04"), endTime.Format("15:04"))
-	if err := sendSMS(student.Mobile, studentSMS); err != nil {
+	if err := w.sendSMS(student.Mobile, studentSMS); err != nil {
 		return err
 	}
 	//teacher, err := models.GetTeacherById(reservation.TeacherId)
@@ -83,21 +84,21 @@ func SendCancelSMS(reservation *models.Reservation) error {
 	//teacherSMS := fmt.Sprintf(SMS_CANCEL_TEACHER, teacher.Fullname, student.Fullname,
 	//	utils.Weekdays[startTime.Weekday()], startTime.Month(), startTime.Day(),
 	//	startTime.Format("15:04"), endTime.Format("15:04"))
-	//if err := sendSMS(teacher.Mobile, teacherSMS); err != nil {
+	//if err := w.sendSMS(teacher.Mobile, teacherSMS); err != nil {
 	//	return err
 	//}
 	return nil
 }
 
-func SendReminderSMS(reservation *models.Reservation) error {
+func (w *Workflow) SendReminderSMS(reservation *model.Reservation) error {
 	startTime := reservation.StartTime
 	endTime := reservation.EndTime
-	student, err := models.GetStudentById(reservation.StudentId)
+	student, err := w.model.GetStudentById(reservation.StudentId)
 	if err != nil {
 		return errors.New("学生未注册")
 	}
 	studentSMS := fmt.Sprintf(SMS_REMINDER_STUDENT, student.Fullname, startTime.Format("15:04"), endTime.Format("15:04"))
-	if err := sendSMS(student.Mobile, studentSMS); err != nil {
+	if err := w.sendSMS(student.Mobile, studentSMS); err != nil {
 		return err
 	}
 	//teacher, err := models.GetTeacherById(reservation.TeacherId)
@@ -106,26 +107,26 @@ func SendReminderSMS(reservation *models.Reservation) error {
 	//}
 	//teacherSMS := fmt.Sprintf(SMS_REMINDER_TEACHER, teacher.Fullname, student.Fullname,
 	//	startTime.Format("15:04"), endTime.Format("15:04"))
-	//if err := sendSMS(teacher.Mobile, teacherSMS); err != nil {
+	//if err := w.sendSMS(teacher.Mobile, teacherSMS); err != nil {
 	//	return err
 	//}
 	return nil
 }
 
-func SendFeedbackSMS(reservation *models.Reservation) error {
-	student, err := models.GetStudentById(reservation.StudentId)
+func (w *Workflow) SendFeedbackSMS(reservation *model.Reservation) error {
+	student, err := w.model.GetStudentById(reservation.StudentId)
 	if err != nil {
 		return errors.New("学生未注册")
 	}
 	studentSMS := fmt.Sprintf(SMS_FEEDBACK_STUDENT, student.Fullname)
-	if err := sendSMS(student.Mobile, studentSMS); err != nil {
+	if err := w.sendSMS(student.Mobile, studentSMS); err != nil {
 		return err
 	}
 	return nil
 }
 
-func sendSMS(mobile string, content string) error {
-	if m := utils.IsMobile(mobile); !m {
+func (w *Workflow) sendSMS(mobile string, content string) error {
+	if m := util.IsMobile(mobile); !m {
 		return errors.New("手机号格式不正确")
 	}
 	if config.Instance().IsSmockServer() {
@@ -152,9 +153,33 @@ func sendSMS(mobile string, content string) error {
 	errCode := string(responseBody)
 	if errMsg, ok := SMS_ERROR_MSG[errCode]; ok {
 		log.Printf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg)
-		EmailWarn("thxlfzzx报警：短信发送失败", fmt.Sprintf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg))
+		util.EmailWarn("thxlfzzx报警：短信发送失败", fmt.Sprintf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg))
 		return errors.New(fmt.Sprintf("短信发送失败：%s", errMsg))
 	}
 	log.Printf("Send SMS \"%s\" to %s: return %s", content, mobile, errCode)
 	return nil
+}
+
+// 每天20:00发送第二天预约咨询的提醒短信
+func (w *Workflow) SendTomorrowReservationReminderSMS() {
+	today := util.BeginOfDay(time.Now())
+	from := today.AddDate(0, 0, 1)
+	to := today.AddDate(0, 0, 2)
+	reservations, err := w.model.GetReservationsBetweenTime(from, to)
+	if err != nil {
+		log.Printf("获取咨询列表失败：%v", err)
+		return
+	}
+	succCnt, failCnt := 0, 0
+	for _, reservation := range reservations {
+		if reservation.Status == model.RESERVATED {
+			if err = w.SendReminderSMS(reservation); err == nil {
+				succCnt++
+			} else {
+				log.Printf("发送短信失败：%+v %+v", reservation, err)
+				failCnt++
+			}
+		}
+	}
+	log.Printf("发送%d个预约记录的提醒短信，成功%d个，失败%d个", succCnt+failCnt, succCnt, failCnt)
 }

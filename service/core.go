@@ -1,14 +1,14 @@
-package controllers
+package service
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
 )
 
-func EntryPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) EntryPage(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	t := template.Must(template.ParseFiles("../templates/entry.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
@@ -17,7 +17,7 @@ func EntryPage(w http.ResponseWriter, r *http.Request, userId string, userType m
 	return nil
 }
 
-func StudentLoginPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) StudentLoginPage(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	t := template.Must(template.ParseFiles("../templates/student_login.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
@@ -26,7 +26,7 @@ func StudentLoginPage(w http.ResponseWriter, r *http.Request, userId string, use
 	return nil
 }
 
-func StudentRegisterPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) StudentRegisterPage(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	t := template.Must(template.ParseFiles("../templates/student_register.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
@@ -35,11 +35,11 @@ func StudentRegisterPage(w http.ResponseWriter, r *http.Request, userId string, 
 	return nil
 }
 
-func StudentPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	if userType == models.TEACHER {
+func (s *Service) StudentPage(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
+	if userType == model.TEACHER {
 		http.Redirect(w, r, "/reservation/teacher", http.StatusFound)
 		return nil
-	} else if userType == models.ADMIN {
+	} else if userType == model.ADMIN {
 		http.Redirect(w, r, "/reservation/admin", http.StatusFound)
 		return nil
 	}
@@ -51,7 +51,7 @@ func StudentPage(w http.ResponseWriter, r *http.Request, userId string, userType
 	return nil
 }
 
-func TeacherLoginPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) TeacherLoginPage(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	t := template.Must(template.ParseFiles("../templates/teacher_login.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
@@ -60,11 +60,11 @@ func TeacherLoginPage(w http.ResponseWriter, r *http.Request, userId string, use
 	return nil
 }
 
-func TeacherPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	if userType == models.STUDENT {
+func (s *Service) TeacherPage(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
+	if userType == model.STUDENT {
 		http.Redirect(w, r, "/reservation/student", http.StatusFound)
 		return nil
-	} else if userType == models.ADMIN {
+	} else if userType == model.ADMIN {
 		http.Redirect(w, r, "/reservation/admin", http.StatusFound)
 		return nil
 	}
@@ -76,7 +76,7 @@ func TeacherPage(w http.ResponseWriter, r *http.Request, userId string, userType
 	return nil
 }
 
-func AdminLoginPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) AdminLoginPage(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	t := template.Must(template.ParseFiles("../templates/admin_login.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
@@ -85,11 +85,11 @@ func AdminLoginPage(w http.ResponseWriter, r *http.Request, userId string, userT
 	return nil
 }
 
-func AdminPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	if userType == models.STUDENT {
+func (s *Service) AdminPage(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
+	if userType == model.STUDENT {
 		http.Redirect(w, r, "/reservation/student", http.StatusFound)
 		return nil
-	} else if userType == models.TEACHER {
+	} else if userType == model.TEACHER {
 		http.Redirect(w, r, "/reservation/teacher", http.StatusFound)
 		return nil
 	}
@@ -101,11 +101,11 @@ func AdminPage(w http.ResponseWriter, r *http.Request, userId string, userType m
 	return nil
 }
 
-func AdminTimetablePage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
-	if userType == models.STUDENT {
+func (s *Service) AdminTimetablePage(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
+	if userType == model.STUDENT {
 		http.Redirect(w, r, "/reservation/student", http.StatusFound)
 		return nil
-	} else if userType == models.TEACHER {
+	} else if userType == model.TEACHER {
 		http.Redirect(w, r, "/reservation/teacher", http.StatusFound)
 		return nil
 	}
@@ -117,7 +117,7 @@ func AdminTimetablePage(w http.ResponseWriter, r *http.Request, userId string, u
 	return nil
 }
 
-func ProtocolPage(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) ProtocolPage(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	t := template.Must(template.ParseFiles("../templates/protocol.html"))
 	err := t.Execute(w, nil)
 	if err != nil {
@@ -131,10 +131,10 @@ type ErrorMsg struct {
 	Message string `json:"message"`
 }
 
-func ErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
+func (s *Service) ErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 	state := "FAILED"
-	if err.Error() == models.CHECK_MESSAGE {
-		state = models.CHECK_MESSAGE
+	if err.Error() == model.CHECK_MESSAGE {
+		state = model.CHECK_MESSAGE
 	} else {
 		log.Printf("error %s %v", r.URL.Path, err)
 	}

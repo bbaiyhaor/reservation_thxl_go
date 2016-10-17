@@ -1,22 +1,20 @@
-package controllers
+package service
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	"net/http"
 	"time"
 )
 
-func StudentRegister(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) StudentRegister(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var ul = buslogic.UserLogic{}
 
-	student, err := ul.StudentRegister(username, password)
+	student, err := s.w.StudentRegister(username, password)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	http.SetCookie(w, &http.Cookie{
@@ -48,16 +46,15 @@ func StudentRegister(w http.ResponseWriter, r *http.Request, userId string, user
 	return result
 }
 
-func StudentLogin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) StudentLogin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var ul = buslogic.UserLogic{}
 
-	student, err := ul.StudentLogin(username, password)
+	student, err := s.w.StudentLogin(username, password)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	http.SetCookie(w, &http.Cookie{
@@ -89,16 +86,15 @@ func StudentLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 	return result
 }
 
-func TeacherLogin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) TeacherLogin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var ul = buslogic.UserLogic{}
 
-	teacher, err := ul.TeacherLogin(username, password)
+	teacher, err := s.w.TeacherLogin(username, password)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	http.SetCookie(w, &http.Cookie{
@@ -126,7 +122,7 @@ func TeacherLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 		HttpOnly: true,
 	})
 	switch teacher.UserType {
-	case models.TEACHER:
+	case model.TEACHER:
 		result["url"] = "/reservation/teacher"
 	default:
 		result["url"] = "/reservation/entry"
@@ -135,16 +131,15 @@ func TeacherLogin(w http.ResponseWriter, r *http.Request, userId string, userTyp
 	return result
 }
 
-func AdminLogin(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) AdminLogin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var ul = buslogic.UserLogic{}
 
-	admin, err := ul.AdminLogin(username, password)
+	admin, err := s.w.AdminLogin(username, password)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	http.SetCookie(w, &http.Cookie{
@@ -172,7 +167,7 @@ func AdminLogin(w http.ResponseWriter, r *http.Request, userId string, userType 
 		HttpOnly: true,
 	})
 	switch admin.UserType {
-	case models.ADMIN:
+	case model.ADMIN:
 		result["url"] = "/reservation/admin"
 	default:
 		result["url"] = "/reservation/entry"
@@ -181,15 +176,15 @@ func AdminLogin(w http.ResponseWriter, r *http.Request, userId string, userType 
 	return result
 }
 
-func Logout(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) Logout(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	var result = map[string]interface{}{"state": "SUCCESS"}
 
 	switch userType {
-	case models.ADMIN:
+	case model.ADMIN:
 		result["url"] = "/reservation/admin"
-	case models.TEACHER:
+	case model.TEACHER:
 		result["url"] = "/reservation/teacher"
-	case models.STUDENT:
+	case model.STUDENT:
 		result["url"] = "/reservation/student"
 	default:
 		result["url"] = "/reservation/entry"

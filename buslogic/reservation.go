@@ -1,39 +1,36 @@
 package buslogic
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
 	"errors"
 	"sort"
 	"strings"
 	"time"
 )
 
-type ReservationLogic struct {
-}
-
 // 学生查看前后一周内的所有咨询
-func (rl *ReservationLogic) GetReservationsByStudent(userId string, userType models.UserType) ([]*models.Reservation, error) {
+func (w *Workflow) GetReservationsByStudent(userId string, userType model.UserType) ([]*model.Reservation, error) {
 	if userId == "" {
 		return nil, errors.New("请先登录")
-	} else if userType != models.STUDENT {
+	} else if userType != model.STUDENT {
 		return nil, errors.New("请重新登录")
 	}
-	student, err := models.GetStudentById(userId)
+	student, err := w.model.GetStudentById(userId)
 	if err != nil {
 		return nil, errors.New("请先登录")
-	} else if student.UserType != models.STUDENT {
+	} else if student.UserType != model.STUDENT {
 		return nil, errors.New("请重新登录")
 	}
 	from := time.Now().AddDate(0, 0, -7)
 	to := time.Now().AddDate(0, 0, 7)
-	reservations, err := models.GetReservationsBetweenTime(from, to)
+	reservations, err := w.model.GetReservationsBetweenTime(from, to)
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
-	var result []*models.Reservation
+	var result []*model.Reservation
 	for _, r := range reservations {
-		if r.Status == models.AVAILABLE && r.StartTime.Before(time.Now()) {
+		if r.Status == model.AVAILABLE && r.StartTime.Before(time.Now()) {
 			continue
 		} else if r.StudentId == student.Id.Hex() {
 			if !r.TeacherFeedback.IsEmpty() && r.TeacherFeedback.Participants[0] == 0 {
@@ -50,13 +47,13 @@ func (rl *ReservationLogic) GetReservationsByStudent(userId string, userType mod
 		//	result = append(result, r)
 		//}
 	}
-	timedReservations, err := models.GetTimedReservationsAll()
+	timedReservations, err := w.model.GetTimedReservationsAll()
 	if err != nil {
 		return result, nil
 	}
-	today := utils.BeginOfDay(time.Now())
+	today := util.BeginOfDay(time.Now())
 	for _, tr := range timedReservations {
-		if tr.Status != models.AVAILABLE {
+		if tr.Status != model.AVAILABLE {
 			continue
 		}
 		if len(student.BindedTeacherId) != 0 && !strings.EqualFold(student.BindedTeacherId, tr.TeacherId) {
@@ -67,47 +64,47 @@ func (rl *ReservationLogic) GetReservationsByStudent(userId string, userType mod
 			minusWeekday += 7
 		}
 		date := today.AddDate(0, 0, minusWeekday)
-		if utils.ConcatTime(date, tr.StartTime).Before(time.Now()) {
+		if util.ConcatTime(date, tr.StartTime).Before(time.Now()) {
 			date = today.AddDate(0, 0, 7)
 		}
 		if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
 			result = append(result, tr.ToReservation(date))
 		}
 	}
-	sort.Sort(models.ReservationSlice(result))
+	sort.Sort(model.ReservationSlice(result))
 	return result, nil
 }
 
 // 咨询师查看负7天之后的所有咨询
-func (rl *ReservationLogic) GetReservationsByTeacher(userId string, userType models.UserType) ([]*models.Reservation, error) {
+func (w *Workflow) GetReservationsByTeacher(userId string, userType model.UserType) ([]*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != models.TEACHER {
+	} else if userType != model.TEACHER {
 		return nil, errors.New("权限不足")
 	}
-	teacher, err := models.GetTeacherById(userId)
+	teacher, err := w.model.GetTeacherById(userId)
 	if err != nil {
 		return nil, errors.New("请先登录")
-	} else if teacher.UserType != models.TEACHER {
+	} else if teacher.UserType != model.TEACHER {
 		return nil, errors.New("权限不足")
 	}
 	from := time.Now().AddDate(0, 0, -7)
-	reservations, err := models.GetReservationsAfterTime(from)
+	reservations, err := w.model.GetReservationsAfterTime(from)
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
-	var result []*models.Reservation
+	var result []*model.Reservation
 	for _, r := range reservations {
-		if r.Status == models.AVAILABLE && r.StartTime.Before(time.Now()) {
+		if r.Status == model.AVAILABLE && r.StartTime.Before(time.Now()) {
 			continue
 		} else if strings.EqualFold(r.TeacherId, teacher.Id.Hex()) {
 			result = append(result, r)
 		}
 	}
-	if timedReservations, err := models.GetTimedReservationsByTeacherId(teacher.Id.Hex()); err == nil {
-		today := utils.BeginOfDay(time.Now())
+	if timedReservations, err := w.model.GetTimedReservationsByTeacherId(teacher.Id.Hex()); err == nil {
+		today := util.BeginOfDay(time.Now())
 		for _, tr := range timedReservations {
-			if tr.Status != models.AVAILABLE {
+			if tr.Status != model.AVAILABLE {
 				continue
 			}
 			minusWeekday := int(tr.Weekday - today.Weekday())
@@ -115,7 +112,7 @@ func (rl *ReservationLogic) GetReservationsByTeacher(userId string, userType mod
 				minusWeekday += 7
 			}
 			date := today.AddDate(0, 0, minusWeekday)
-			if utils.ConcatTime(date, tr.StartTime).Before(time.Now()) {
+			if util.ConcatTime(date, tr.StartTime).Before(time.Now()) {
 				date = today.AddDate(0, 0, 7)
 			}
 			if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
@@ -130,37 +127,37 @@ func (rl *ReservationLogic) GetReservationsByTeacher(userId string, userType mod
 			}
 		}
 	}
-	sort.Sort(models.ReservationSlice(result))
+	sort.Sort(model.ReservationSlice(result))
 	return result, nil
 }
 
 // 管理员查看负7天之后的所有咨询
-func (rl *ReservationLogic) GetReservationsByAdmin(userId string, userType models.UserType) ([]*models.Reservation, error) {
+func (w *Workflow) GetReservationsByAdmin(userId string, userType model.UserType) ([]*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != models.ADMIN {
+	} else if userType != model.ADMIN {
 		return nil, errors.New("权限不足")
 	}
-	admin, err := models.GetAdminById(userId)
-	if err != nil || admin.UserType != models.ADMIN {
+	admin, err := w.model.GetAdminById(userId)
+	if err != nil || admin.UserType != model.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	from := time.Now().AddDate(0, 0, -7)
-	reservations, err := models.GetReservationsAfterTime(from)
+	reservations, err := w.model.GetReservationsAfterTime(from)
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
-	var result []*models.Reservation
+	var result []*model.Reservation
 	for _, r := range reservations {
-		if r.Status == models.AVAILABLE && r.StartTime.Before(time.Now()) {
+		if r.Status == model.AVAILABLE && r.StartTime.Before(time.Now()) {
 			continue
 		}
 		result = append(result, r)
 	}
-	if timedReservations, err := models.GetTimedReservationsAll(); err == nil {
-		today := utils.BeginOfDay(time.Now())
+	if timedReservations, err := w.model.GetTimedReservationsAll(); err == nil {
+		today := util.BeginOfDay(time.Now())
 		for _, tr := range timedReservations {
-			if tr.Status != models.AVAILABLE {
+			if tr.Status != model.AVAILABLE {
 				continue
 			}
 			minusWeekday := int(tr.Weekday - today.Weekday())
@@ -168,7 +165,7 @@ func (rl *ReservationLogic) GetReservationsByAdmin(userId string, userType model
 				minusWeekday += 7
 			}
 			date := today.AddDate(0, 0, minusWeekday)
-			if utils.ConcatTime(date, tr.StartTime).Before(time.Now()) {
+			if util.ConcatTime(date, tr.StartTime).Before(time.Now()) {
 				date = today.AddDate(0, 0, 7)
 			}
 			if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
@@ -183,19 +180,19 @@ func (rl *ReservationLogic) GetReservationsByAdmin(userId string, userType model
 			}
 		}
 	}
-	sort.Sort(models.ReservationSlice(result))
+	sort.Sort(model.ReservationSlice(result))
 	return result, nil
 }
 
 // 管理员查看指定日期的所有咨询
-func (rl *ReservationLogic) GetReservationsDailyByAdmin(fromDate string, userId string, userType models.UserType) ([]*models.Reservation, error) {
+func (w *Workflow) GetReservationsDailyByAdmin(fromDate string, userId string, userType model.UserType) ([]*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != models.ADMIN {
+	} else if userType != model.ADMIN {
 		return nil, errors.New("权限不足")
 	}
-	admin, err := models.GetAdminById(userId)
-	if err != nil || admin.UserType != models.ADMIN {
+	admin, err := w.model.GetAdminById(userId)
+	if err != nil || admin.UserType != model.ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	from, err := time.ParseInLocation("2006-01-02", fromDate, time.Local)
@@ -203,17 +200,17 @@ func (rl *ReservationLogic) GetReservationsDailyByAdmin(fromDate string, userId 
 		return nil, errors.New("时间格式错误")
 	}
 	to := from.AddDate(0, 0, 1)
-	reservations, err := models.GetReservationsBetweenTime(from, to)
+	reservations, err := w.model.GetReservationsBetweenTime(from, to)
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
-	if timedReservations, err := models.GetTimedReservationsByWeekday(from.Weekday()); err == nil {
+	if timedReservations, err := w.model.GetTimedReservationsByWeekday(from.Weekday()); err == nil {
 		for _, tr := range timedReservations {
 			if !tr.Exceptions[fromDate] && !tr.Timed[fromDate] {
 				reservations = append(reservations, tr.ToReservation(from))
 			}
 		}
 	}
-	sort.Sort(models.ReservationSlice(reservations))
+	sort.Sort(model.ReservationSlice(reservations))
 	return reservations, nil
 }

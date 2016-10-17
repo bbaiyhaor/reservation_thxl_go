@@ -1,143 +1,12 @@
-package workflow
+package buslogic
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
 	"fmt"
 	"sort"
 	"strconv"
-	"time"
 )
-
-func ExportStudentInfo(student *models.Student, filename string) error {
-	data := make([][]string, 0)
-	data = append(data, []string{"档案分类", student.ArchiveCategory, "档案编号", student.ArchiveNumber})
-	// 学生基本信息
-	data = append(data, []string{"学号", student.Username})
-	data = append(data, []string{"姓名", student.Fullname})
-	data = append(data, []string{"性别", student.Gender})
-	data = append(data, []string{"出生日期", student.Birthday})
-	data = append(data, []string{"系别", student.School})
-	data = append(data, []string{"年级", student.Grade})
-	data = append(data, []string{"现住址", student.CurrentAddress})
-	data = append(data, []string{"家庭住址", student.FamilyAddress})
-	data = append(data, []string{"联系电话", student.Mobile})
-	data = append(data, []string{"Email", student.Email})
-	if !student.Experience.IsEmpty() {
-		data = append(data, []string{"咨询经历", "时间", student.Experience.Time, "地点", student.Experience.Location,
-			"咨询师姓名", student.Experience.Teacher})
-	} else {
-		data = append(data, []string{"咨询经历", "无"})
-	}
-	data = append(data, []string{"父亲", "年龄", student.FatherAge, "职业", student.FatherJob, "学历", student.FatherEdu})
-	data = append(data, []string{"母亲", "年龄", student.MotherAge, "职业", student.MotherJob, "学历", student.MotherEdu})
-	data = append(data, []string{"父母婚姻状况", student.ParentMarriage})
-	data = append(data, []string{"在近三个月里，是否发生了对你有重大意义的事（如亲友的死亡、法律诉讼、失恋等）？", student.Significant})
-	data = append(data, []string{"你现在需要接受帮助的主要问题是什么？", student.Problem})
-	bindedTeacher, err := models.GetTeacherById(student.BindedTeacherId)
-	if err != nil {
-		data = append(data, []string{"匹配咨询师", "无"})
-	} else {
-		data = append(data, []string{"匹配咨询师", bindedTeacher.Username, bindedTeacher.Fullname})
-	}
-	data = append(data, []string{"危机等级", strconv.Itoa(student.CrisisLevel)})
-	data = append(data, []string{""})
-	data = append(data, []string{""})
-
-	//咨询小结
-	if reservations, err := models.GetReservationsByStudentId(student.Id.Hex()); err == nil {
-		for i, r := range reservations {
-			teacher, err := models.GetTeacherById(r.TeacherId)
-			if err != nil {
-				continue
-			}
-			data = append(data, []string{"咨询小结" + strconv.Itoa(i+1)})
-			data = append(data, []string{"咨询师", teacher.Username, teacher.Fullname})
-			data = append(data, []string{"咨询日期", r.StartTime.Format("2006-01-02")})
-			if !r.TeacherFeedback.IsEmpty() {
-				data = append(data, []string{"评估分类", models.FeedbackAllCategory[r.TeacherFeedback.Category]})
-				participants := []string{"出席人员"}
-				for j := 0; j < len(r.TeacherFeedback.Participants); j++ {
-					if r.TeacherFeedback.Participants[j] > 0 {
-						participants = append(participants, models.PARTICIPANTS[j])
-					}
-				}
-				data = append(data, participants)
-
-				if r.TeacherFeedback.Emphasis > 0 {
-					data = append(data, []string{"重点明细", "是"})
-				} else {
-					data = append(data, []string{"重点明细", "否"})
-				}
-				severity := []string{"严重程度"}
-				if len(r.TeacherFeedback.Severity) == len(models.SEVERITY) {
-					for i := 0; i < len(r.TeacherFeedback.Severity); i++ {
-						if r.TeacherFeedback.Severity[i] > 0 {
-							severity = append(severity, models.SEVERITY[i])
-						}
-					}
-				}
-				data = append(data, severity)
-				medicalDiagnosis := []string{"疑似或明确的医疗诊断"}
-				if len(r.TeacherFeedback.MedicalDiagnosis) == len(models.MEDICAL_DIAGNOSIS) {
-					for i := 0; i < len(r.TeacherFeedback.MedicalDiagnosis); i++ {
-						if r.TeacherFeedback.MedicalDiagnosis[i] > 0 {
-							medicalDiagnosis = append(medicalDiagnosis, models.MEDICAL_DIAGNOSIS[i])
-						}
-					}
-				}
-				data = append(data, medicalDiagnosis)
-				crisis := []string{"危急情况"}
-				if len(r.TeacherFeedback.Crisis) == len(models.CRISIS) {
-					for i := 0; i < len(r.TeacherFeedback.Crisis); i++ {
-						if r.TeacherFeedback.Crisis[i] > 0 {
-							crisis = append(crisis, models.CRISIS[i])
-						}
-					}
-				}
-				data = append(data, crisis)
-
-				data = append(data, []string{"咨询记录", r.TeacherFeedback.Record})
-			}
-			if !r.StudentFeedback.IsEmpty() {
-				scores := []string{"来访者反馈"}
-				for _, s := range r.StudentFeedback.Scores {
-					scores = append(scores, strconv.Itoa(s))
-				}
-				data = append(data, scores)
-			}
-		}
-		data = append(data, []string{""})
-	}
-	if err := utils.WriteToCSV(data, filename); err != nil {
-		return err
-	}
-	return nil
-}
-
-func ExportTodayReservationTimetable(reservations []*models.Reservation, filename string) error {
-	data := make([][]string, 0)
-	today := utils.BeginOfDay(time.Now())
-	data = append(data, []string{today.Format("2006-01-02")})
-	data = append(data, []string{"时间", "咨询师", "学生姓名", "联系方式"})
-	for _, r := range reservations {
-		teacher, err := models.GetTeacherById(r.TeacherId)
-		if err != nil {
-			continue
-		}
-		if student, err := models.GetStudentById(r.StudentId); err == nil {
-			data = append(data, []string{r.StartTime.Format("15:04") + " - " + r.EndTime.Format("15:04"),
-				teacher.Fullname, student.Fullname, student.Mobile})
-		} else {
-			data = append(data, []string{r.StartTime.Format("15:04") + " - " + r.EndTime.Format("15:04"),
-				teacher.Fullname, "", ""})
-		}
-	}
-	if err := utils.WriteToCSV(data, filename); err != nil {
-		return err
-	}
-	return nil
-}
 
 type MonthlyReport struct {
 	Category      string
@@ -153,11 +22,11 @@ type MonthlyReport struct {
 	Amount        int
 }
 
-func ExportReportForm(reservations []*models.Reservation, filename string) error {
+func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, filename string) error {
 	report := make(map[string]*MonthlyReport)
-	for index, category := range models.FeedbackAllCategory {
+	for index, category := range model.FeedbackAllCategory {
 		report[index] = &MonthlyReport{
-			Category:      models.FeedbackAllCategory[category],
+			Category:      model.FeedbackAllCategory[category],
 			UnderGraduate: make(map[string]int),
 		}
 	}
@@ -165,13 +34,13 @@ func ExportReportForm(reservations []*models.Reservation, filename string) error
 		UnderGraduate: make(map[string]int),
 	}
 	for _, r := range reservations {
-		if r.TeacherFeedback.IsEmpty() || len(r.TeacherFeedback.Participants) != len(models.PARTICIPANTS) {
+		if r.TeacherFeedback.IsEmpty() || len(r.TeacherFeedback.Participants) != len(model.PARTICIPANTS) {
 			continue
 		}
 		category := r.TeacherFeedback.Category
 		// 学生
 		if r.TeacherFeedback.Participants[0] > 0 {
-			student, err := models.GetStudentById(r.StudentId)
+			student, err := w.model.GetStudentById(r.StudentId)
 			if err != nil {
 				continue
 			}
@@ -238,12 +107,12 @@ func ExportReportForm(reservations []*models.Reservation, filename string) error
 		}
 	}
 	grades := make([]string, 0)
-	for g, _ := range amount.UnderGraduate {
+	for g := range amount.UnderGraduate {
 		grades = append(grades, g)
 	}
 	sort.Sort(sort.Reverse(sort.StringSlice(grades)))
 	categories := make([]string, 0)
-	for c, _ := range models.FeedbackAllCategory {
+	for c := range model.FeedbackAllCategory {
 		categories = append(categories, c)
 	}
 	sort.Sort(sort.StringSlice(categories))
@@ -258,7 +127,7 @@ func ExportReportForm(reservations []*models.Reservation, filename string) error
 	data = append(data, head)
 	// csv的数据
 	for _, category := range categories {
-		line := []string{models.FeedbackAllCategory[category]}
+		line := []string{model.FeedbackAllCategory[category]}
 		for _, g := range grades {
 			if value, exist := report[category].UnderGraduate[g]; exist && value > 0 {
 				line = append(line, strconv.Itoa(value))
@@ -332,7 +201,7 @@ func ExportReportForm(reservations []*models.Reservation, filename string) error
 	amountLine = append(amountLine, strconv.Itoa(amount.Amount))
 	data = append(data, amountLine)
 	data = append(data, percentLine)
-	if err := utils.WriteToCSV(data, filename); err != nil {
+	if err := util.WriteToCSV(data, filename); err != nil {
 		return err
 	}
 	return nil

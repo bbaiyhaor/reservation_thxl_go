@@ -1,21 +1,18 @@
-package controllers
+package service
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/models"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	"net/http"
 	"strconv"
 	"time"
 )
 
-func ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var rl = buslogic.ReservationLogic{}
-	var ul = buslogic.UserLogic{}
 
-	student, err := ul.GetStudentById(userId)
+	student, err := s.w.GetStudentById(userId)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	var studentJson = make(map[string]interface{})
@@ -42,9 +39,9 @@ func ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId st
 	studentJson["student_problem"] = student.Problem
 	result["student_info"] = studentJson
 
-	reservations, err := rl.GetReservationsByStudent(userId, userType)
+	reservations, err := s.w.GetReservationsByStudent(userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	var array = make([]interface{}, 0)
@@ -55,15 +52,15 @@ func ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId st
 		resJson["end_time"] = res.EndTime.Format("2006-01-02 15:04")
 		resJson["source"] = res.Source.String()
 		resJson["source_id"] = res.SourceId
-		if teacher, err := ul.GetTeacherById(res.TeacherId); err == nil {
+		if teacher, err := s.w.GetTeacherById(res.TeacherId); err == nil {
 			resJson["teacher_fullname"] = teacher.Fullname
 		}
-		if res.Status == models.AVAILABLE {
-			resJson["status"] = models.AVAILABLE.String()
-		} else if res.Status == models.RESERVATED && res.StartTime.Before(time.Now()) && res.StudentId == student.Id.Hex() {
-			resJson["status"] = models.FEEDBACK.String()
+		if res.Status == model.AVAILABLE {
+			resJson["status"] = model.AVAILABLE.String()
+		} else if res.Status == model.RESERVATED && res.StartTime.Before(time.Now()) && res.StudentId == student.Id.Hex() {
+			resJson["status"] = model.FEEDBACK.String()
 		} else {
-			resJson["status"] = models.RESERVATED.String()
+			resJson["status"] = model.RESERVATED.String()
 		}
 		array = append(array, resJson)
 	}
@@ -72,7 +69,7 @@ func ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId st
 	return result
 }
 
-func MakeReservationByStudent(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) MakeReservationByStudent(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 	startTime := r.PostFormValue("start_time")
@@ -99,21 +96,19 @@ func MakeReservationByStudent(w http.ResponseWriter, r *http.Request, userId str
 	problem := r.PostFormValue("student_problem")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var sl = buslogic.StudentLogic{}
-	var ul = buslogic.UserLogic{}
 
 	var reservationJson = make(map[string]interface{})
-	reservation, err := sl.MakeReservationByStudent(reservationId, sourceId, startTime, fullname, gender, birthday,
+	reservation, err := s.w.MakeReservationByStudent(reservationId, sourceId, startTime, fullname, gender, birthday,
 		school, grade, currentAddress, familyAddress, mobile, email, experienceTime, experienceLocation, experienceTeacher,
 		fatherAge, fatherJob, fatherEdu, motherAge, motherJob, motherEdu, parentMarriage, siginificant, problem,
 		userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	reservationJson["start_time"] = reservation.StartTime.Format("2006-01-02 15:04")
 	reservationJson["end_time"] = reservation.EndTime.Format("2006-01-02 15:04")
-	if teacher, err := ul.GetTeacherById(reservation.TeacherId); err == nil {
+	if teacher, err := s.w.GetTeacherById(reservation.TeacherId); err == nil {
 		reservationJson["teacher_fullname"] = teacher.Fullname
 	}
 	result["reservation"] = reservationJson
@@ -121,17 +116,16 @@ func MakeReservationByStudent(w http.ResponseWriter, r *http.Request, userId str
 	return result
 }
 
-func GetFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) GetFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var sl = buslogic.StudentLogic{}
 
 	var feedbackJson = make(map[string]interface{})
-	reservation, err := sl.GetFeedbackByStudent(reservationId, sourceId, userId, userType)
+	reservation, err := s.w.GetFeedbackByStudent(reservationId, sourceId, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 	feedbackJson["scores"] = reservation.StudentFeedback.Scores
@@ -140,14 +134,13 @@ func GetFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string,
 	return result
 }
 
-func SubmitFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType models.UserType) interface{} {
+func (s *Service) SubmitFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 	r.ParseForm()
 	scores := []string(r.Form["scores"])
 
 	var result = map[string]interface{}{"state": "SUCCESS"}
-	var sl = buslogic.StudentLogic{}
 
 	scoresInt := []int{}
 	for _, p := range scores {
@@ -155,9 +148,9 @@ func SubmitFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId stri
 			scoresInt = append(scoresInt, pi)
 		}
 	}
-	_, err := sl.SubmitFeedbackByStudent(reservationId, sourceId, scoresInt, userId, userType)
+	_, err := s.w.SubmitFeedbackByStudent(reservationId, sourceId, scoresInt, userId, userType)
 	if err != nil {
-		ErrorHandler(w, r, err)
+		s.ErrorHandler(w, r, err)
 		return nil
 	}
 

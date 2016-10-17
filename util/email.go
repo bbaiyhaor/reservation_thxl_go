@@ -1,4 +1,4 @@
-package workflow
+package util
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"

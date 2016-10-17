@@ -1,7 +1,7 @@
-package models
+package model
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
 	"gopkg.in/mgo.v2/bson"
 	"strings"
 	"time"
@@ -25,8 +25,8 @@ func (tr TimedReservation) ToReservation(date time.Time) *Reservation {
 		Id:              tr.Id,
 		CreateTime:      time.Now(),
 		UpdateTime:      time.Now(),
-		StartTime:       utils.ConcatTime(date, tr.StartTime),
-		EndTime:         utils.ConcatTime(date, tr.EndTime),
+		StartTime:       util.ConcatTime(date, tr.StartTime),
+		EndTime:         util.ConcatTime(date, tr.EndTime),
 		Status:          AVAILABLE,
 		Source:          TIMETABLE,
 		SourceId:        tr.Id.Hex(),

@@ -2,7 +2,7 @@ package buslogic
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"errors"
 	"fmt"
 	"sort"
@@ -13,10 +13,10 @@ import (
 
 // 管理员添加咨询
 func (w *Workflow) AddReservationByAdmin(startTime string, endTime string, teacherUsername string,
-	teacherFullname string, teacherMobile string, force bool, userId string, userType model.UserType) (*model.Reservation, error) {
+	teacherFullname string, teacherMobile string, force bool, userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	} else if startTime == "" {
 		return nil, errors.New("开始时间为空")
@@ -28,11 +28,11 @@ func (w *Workflow) AddReservationByAdmin(startTime string, endTime string, teach
 		return nil, errors.New("咨询师姓名为空")
 	} else if teacherMobile == "" {
 		return nil, errors.New("咨询师手机号为空")
-	} else if !util.IsMobile(teacherMobile) {
+	} else if !utils.IsMobile(teacherMobile) {
 		return nil, errors.New("咨询师手机号格式不正确")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	start, err := time.ParseInLocation("2006-01-02 15:04", startTime, time.Local)
@@ -51,7 +51,7 @@ func (w *Workflow) AddReservationByAdmin(startTime string, endTime string, teach
 		if teacher, err = w.model.AddTeacher(teacherUsername, TeacherDefaultPassword, teacherFullname, teacherMobile); err != nil {
 			return nil, errors.New("获取数据失败")
 		}
-	} else if teacher.UserType != model.TEACHER {
+	} else if teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, errors.New("权限不足")
 	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
 		if !force {
@@ -63,7 +63,7 @@ func (w *Workflow) AddReservationByAdmin(startTime string, endTime string, teach
 			return nil, errors.New("获取数据失败")
 		}
 	}
-	reservation, err := w.model.AddReservation(start, end, model.ADMIN_ADD, "", teacher.Id.Hex())
+	reservation, err := w.model.AddReservation(start, end, model.RESERVATION_SOURCE_ADMIN_ADD, "", teacher.Id.Hex())
 	if err != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -73,10 +73,10 @@ func (w *Workflow) AddReservationByAdmin(startTime string, endTime string, teach
 // 管理员编辑咨询
 func (w *Workflow) EditReservationByAdmin(reservationId string, sourceId string, originalStartTime string,
 	startTime string, endTime string, teacherUsername string, teacherFullname string, teacherMobile string,
-	force bool, userId string, userType model.UserType) (*model.Reservation, error) {
+	force bool, userId string, userType int) (*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	} else if len(reservationId) == 0 {
 		return nil, errors.New("咨询已下架")
@@ -90,19 +90,19 @@ func (w *Workflow) EditReservationByAdmin(reservationId string, sourceId string,
 		return nil, errors.New("咨询师姓名为空")
 	} else if len(teacherMobile) == 0 {
 		return nil, errors.New("咨询师手机号为空")
-	} else if !util.IsMobile(teacherMobile) {
+	} else if !utils.IsMobile(teacherMobile) {
 		return nil, errors.New("咨询师手机号格式不正确")
 	} else if len(sourceId) != 0 {
 		return nil, errors.New("请在安排表中编辑预设咨询")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	reservation, err := w.model.GetReservationById(reservationId)
-	if err != nil || reservation.Status == model.DELETED {
+	if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 		return nil, errors.New("请在安排表中编辑预设咨询")
-	} else if reservation.Status == model.RESERVATED {
+	} else if reservation.Status == model.RESERVATION_STATUS_RESERVATED {
 		return nil, errors.New("不能编辑已被预约的咨询")
 	}
 	start, err := time.ParseInLocation("2006-01-02 15:04", startTime, time.Local)
@@ -123,7 +123,7 @@ func (w *Workflow) EditReservationByAdmin(reservationId string, sourceId string,
 		if teacher, err = w.model.AddTeacher(teacherUsername, TeacherDefaultPassword, teacherFullname, teacherMobile); err != nil {
 			return nil, errors.New("获取数据失败")
 		}
-	} else if teacher.UserType != model.TEACHER {
+	} else if teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, errors.New("权限不足")
 	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
 		if !force {
@@ -146,22 +146,22 @@ func (w *Workflow) EditReservationByAdmin(reservationId string, sourceId string,
 
 // 管理员删除咨询
 func (w *Workflow) RemoveReservationsByAdmin(reservationIds []string, sourceIds []string, startTimes []string,
-	userId string, userType model.UserType) (int, error) {
+	userId string, userType int) (int, error) {
 	if len(userId) == 0 {
 		return 0, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return 0, errors.New("权限不足")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return 0, errors.New("管理员账户出错,请联系技术支持")
 	}
 	removed := 0
 	for index, reservationId := range reservationIds {
 		if len(sourceIds[index]) == 0 {
 			// Source为ADD，无SourceId：直接置为DELETED（TODO 目前不能删除已预约咨询）
-			if reservation, err := w.model.GetReservationById(reservationId); err == nil && reservation.Status != model.RESERVATED {
-				reservation.Status = model.DELETED
+			if reservation, err := w.model.GetReservationById(reservationId); err == nil && reservation.Status != model.RESERVATION_STATUS_RESERVATED {
+				reservation.Status = model.RESERVATION_STATUS_DELETED
 				if w.model.UpsertReservation(reservation) == nil {
 					removed++
 				}
@@ -187,14 +187,14 @@ func (w *Workflow) RemoveReservationsByAdmin(reservationIds []string, sourceIds 
 
 // 管理员取消预约
 func (w *Workflow) CancelReservationsByAdmin(reservationIds []string, sourceIds []string,
-	userId string, userType model.UserType) (int, error) {
+	userId string, userType int) (int, error) {
 	if userId == "" {
 		return 0, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return 0, errors.New("权限不足")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return 0, errors.New("管理员账户出错,请联系技术支持")
 	}
 	removed := 0
@@ -203,11 +203,11 @@ func (w *Workflow) CancelReservationsByAdmin(reservationIds []string, sourceIds 
 			// 1、Source为ADD，无SourceId：置为AVAILABLE
 			// 2、Source为TIMETABLE且已预约：置为DELETED并去除timed
 			if reservation, err := w.model.GetReservationById(reservationId); err == nil &&
-				reservation.Status == model.RESERVATED { // && reservation.StartTime.After(time.Now()) {
-				if reservation.Source != model.TIMETABLE {
+				reservation.Status == model.RESERVATION_STATUS_RESERVATED { // && reservation.StartTime.After(time.Now()) {
+				if reservation.Source != model.RESERVATION_SOURCE_TIMETABLE {
 					// 1
 					sendSms := reservation.SendSms
-					reservation.Status = model.AVAILABLE
+					reservation.Status = model.RESERVATION_STATUS_AVAILABLE
 					studentId := reservation.StudentId
 					reservation.StudentId = ""
 					reservation.StudentFeedback = model.StudentFeedback{}
@@ -223,7 +223,7 @@ func (w *Workflow) CancelReservationsByAdmin(reservationIds []string, sourceIds 
 					}
 				} else {
 					// 2
-					reservation.Status = model.DELETED
+					reservation.Status = model.RESERVATION_STATUS_DELETED
 					if timedReservation, err := w.model.GetTimedReservationById(sourceIds[index]); err == nil {
 						date := reservation.StartTime.Format("2006-01-02")
 						delete(timedReservation.Timed, date)
@@ -243,10 +243,10 @@ func (w *Workflow) CancelReservationsByAdmin(reservationIds []string, sourceIds 
 
 // 管理员拉取反馈
 func (w *Workflow) GetFeedbackByAdmin(reservationId string, sourceId string,
-	userId string, userType model.UserType) (*model.Student, *model.Reservation, error) {
+	userId string, userType int) (*model.Student, *model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, nil, errors.New("权限不足")
 	} else if len(reservationId) == 0 {
 		return nil, nil, errors.New("咨询已下架")
@@ -254,15 +254,15 @@ func (w *Workflow) GetFeedbackByAdmin(reservationId string, sourceId string,
 		return nil, nil, errors.New("咨询未被预约，不能反馈")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	reservation, err := w.model.GetReservationById(reservationId)
-	if err != nil || reservation.Status == model.DELETED {
+	if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 		return nil, nil, errors.New("咨询已下架")
 	} else if reservation.StartTime.After(time.Now()) {
 		return nil, nil, errors.New("咨询未开始,暂不能反馈")
-	} else if reservation.Status == model.AVAILABLE {
+	} else if reservation.Status == model.RESERVATION_STATUS_AVAILABLE {
 		return nil, nil, errors.New("咨询未被预约,不能反馈")
 	}
 	student, err := w.model.GetStudentById(reservation.StudentId)
@@ -275,10 +275,10 @@ func (w *Workflow) GetFeedbackByAdmin(reservationId string, sourceId string,
 // 管理员提交反馈
 func (w *Workflow) SubmitFeedbackByAdmin(reservationId string, sourceId string,
 	category string, participants []int, emphasis string, severity []int, medicalDiagnosis []int, crisis []int,
-	record string, crisisLevel string, userId string, userType model.UserType) (*model.Reservation, error) {
+	record string, crisisLevel string, userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	} else if reservationId == "" {
 		return nil, errors.New("咨询已下架")
@@ -310,15 +310,15 @@ func (w *Workflow) SubmitFeedbackByAdmin(reservationId string, sourceId string,
 		return nil, errors.New("危机等级错误")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	reservation, err := w.model.GetReservationById(reservationId)
-	if err != nil || reservation.Status == model.DELETED {
+	if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 		return nil, errors.New("咨询已下架")
 	} else if reservation.StartTime.After(time.Now()) {
 		return nil, errors.New("咨询未开始,暂不能反馈")
-	} else if reservation.Status == model.AVAILABLE {
+	} else if reservation.Status == model.RESERVATION_STATUS_AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
 	}
 	sendFeedbackSMS := reservation.TeacherFeedback.IsEmpty() && reservation.StudentFeedback.IsEmpty()
@@ -351,10 +351,10 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 	familyAddress string, mobile string, email string, experienceTime string, experienceLocation string,
 	experienceTeacher string, fatherAge string, fatherJob string, fatherEdu string, motherAge string, motherJob string,
 	motherEdu string, parentMarriage string, siginificant string, problem string, sendSms bool,
-	userId string, userType model.UserType) (*model.Reservation, error) {
+	userId string, userType int) (*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	} else if len(reservationId) == 0 {
 		return nil, errors.New("咨询已下架")
@@ -380,13 +380,13 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 		return nil, errors.New("邮箱为空")
 	} else if len(problem) == 0 {
 		return nil, errors.New("问题为空")
-	} else if !util.IsMobile(mobile) {
+	} else if !utils.IsMobile(mobile) {
 		return nil, errors.New("手机号格式不正确")
-	} else if !util.IsEmail(email) {
+	} else if !utils.IsEmail(email) {
 		return nil, errors.New("邮箱格式不正确")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := w.model.GetStudentByUsername(studentUsername)
@@ -397,18 +397,18 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 	if sourceId == "" {
 		// Source为ADD，无SourceId：直接指定
 		reservation, err = w.model.GetReservationById(reservationId)
-		if err != nil || reservation.Status == model.DELETED {
+		if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 			return nil, errors.New("咨询已下架")
 			//		} else if reservation.StartTime.Before(time.Now()) {
 			//			// 允许指定过期咨询，作为补录（网页正常情况不显示过期咨询，要通过查询咨询的方式来补录）
 			//			return nil, errors.New("咨询已过期")
-		} else if reservation.Status != model.AVAILABLE {
+		} else if reservation.Status != model.RESERVATION_STATUS_AVAILABLE {
 			return nil, errors.New("咨询已被预约")
 		}
 	} else if reservationId == sourceId {
 		// Source为TIMETABLE且未被预约
 		timedReservation, err := w.model.GetTimedReservationById(sourceId)
-		if err != nil || timedReservation.Status == model.DELETED {
+		if err != nil || timedReservation.Status == model.RESERVATION_STATUS_DELETED {
 			return nil, errors.New("咨询已下架")
 		}
 		start, err := time.ParseInLocation("2006-01-02 15:04", startTime, time.Local)
@@ -422,8 +422,8 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 		} else if timedReservation.Timed[start.Format("2006-01-02")] {
 			return nil, errors.New("咨询已被预约")
 		}
-		end := util.ConcatTime(start, timedReservation.EndTime)
-		reservation, err = w.model.AddReservation(start, end, model.TIMETABLE, timedReservation.Id.Hex(),
+		end := utils.ConcatTime(start, timedReservation.EndTime)
+		reservation, err = w.model.AddReservation(start, end, model.RESERVATION_SOURCE_TIMETABLE, timedReservation.Id.Hex(),
 			timedReservation.TeacherId)
 		if err != nil {
 			return nil, errors.New("获取数据失败")
@@ -465,7 +465,7 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 	reservation.StudentId = student.Id.Hex()
 	reservation.IsAdminSet = true
 	reservation.SendSms = sendSms
-	reservation.Status = model.RESERVATED
+	reservation.Status = model.RESERVATION_STATUS_RESERVATED
 	if err = w.model.UpsertReservation(reservation); err != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -478,20 +478,20 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 
 // 管理员查看学生信息
 func (w *Workflow) GetStudentInfoByAdmin(studentId string,
-	userId string, userType model.UserType) (*model.Student, []*model.Reservation, error) {
+	userId string, userType int) (*model.Student, []*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, nil, errors.New("权限不足")
 	} else if len(studentId) == 0 {
 		return nil, nil, errors.New("咨询未被预约，不能查看")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := w.model.GetStudentById(studentId)
-	if err != nil || student.UserType != model.STUDENT {
+	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
 		return nil, nil, errors.New("学生未注册")
 	}
 	reservations, err := w.model.GetReservationsByStudentId(student.Id.Hex())
@@ -503,10 +503,10 @@ func (w *Workflow) GetStudentInfoByAdmin(studentId string,
 
 // 管理员更新学生危机等级
 func (w *Workflow) UpdateStudentCrisisLevelByAdmin(studentId string, crisisLevel string,
-	userId string, userType model.UserType) (*model.Student, error) {
+	userId string, userType int) (*model.Student, error) {
 	if userId == "" {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	} else if studentId == "" {
 		return nil, errors.New("学生未注册")
@@ -518,7 +518,7 @@ func (w *Workflow) UpdateStudentCrisisLevelByAdmin(studentId string, crisisLevel
 		return nil, errors.New("危机等级错误")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := w.model.GetStudentById(studentId)
@@ -534,10 +534,10 @@ func (w *Workflow) UpdateStudentCrisisLevelByAdmin(studentId string, crisisLevel
 
 // 管理员更新学生档案编号
 func (w *Workflow) UpdateStudentArchiveNumberByAdmin(studentId string, archiveCategory string, archiveNumber string,
-	userId string, userType model.UserType) (*model.Student, error) {
+	userId string, userType int) (*model.Student, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	} else if len(studentId) == 0 {
 		return nil, errors.New("学生未注册")
@@ -547,7 +547,7 @@ func (w *Workflow) UpdateStudentArchiveNumberByAdmin(studentId string, archiveCa
 		return nil, errors.New("档案编号为空")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := w.model.GetStudentById(studentId)
@@ -572,10 +572,10 @@ func (w *Workflow) UpdateStudentArchiveNumberByAdmin(studentId string, archiveCa
 
 // 管理员重置学生密码
 func (w *Workflow) ResetStudentPasswordByAdmin(studentId string, password string,
-	userId string, userType model.UserType) (*model.Student, error) {
+	userId string, userType int) (*model.Student, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	} else if len(studentId) == 0 {
 		return nil, errors.New("学生未注册")
@@ -583,7 +583,7 @@ func (w *Workflow) ResetStudentPasswordByAdmin(studentId string, password string
 		return nil, errors.New("密码为空")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := w.model.GetStudentById(studentId)
@@ -591,7 +591,7 @@ func (w *Workflow) ResetStudentPasswordByAdmin(studentId string, password string
 		return nil, errors.New("学生未注册")
 	}
 	//student.Password = password
-	encryptedPassword, err := util.EncryptPassword(password)
+	encryptedPassword, err := utils.EncryptPassword(password)
 	if err != nil {
 		return nil, errors.New("加密出错，请联系技术支持")
 	}
@@ -603,23 +603,23 @@ func (w *Workflow) ResetStudentPasswordByAdmin(studentId string, password string
 }
 
 // 管理员删除学生账户
-func (w *Workflow) DeleteStudentAccountByAdmin(studentId string, userId string, userType model.UserType) error {
+func (w *Workflow) DeleteStudentAccountByAdmin(studentId string, userId string, userType int) error {
 	if len(userId) == 0 {
 		return errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return errors.New("权限不足")
 	} else if len(studentId) == 0 {
 		return errors.New("学生未注册")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := w.model.GetStudentById(studentId)
-	if err != nil || student.UserType != model.STUDENT {
+	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
 		return errors.New("学生未注册")
 	}
-	student.UserType = model.UNKNOWN
+	student.UserType = model.USER_TYPE_UNKNOWN
 	if err := w.model.UpsertStudent(student); err != nil {
 		return errors.New("获取数据失败")
 	}
@@ -627,14 +627,14 @@ func (w *Workflow) DeleteStudentAccountByAdmin(studentId string, userId string, 
 }
 
 // 管理员导出学生信息
-func (w *Workflow) ExportStudentByAdmin(studentId string, userId string, userType model.UserType) (string, error) {
+func (w *Workflow) ExportStudentByAdmin(studentId string, userId string, userType int) (string, error) {
 	if len(userId) == 0 {
 		return "", errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return "", errors.New("权限不足")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return "", errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := w.model.GetStudentById(studentId)
@@ -645,22 +645,22 @@ func (w *Workflow) ExportStudentByAdmin(studentId string, userId string, userTyp
 		return "", errors.New("请先分配档案号")
 	}
 	filename := "student_" + student.ArchiveNumber + "_" + student.Username + "_" +
-		time.Now().Format("2006-01-02") + util.CsvSuffix
+		time.Now().Format("2006-01-02") + utils.CsvSuffix
 	if err = w.ExportStudentInfoToFile(student, filename); err != nil {
 		return "", err
 	}
-	return "/" + util.ExportFolder + filename, nil
+	return "/" + utils.ExportFolder + filename, nil
 }
 
 // 管理员解绑学生的匹配咨询师
-func (w *Workflow) UnbindStudentByAdmin(studentId string, userId string, userType model.UserType) (*model.Student, error) {
+func (w *Workflow) UnbindStudentByAdmin(studentId string, userId string, userType int) (*model.Student, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := w.model.GetStudentById(studentId)
@@ -676,10 +676,10 @@ func (w *Workflow) UnbindStudentByAdmin(studentId string, userId string, userTyp
 
 // 管理员绑定学生的匹配咨询师
 func (w *Workflow) BindStudentByAdmin(studentId string, teacherUsername string,
-	userId string, userType model.UserType) (*model.Student, error) {
+	userId string, userType int) (*model.Student, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	} else if len(studentId) == 0 {
 		return nil, errors.New("请先登录")
@@ -687,7 +687,7 @@ func (w *Workflow) BindStudentByAdmin(studentId string, teacherUsername string,
 		return nil, errors.New("咨询师工号为空")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := w.model.GetStudentById(studentId)
@@ -707,20 +707,20 @@ func (w *Workflow) BindStudentByAdmin(studentId string, teacherUsername string,
 
 // 管理员查询学生信息
 func (w *Workflow) QueryStudentInfoByAdmin(studentUsername string,
-	userId string, userType model.UserType) (*model.Student, []*model.Reservation, error) {
+	userId string, userType int) (*model.Student, []*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, nil, errors.New("权限不足")
 	} else if len(studentUsername) == 0 {
 		return nil, nil, errors.New("学号为空")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	student, err := w.model.GetStudentByUsername(studentUsername)
-	if err != nil || student.UserType != model.STUDENT {
+	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
 		return nil, nil, errors.New("学生未注册")
 	}
 	reservations, err := w.model.GetReservationsByStudentId(student.Id.Hex())
@@ -731,17 +731,17 @@ func (w *Workflow) QueryStudentInfoByAdmin(studentUsername string,
 }
 
 // 管理员导出当天时间表
-func (w *Workflow) ExportTodayReservationTimetableByAdmin(userId string, userType model.UserType) (string, error) {
+func (w *Workflow) ExportTodayReservationTimetableByAdmin(userId string, userType int) (string, error) {
 	if len(userId) == 0 {
 		return "", errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return "", errors.New("权限不足")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return "", errors.New("管理员账户出错,请联系技术支持")
 	}
-	today := util.BeginOfDay(time.Now())
+	today := utils.BeginOfDay(time.Now())
 	tomorrow := today.AddDate(0, 0, 1)
 	reservations, err := w.model.GetReservationsBetweenTime(today, tomorrow)
 	if err != nil {
@@ -755,28 +755,28 @@ func (w *Workflow) ExportTodayReservationTimetableByAdmin(userId string, userTyp
 			}
 		}
 	}
-	sort.Sort(model.ReservationSlice(reservations))
-	filename := "timetable_" + todayDate + util.CsvSuffix
+	sort.Sort(ByStartTimeOfReservation(reservations))
+	filename := "timetable_" + todayDate + utils.CsvSuffix
 	if len(reservations) == 0 {
 		return "", errors.New("今日无咨询")
 	}
 	if err = w.ExportTodayReservationTimetableToFile(reservations, filename); err != nil {
 		return "", err
 	}
-	return "/" + util.ExportFolder + filename, nil
+	return "/" + utils.ExportFolder + filename, nil
 }
 
 // 查找咨询师
 // 查找顺序:全名 > 工号 > 手机号
 func (w *Workflow) SearchTeacherByAdmin(teacherFullname string, teacherUsername string, teacherMobile string,
-	userId string, userType model.UserType) (*model.Teacher, error) {
+	userId string, userType int) (*model.Teacher, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	if len(teacherFullname) != 0 {
@@ -811,10 +811,10 @@ type WorkLoad struct {
 
 // 管理员统计咨询师工作量
 func (w *Workflow) GetTeacherWorkloadByAdmin(fromDate string, toDate string,
-	userId string, userType model.UserType) (map[string]WorkLoad, error) {
+	userId string, userType int) (map[string]WorkLoad, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	} else if len(fromDate) == 0 {
 		return nil, errors.New("开始日期为空")
@@ -822,7 +822,7 @@ func (w *Workflow) GetTeacherWorkloadByAdmin(fromDate string, toDate string,
 		return nil, errors.New("结束日期为空")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	from, err := time.ParseInLocation("2006-01-02", fromDate, time.Local)
@@ -861,10 +861,10 @@ func (w *Workflow) GetTeacherWorkloadByAdmin(fromDate string, toDate string,
 }
 
 // 管理员导出报表
-func (w *Workflow) ExportReportFormByAdmin(fromDate string, toDate string, userId string, userType model.UserType) (string, error) {
+func (w *Workflow) ExportReportFormByAdmin(fromDate string, toDate string, userId string, userType int) (string, error) {
 	if len(userId) == 0 {
 		return "", errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return "", errors.New("权限不足")
 	} else if len(fromDate) == 0 {
 		return "", errors.New("开始日期为空")
@@ -872,7 +872,7 @@ func (w *Workflow) ExportReportFormByAdmin(fromDate string, toDate string, userI
 		return "", errors.New("结束日期为空")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return "", errors.New("管理员账户出错,请联系技术支持")
 	}
 	from, err := time.ParseInLocation("2006-01-02", fromDate, time.Local)
@@ -888,27 +888,27 @@ func (w *Workflow) ExportReportFormByAdmin(fromDate string, toDate string, userI
 	if err != nil {
 		return "", errors.New("获取数据失败")
 	}
-	filename := fmt.Sprintf("monthly_report_%s_%s%s", fromDate, toDate, util.CsvSuffix)
+	filename := fmt.Sprintf("monthly_report_%s_%s%s", fromDate, toDate, utils.CsvSuffix)
 	if len(reservations) == 0 {
 		return "", nil
 	}
 	if err = w.ExportReportFormToFile(reservations, filename); err != nil {
 		return "", err
 	}
-	return "/" + util.ExportFolder + filename, nil
+	return "/" + utils.ExportFolder + filename, nil
 }
 
 // 管理员导出报表
-func (w *Workflow) ExportReportMonthlyByAdmin(monthlyDate string, userId string, userType model.UserType) (string, string, error) {
+func (w *Workflow) ExportReportMonthlyByAdmin(monthlyDate string, userId string, userType int) (string, string, error) {
 	if len(userId) == 0 {
 		return "", "", errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return "", "", errors.New("权限不足")
 	} else if len(monthlyDate) == 0 {
 		return "", "", errors.New("开始日期为空")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return "", "", errors.New("管理员账户出错,请联系技术支持")
 	}
 	date, err := time.ParseInLocation("2006-01-02", monthlyDate, time.Local)
@@ -921,8 +921,8 @@ func (w *Workflow) ExportReportMonthlyByAdmin(monthlyDate string, userId string,
 	if err != nil {
 		return "", "", errors.New("获取数据失败")
 	}
-	reportFilename := fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), util.CsvSuffix)
-	keyCaseFilename := fmt.Sprintf("monthly_key_case_%d_%d%s", date.Year(), date.Month(), util.CsvSuffix)
+	reportFilename := fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), utils.CsvSuffix)
+	keyCaseFilename := fmt.Sprintf("monthly_key_case_%d_%d%s", date.Year(), date.Month(), utils.CsvSuffix)
 	if len(reservations) == 0 {
 		return "", "", nil
 	}
@@ -932,5 +932,5 @@ func (w *Workflow) ExportReportMonthlyByAdmin(monthlyDate string, userId string,
 	//if err = workflow.ExportKeyCaseReport(reservations, keyCaseFilename); err != nil {
 	//	return "", "", err
 	//}
-	return "/" + util.ExportFolder + reportFilename, "/" + util.ExportFolder + keyCaseFilename, nil
+	return "/" + utils.ExportFolder + reportFilename, "/" + utils.ExportFolder + keyCaseFilename, nil
 }

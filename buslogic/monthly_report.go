@@ -2,7 +2,7 @@ package buslogic
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"fmt"
 	"sort"
 	"strconv"
@@ -201,7 +201,7 @@ func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, fil
 	amountLine = append(amountLine, strconv.Itoa(amount.Amount))
 	data = append(data, amountLine)
 	data = append(data, percentLine)
-	if err := util.WriteToCSV(data, filename); err != nil {
+	if err := utils.WriteToCSV(data, filename); err != nil {
 		return err
 	}
 	return nil

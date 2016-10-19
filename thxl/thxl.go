@@ -2,7 +2,6 @@ package main
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	tsvc "bitbucket.org/shudiwsh2009/reservation_thxl_go/service"
 	"encoding/json"
 	"flag"
@@ -18,7 +17,7 @@ var redirectStudentPath = regexp.MustCompile("^(/reservation/student$|/student/)
 var redirectTeacherPath = regexp.MustCompile("^(/reservation/teacher$|/teacher/)")
 var redirectAdminPath = regexp.MustCompile("^(/reservation/admin|/admin/)")
 
-func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, model.UserType) interface{}) http.HandlerFunc {
+func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, int) interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		// request log
@@ -56,7 +55,7 @@ func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, model.
 			redirectUrl = "/reservation/admin/login"
 		}
 		var userId string
-		var userType model.UserType
+		var userType int
 		if cookie, err := r.Cookie("user_id"); err != nil {
 			http.Redirect(w, r, redirectUrl, http.StatusFound)
 			return
@@ -75,7 +74,7 @@ func handleWithCookie(fn func(http.ResponseWriter, *http.Request, string, model.
 				http.Redirect(w, r, redirectUrl, http.StatusFound)
 				return
 			} else {
-				userType = model.UserType(ut)
+				userType = ut
 			}
 		}
 		if result := fn(w, r, userId, userType); result != nil {
@@ -119,57 +118,6 @@ func main() {
 	pageRouter.HandleFunc("/admin/login", handleWithCookie(service.AdminLoginPage))
 	pageRouter.HandleFunc("/admin/timetable", handleWithCookie(service.AdminTimetablePage))
 	pageRouter.HandleFunc("/protocol", handleWithCookie(service.ProtocolPage))
-	// 加载动态处理器
-	userRouter := router.PathPrefix("/user").Subrouter()
-	userRouter.HandleFunc("/student/login", handleWithCookie(service.StudentLogin)).Methods("POST")
-	userRouter.HandleFunc("/student/register", handleWithCookie(service.StudentRegister)).Methods("POST")
-	userRouter.HandleFunc("/teacher/login", handleWithCookie(service.TeacherLogin)).Methods("POST")
-	userRouter.HandleFunc("/admin/login", handleWithCookie(service.AdminLogin)).Methods("POST")
-	userRouter.HandleFunc("/logout", handleWithCookie(service.Logout)).Methods("GET")
-	studentRouter := router.PathPrefix("/student").Subrouter()
-	studentRouter.HandleFunc("/reservation/view", handleWithCookie(service.ViewReservationsByStudent)).Methods("GET")
-	studentRouter.HandleFunc("/reservation/make", handleWithCookie(service.MakeReservationByStudent)).Methods("POST")
-	studentRouter.HandleFunc("/reservation/feedback/get", handleWithCookie(service.GetFeedbackByStudent)).Methods("POST")
-	studentRouter.HandleFunc("/reservation/feedback/submit", handleWithCookie(service.SubmitFeedbackByStudent)).Methods("POST")
-	teacherRouter := router.PathPrefix("/teacher").Subrouter()
-	teacherRouter.HandleFunc("/reservation/view", handleWithCookie(service.ViewReservationsByTeacher)).Methods("GET")
-	teacherRouter.HandleFunc("/reservation/feedback/get", handleWithCookie(service.GetFeedbackByTeacher)).Methods("POST")
-	teacherRouter.HandleFunc("/reservation/feedback/submit", handleWithCookie(service.SubmitFeedbackByTeacher)).Methods("POST")
-	teacherRouter.HandleFunc("/student/get", handleWithCookie(service.GetStudentInfoByTeacher)).Methods("POST")
-	teacherRouter.HandleFunc("/student/query", handleWithCookie(service.QueryStudentInfoByTeacher)).Methods("POST")
-	adminRouter := router.PathPrefix("/admin").Subrouter()
-	adminRouter.HandleFunc("/timetable/view", handleWithCookie(service.ViewTimedReservationsByAdmin)).Methods("GET")
-	adminRouter.HandleFunc("/timetable/add", handleWithCookie(service.AddTimedReservationByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/timetable/edit", handleWithCookie(service.EditTimedReservationByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/timetable/remove", handleWithCookie(service.RemoveTimedReservationsByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/timetable/open", handleWithCookie(service.OpenTimedReservationsByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/timetable/close", handleWithCookie(service.CloseTimedReservationsByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/reservation/view", handleWithCookie(service.ViewReservationsByAdmin)).Methods("GET")
-	adminRouter.HandleFunc("/reservation/view/daily", handleWithCookie(service.ViewDailyReservationsByAdmin)).Methods("GET")
-	adminRouter.HandleFunc("/reservation/export/today", handleWithCookie(service.ExportTodayReservationsByAdmin)).Methods("GET")
-	adminRouter.HandleFunc("/reservation/export/report", handleWithCookie(service.ExportReportFormByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/reservation/export/report/monthly", handleWithCookie(service.ExportReportMonthlyByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/reservation/add", handleWithCookie(service.AddReservationByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/reservation/edit", handleWithCookie(service.EditReservationByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/reservation/remove", handleWithCookie(service.RemoveReservationsByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/reservation/cancel", handleWithCookie(service.CancelReservationByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/reservation/feedback/get", handleWithCookie(service.GetFeedbackByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/reservation/feedback/submit", handleWithCookie(service.SubmitFeedbackByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/reservation/student/set", handleWithCookie(service.SetStudentByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/student/get", handleWithCookie(service.GetStudentInfoByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/student/search", handleWithCookie(service.SearchStudentByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/student/crisis/update", handleWithCookie(service.UpdateStudentCrisisLevelByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/student/archive/update", handleWithCookie(service.UpdateStudentArchiveNumberByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/student/password/reset", handleWithCookie(service.ResetStudentPasswordByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/student/account/delete", handleWithCookie(service.DeleteStudentAccountByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/student/export", handleWithCookie(service.ExportStudentByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/student/unbind", handleWithCookie(service.UnbindStudentByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/student/bind", handleWithCookie(service.BindStudentByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/student/query", handleWithCookie(service.QueryStudentInfoByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/teacher/search", handleWithCookie(service.SearchTeacherByAdmin)).Methods("POST")
-	adminRouter.HandleFunc("/teacher/workload", handleWithCookie(service.GetTeacherWorkloadByAdmin)).Methods("POST")
-	categoryRouter := router.PathPrefix("/category").Subrouter()
-	categoryRouter.HandleFunc("/feedback", handleWithCookie(service.GetFeedbackCategories)).Methods("GET")
 	// http加载处理器
 	http.Handle("/", router)
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("../assets/"))))

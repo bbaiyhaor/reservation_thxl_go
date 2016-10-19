@@ -20,3 +20,7 @@ func NewWorkflow() *Workflow {
 	}
 	return ret
 }
+
+func (w *Workflow) Model() *model.Model {
+	return w.model
+}

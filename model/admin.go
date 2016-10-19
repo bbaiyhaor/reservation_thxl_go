@@ -15,7 +15,7 @@ type Admin struct {
 	EncryptedPassword string        `bson:"encrypted_password"`
 	Fullname          string        `bson:"fullname"`
 	Mobile            string        `bson:"mobile"`
-	UserType          UserType      `bson:"user_type"`
+	UserType          int           `bson:"user_type"`
 }
 
 func (m *Model) UpsertAdmin(admin *Admin) error {
@@ -46,7 +46,7 @@ func (m *Model) GetAdminByUsername(username string) (*Admin, error) {
 	}
 	collection := m.mongo.C("admin")
 	admin := &Admin{}
-	if err := collection.Find(bson.M{"username": username}).One(admin); err != nil {
+	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_ADMIN}).One(admin); err != nil {
 		return nil, err
 	}
 	return admin, nil

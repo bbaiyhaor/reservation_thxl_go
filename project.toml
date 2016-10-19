@@ -1,0 +1,37 @@
+# This is the TOML config file for project: reservation_thxl_go
+
+[package]
+name = "reservation_thxl_go"
+version = "0.1"
+authors = [
+    "Shudi Wang <shudiwsh2009@gmail.com>"
+]
+build_opts = []
+is_graceful = false
+deps = [
+    "github.com/mijia/sweb/...",
+]
+
+[distribution]
+build_opts = []
+pack_extras = ["templates", "assets_map.json"]
+cross_targets = []
+
+[assets]
+url_prefix = "/assets"
+assets_mapping_json = "assets_map.json"
+image_exts = [".png", ".jpg", ".jpeg", ".gif"]
+deps = [
+    "react",
+    "react-dom",
+    "react-router",
+    "react-weui"
+]
+
+    [[assets.vendor_set]]
+    name = "vendor-react-mobile"
+    requires = ["react", "react-dom", "react-router", "react-weui"]
+
+    [[assets.entry]]
+    name = "user_mobile"
+    externals = ["vendor-react-mobile"]

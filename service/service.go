@@ -2,21 +2,22 @@ package service
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
-	"log"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
+	"github.com/mijia/sweb/log"
 )
 
-type Service struct {
-	w *buslogic.Workflow
-}
+var wf *buslogic.Workflow
 
-func NewService() *Service {
-	s := &Service{
-		w: buslogic.NewWorkflow(),
-	}
+func InitService(confPath string, isSmock bool) {
+	config.InitWithParams(confPath, isSmock)
+	log.Infof("config loaded: %+v", *config.Instance())
+	wf = buslogic.NewWorkflow()
 
-	if err := s.w.ImportArchiveFromCSVFile(); err != nil {
+	if err := wf.ImportArchiveFromCSVFile(); err != nil {
 		log.Fatalf("初始化档案失败：%v", err)
 	}
+}
 
-	return s
+func Workflow() *buslogic.Workflow {
+	return wf
 }

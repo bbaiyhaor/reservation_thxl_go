@@ -1,10 +1,17 @@
 package model
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"errors"
 	"gopkg.in/mgo.v2/bson"
 	"time"
+)
+
+const (
+	USER_TYPE_UNKNOWN = iota
+	USER_TYPE_STUDENT
+	USER_TYPE_TEACHER
+	USER_TYPE_ADMIN
 )
 
 type Student struct {
@@ -14,7 +21,7 @@ type Student struct {
 	Username          string        `bson:"username"` // Indexed
 	Password          string        `bson:"password"` // will be deprecated soon
 	EncryptedPassword string        `bson:"encrypted_password"`
-	UserType          UserType      `bson:"user_type"`
+	UserType          int           `bson:"user_type"`
 	BindedTeacherId   string        `bson:"binded_teacher_id"` // Indexed
 	ArchiveCategory   string        `bson:"archive_category"`
 	ArchiveNumber     string        `bson:"archive_number"` // Indexed
@@ -49,14 +56,14 @@ type Experience struct {
 }
 
 func (e Experience) IsEmpty() bool {
-	return len(e.Time) == 0 && len(e.Location) == 0 && len(e.Teacher) == 0
+	return e.Time == "" && e.Location == "" && e.Teacher == ""
 }
 
 func (m *Model) AddStudent(username string, password string) (*Student, error) {
 	if len(username) == 0 || len(password) == 0 {
 		return nil, errors.New("字段不合法")
 	}
-	encryptedPassword, err := util.EncryptPassword(password)
+	encryptedPassword, err := utils.EncryptPassword(password)
 	if err != nil {
 		return nil, errors.New("加密出错，请联系技术支持")
 	}
@@ -67,7 +74,7 @@ func (m *Model) AddStudent(username string, password string) (*Student, error) {
 		UpdateTime:        time.Now(),
 		Username:          username,
 		EncryptedPassword: encryptedPassword,
-		UserType:          STUDENT,
+		UserType:          USER_TYPE_STUDENT,
 		CrisisLevel:       0,
 		KeyCase:           make([]int, 5),
 		MedicalDiagnosis:  make([]int, 8),
@@ -106,7 +113,7 @@ func (m *Model) GetStudentByUsername(username string) (*Student, error) {
 	}
 	collection := m.mongo.C("student")
 	student := &Student{}
-	if err := collection.Find(bson.M{"username": username, "user_type": STUDENT}).One(student); err != nil {
+	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_STUDENT}).One(student); err != nil {
 		return nil, err
 	}
 	return student, nil

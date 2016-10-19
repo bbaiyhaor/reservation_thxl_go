@@ -2,7 +2,7 @@ package buslogic
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"errors"
 	"strconv"
 	"strings"
@@ -15,10 +15,10 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 	familyAddress string, mobile string, email string, experienceTime string, experienceLocation string,
 	experienceTeacher string, fatherAge string, fatherJob string, fatherEdu string, motherAge string, motherJob string,
 	motherEdu string, parentMarriage string, siginificant string, problem string,
-	userId string, userType model.UserType) (*model.Reservation, error) {
+	userId string, userType int) (*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.STUDENT {
+	} else if userType != model.USER_TYPE_STUDENT {
 		return nil, errors.New("请重新登录")
 	} else if len(reservationId) == 0 {
 		return nil, errors.New("咨询已下架")
@@ -42,15 +42,15 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 		return nil, errors.New("邮箱为空")
 	} else if len(problem) == 0 {
 		return nil, errors.New("问题为空")
-	} else if !util.IsMobile(mobile) {
+	} else if !utils.IsMobile(mobile) {
 		return nil, errors.New("手机号格式不正确")
-	} else if !util.IsEmail(email) {
+	} else if !utils.IsEmail(email) {
 		return nil, errors.New("邮箱格式不正确")
 	}
 	student, err := w.model.GetStudentById(userId)
 	if err != nil {
 		return nil, errors.New("请先登录")
-	} else if student.UserType != model.STUDENT {
+	} else if student.UserType != model.USER_TYPE_STUDENT {
 		return nil, errors.New("请重新登录")
 	}
 	studentReservations, err := w.model.GetReservationsByStudentId(student.Id.Hex())
@@ -58,7 +58,7 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 		return nil, errors.New("获取数据失败")
 	}
 	for _, r := range studentReservations {
-		if r.Status == model.RESERVATED && r.StartTime.After(time.Now()) {
+		if r.Status == model.RESERVATION_STATUS_RESERVATED && r.StartTime.After(time.Now()) {
 			return nil, errors.New("你好！你已有一个咨询预约，请完成这次咨询后再预约下一次，或致电62782007取消已有预约。")
 		}
 	}
@@ -66,11 +66,11 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 	if len(sourceId) == 0 {
 		// Source为ADD，无SourceId：直接预约
 		reservation, err = w.model.GetReservationById(reservationId)
-		if err != nil || reservation.Status == model.DELETED {
+		if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 			return nil, errors.New("咨询已下架")
 		} else if reservation.StartTime.Before(time.Now()) {
 			return nil, errors.New("咨询已过期")
-		} else if reservation.Status != model.AVAILABLE {
+		} else if reservation.Status != model.RESERVATION_STATUS_AVAILABLE {
 			return nil, errors.New("咨询已被预约")
 		} else if len(student.BindedTeacherId) != 0 && !strings.EqualFold(student.BindedTeacherId, reservation.TeacherId) {
 			return nil, errors.New("只能预约匹配咨询师")
@@ -78,7 +78,7 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 	} else if strings.EqualFold(reservationId, sourceId) {
 		// Source为TIMETABLE且未被预约
 		timedReservation, err := w.model.GetTimedReservationById(sourceId)
-		if err != nil || timedReservation.Status == model.DELETED {
+		if err != nil || timedReservation.Status == model.RESERVATION_STATUS_DELETED {
 			return nil, errors.New("咨询已下架")
 		}
 		start, err := time.ParseInLocation("2006-01-02 15:04", startTime, time.Local)
@@ -94,8 +94,8 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 		} else if len(student.BindedTeacherId) != 0 && !strings.EqualFold(student.BindedTeacherId, timedReservation.TeacherId) {
 			return nil, errors.New("只能预约匹配咨询师")
 		}
-		end := util.ConcatTime(start, timedReservation.EndTime)
-		reservation, err = w.model.AddReservation(start, end, model.TIMETABLE, timedReservation.Id.Hex(), timedReservation.TeacherId)
+		end := utils.ConcatTime(start, timedReservation.EndTime)
+		reservation, err = w.model.AddReservation(start, end, model.RESERVATION_SOURCE_TIMETABLE, timedReservation.Id.Hex(), timedReservation.TeacherId)
 		if err != nil {
 			return nil, errors.New("获取数据失败")
 		}
@@ -134,7 +134,7 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 	}
 	// 更新咨询信息
 	reservation.StudentId = student.Id.Hex()
-	reservation.Status = model.RESERVATED
+	reservation.Status = model.RESERVATION_STATUS_RESERVATED
 	if w.model.UpsertReservation(reservation) != nil {
 		return nil, errors.New("获取数据失败")
 	}
@@ -145,10 +145,10 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 
 // 学生拉取反馈
 func (w *Workflow) GetFeedbackByStudent(reservationId string, sourceId string,
-	userId string, userType model.UserType) (*model.Reservation, error) {
+	userId string, userType int) (*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.STUDENT {
+	} else if userType != model.USER_TYPE_STUDENT {
 		return nil, errors.New("请重新登录")
 	} else if len(reservationId) == 0 {
 		return nil, errors.New("咨询已下架")
@@ -158,15 +158,15 @@ func (w *Workflow) GetFeedbackByStudent(reservationId string, sourceId string,
 	student, err := w.model.GetStudentById(userId)
 	if err != nil {
 		return nil, errors.New("请先登录")
-	} else if student.UserType != model.STUDENT {
+	} else if student.UserType != model.USER_TYPE_STUDENT {
 		return nil, errors.New("请重新登录")
 	}
 	reservation, err := w.model.GetReservationById(reservationId)
-	if err != nil || reservation.Status == model.DELETED {
+	if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 		return nil, errors.New("咨询已下架")
 	} else if reservation.StartTime.After(time.Now()) {
 		return nil, errors.New("咨询未开始,暂不能反馈")
-	} else if reservation.Status == model.AVAILABLE {
+	} else if reservation.Status == model.RESERVATION_STATUS_AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
 	} else if !strings.EqualFold(reservation.StudentId, student.Id.Hex()) {
 		return nil, errors.New("只能反馈本人预约的咨询")
@@ -176,10 +176,10 @@ func (w *Workflow) GetFeedbackByStudent(reservationId string, sourceId string,
 
 // 学生反馈
 func (w *Workflow) SubmitFeedbackByStudent(reservationId string, sourceId string, scores []int,
-	userId string, userType model.UserType) (*model.Reservation, error) {
+	userId string, userType int) (*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.STUDENT {
+	} else if userType != model.USER_TYPE_STUDENT {
 		return nil, errors.New("请重新登录")
 	} else if len(reservationId) == 0 {
 		return nil, errors.New("咨询已下架")
@@ -191,15 +191,15 @@ func (w *Workflow) SubmitFeedbackByStudent(reservationId string, sourceId string
 	student, err := w.model.GetStudentById(userId)
 	if err != nil {
 		return nil, errors.New("请先登录")
-	} else if student.UserType != model.STUDENT {
+	} else if student.UserType != model.USER_TYPE_STUDENT {
 		return nil, errors.New("请重新登录")
 	}
 	reservation, err := w.model.GetReservationById(reservationId)
-	if err != nil || reservation.Status == model.DELETED {
+	if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 		return nil, errors.New("咨询已下架")
 	} else if reservation.StartTime.After(time.Now()) {
 		return nil, errors.New("咨询未开始,暂不能反馈")
-	} else if reservation.Status == model.AVAILABLE {
+	} else if reservation.Status == model.RESERVATION_STATUS_AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
 	} else if !strings.EqualFold(reservation.StudentId, student.Id.Hex()) {
 		return nil, errors.New("只能反馈本人预约的咨询")
@@ -314,7 +314,7 @@ func (w *Workflow) ExportStudentInfoToFile(student *model.Student, filename stri
 		}
 		data = append(data, []string{""})
 	}
-	if err := util.WriteToCSV(data, filename); err != nil {
+	if err := utils.WriteToCSV(data, filename); err != nil {
 		return err
 	}
 	return nil

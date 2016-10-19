@@ -10,10 +10,10 @@ import (
 
 // 咨询师拉取反馈
 func (w *Workflow) GetFeedbackByTeacher(reservationId string, sourceId string,
-	userId string, userType model.UserType) (*model.Student, *model.Reservation, error) {
+	userId string, userType int) (*model.Student, *model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, nil, errors.New("请先登录")
-	} else if userType != model.TEACHER {
+	} else if userType != model.USER_TYPE_TEACHER {
 		return nil, nil, errors.New("权限不足")
 	} else if len(reservationId) == 0 {
 		return nil, nil, errors.New("咨询已下架")
@@ -23,15 +23,15 @@ func (w *Workflow) GetFeedbackByTeacher(reservationId string, sourceId string,
 	teacher, err := w.model.GetTeacherById(userId)
 	if err != nil {
 		return nil, nil, errors.New("咨询师账户失效")
-	} else if teacher.UserType != model.TEACHER {
+	} else if teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, nil, errors.New("权限不足")
 	}
 	reservation, err := w.model.GetReservationById(reservationId)
-	if err != nil || reservation.Status == model.DELETED {
+	if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 		return nil, nil, errors.New("咨询已下架")
 	} else if reservation.StartTime.After(time.Now()) {
 		return nil, nil, errors.New("咨询未开始,暂不能反馈")
-	} else if reservation.Status == model.AVAILABLE {
+	} else if reservation.Status == model.RESERVATION_STATUS_AVAILABLE {
 		return nil, nil, errors.New("咨询未被预约,不能反馈")
 	} else if !strings.EqualFold(reservation.TeacherId, teacher.Id.Hex()) {
 		return nil, nil, errors.New("只能反馈本人开设的咨询")
@@ -46,10 +46,10 @@ func (w *Workflow) GetFeedbackByTeacher(reservationId string, sourceId string,
 // 咨询师提交反馈
 func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string,
 	category string, participants []int, emphasis string, severity []int, medicalDiagnosis []int, crisis []int,
-	record string, crisisLevel string, userId string, userType model.UserType) (*model.Reservation, error) {
+	record string, crisisLevel string, userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
 		return nil, errors.New("请先登录")
-	} else if userType != model.TEACHER {
+	} else if userType != model.USER_TYPE_TEACHER {
 		return nil, errors.New("权限不足")
 	} else if reservationId == "" {
 		return nil, errors.New("咨询已下架")
@@ -83,15 +83,15 @@ func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string
 	teacher, err := w.model.GetTeacherById(userId)
 	if err != nil {
 		return nil, errors.New("咨询师账户失效")
-	} else if teacher.UserType != model.TEACHER {
+	} else if teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, errors.New("权限不足")
 	}
 	reservation, err := w.model.GetReservationById(reservationId)
-	if err != nil || reservation.Status == model.DELETED {
+	if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 		return nil, errors.New("咨询已下架")
 	} else if reservation.StartTime.After(time.Now()) {
 		return nil, errors.New("咨询未开始,暂不能反馈")
-	} else if reservation.Status == model.AVAILABLE {
+	} else if reservation.Status == model.RESERVATION_STATUS_AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
 	} else if !strings.EqualFold(reservation.TeacherId, teacher.Id.Hex()) {
 		return nil, errors.New("只能反馈本人开设的咨询")
@@ -122,10 +122,10 @@ func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string
 
 // 咨询师查看学生信息
 func (w *Workflow) GetStudentInfoByTeacher(studentId string,
-	userId string, userType model.UserType) (*model.Student, []*model.Reservation, error) {
+	userId string, userType int) (*model.Student, []*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, nil, errors.New("请先登录")
-	} else if userType != model.TEACHER {
+	} else if userType != model.USER_TYPE_TEACHER {
 		return nil, nil, errors.New("权限不足")
 	} else if len(studentId) == 0 {
 		return nil, nil, errors.New("咨询未被预约")
@@ -133,7 +133,7 @@ func (w *Workflow) GetStudentInfoByTeacher(studentId string,
 	teacher, err := w.model.GetTeacherById(userId)
 	if err != nil {
 		return nil, nil, errors.New("咨询师账户失效")
-	} else if teacher.UserType != model.TEACHER {
+	} else if teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, nil, errors.New("权限不足")
 	}
 	student, err := w.model.GetStudentById(studentId)
@@ -152,10 +152,10 @@ func (w *Workflow) GetStudentInfoByTeacher(studentId string,
 
 // 咨询师查询学生信息
 func (w *Workflow) QueryStudentInfoByTeacher(studentUsername string,
-	userId string, userType model.UserType) (*model.Student, []*model.Reservation, error) {
+	userId string, userType int) (*model.Student, []*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, nil, errors.New("请先登录")
-	} else if userType != model.TEACHER {
+	} else if userType != model.USER_TYPE_TEACHER {
 		return nil, nil, errors.New("权限不足")
 	} else if len(studentUsername) == 0 {
 		return nil, nil, errors.New("学号为空")
@@ -163,11 +163,11 @@ func (w *Workflow) QueryStudentInfoByTeacher(studentUsername string,
 	teacher, err := w.model.GetTeacherById(userId)
 	if err != nil {
 		return nil, nil, errors.New("咨询师账户失效")
-	} else if teacher.UserType != model.TEACHER {
+	} else if teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, nil, errors.New("权限不足")
 	}
 	student, err := w.model.GetStudentByUsername(studentUsername)
-	if err != nil || student.UserType != model.STUDENT {
+	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
 		return nil, nil, errors.New("学生未注册")
 	}
 	if !strings.EqualFold(student.BindedTeacherId, teacher.Id.Hex()) {

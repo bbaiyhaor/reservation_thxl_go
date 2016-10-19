@@ -1,7 +1,7 @@
 package model
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"errors"
 	"gopkg.in/mgo.v2/bson"
 	"time"
@@ -16,14 +16,14 @@ type Teacher struct {
 	EncryptedPassword string        `bson:"encrypted_password"`
 	Fullname          string        `bson:"fullname"`
 	Mobile            string        `bson:"mobile"`
-	UserType          UserType      `bson:"user_type"`
+	UserType          int           `bson:"user_type"`
 }
 
 func (m *Model) AddTeacher(username string, password string, fullname string, mobile string) (*Teacher, error) {
 	if len(username) == 0 || len(password) == 0 || len(fullname) == 0 || len(mobile) == 0 {
 		return nil, errors.New("字段不合法")
 	}
-	encryptedPassword, err := util.EncryptPassword(password)
+	encryptedPassword, err := utils.EncryptPassword(password)
 	if err != nil {
 		return nil, errors.New("加密出错，请联系技术支持")
 	}
@@ -36,7 +36,7 @@ func (m *Model) AddTeacher(username string, password string, fullname string, mo
 		EncryptedPassword: encryptedPassword,
 		Fullname:          fullname,
 		Mobile:            mobile,
-		UserType:          TEACHER,
+		UserType:          USER_TYPE_TEACHER,
 	}
 	if err := collection.Insert(newTeacher); err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (m *Model) GetTeacherByUsername(username string) (*Teacher, error) {
 	}
 	collection := m.mongo.C("teacher")
 	teacher := &Teacher{}
-	if err := collection.Find(bson.M{"username": username}).One(teacher); err != nil {
+	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_TEACHER}).One(teacher); err != nil {
 		return nil, err
 	}
 	return teacher, nil

@@ -3,7 +3,7 @@ package buslogic
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"bytes"
 	"errors"
 	"fmt"
@@ -47,7 +47,7 @@ func (w *Workflow) SendSuccessSMS(reservation *model.Reservation) error {
 	if err != nil {
 		return errors.New("学生未注册")
 	}
-	studentSMS := fmt.Sprintf(SMS_SUCCESS_STUDENT, student.Fullname, util.Weekdays[startTime.Weekday()],
+	studentSMS := fmt.Sprintf(SMS_SUCCESS_STUDENT, student.Fullname, utils.Weekdays[startTime.Weekday()],
 		startTime.Month(), startTime.Day(), startTime.Format("15:04"), endTime.Format("15:04"))
 	if err := w.sendSMS(student.Mobile, studentSMS); err != nil {
 		return err
@@ -72,7 +72,7 @@ func (w *Workflow) SendCancelSMS(reservation *model.Reservation) error {
 	if err != nil {
 		return errors.New("学生未注册")
 	}
-	studentSMS := fmt.Sprintf(SMS_CANCEL_STUDENT, student.Fullname, util.Weekdays[startTime.Weekday()],
+	studentSMS := fmt.Sprintf(SMS_CANCEL_STUDENT, student.Fullname, utils.Weekdays[startTime.Weekday()],
 		startTime.Month(), startTime.Day(), startTime.Format("15:04"), endTime.Format("15:04"))
 	if err := w.sendSMS(student.Mobile, studentSMS); err != nil {
 		return err
@@ -126,7 +126,7 @@ func (w *Workflow) SendFeedbackSMS(reservation *model.Reservation) error {
 }
 
 func (w *Workflow) sendSMS(mobile string, content string) error {
-	if m := util.IsMobile(mobile); !m {
+	if m := utils.IsMobile(mobile); !m {
 		return errors.New("手机号格式不正确")
 	}
 	if config.Instance().IsSmockServer() {
@@ -153,7 +153,7 @@ func (w *Workflow) sendSMS(mobile string, content string) error {
 	errCode := string(responseBody)
 	if errMsg, ok := SMS_ERROR_MSG[errCode]; ok {
 		log.Printf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg)
-		util.EmailWarn("thxlfzzx报警：短信发送失败", fmt.Sprintf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg))
+		utils.EmailWarn("thxlfzzx报警：短信发送失败", fmt.Sprintf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg))
 		return errors.New(fmt.Sprintf("短信发送失败：%s", errMsg))
 	}
 	log.Printf("Send SMS \"%s\" to %s: return %s", content, mobile, errCode)
@@ -162,7 +162,7 @@ func (w *Workflow) sendSMS(mobile string, content string) error {
 
 // 每天20:00发送第二天预约咨询的提醒短信
 func (w *Workflow) SendTomorrowReservationReminderSMS() {
-	today := util.BeginOfDay(time.Now())
+	today := utils.BeginOfDay(time.Now())
 	from := today.AddDate(0, 0, 1)
 	to := today.AddDate(0, 0, 2)
 	reservations, err := w.model.GetReservationsBetweenTime(from, to)
@@ -172,7 +172,7 @@ func (w *Workflow) SendTomorrowReservationReminderSMS() {
 	}
 	succCnt, failCnt := 0, 0
 	for _, reservation := range reservations {
-		if reservation.Status == model.RESERVATED {
+		if reservation.Status == model.RESERVATION_STATUS_RESERVATED {
 			if err = w.SendReminderSMS(reservation); err == nil {
 				succCnt++
 			} else {

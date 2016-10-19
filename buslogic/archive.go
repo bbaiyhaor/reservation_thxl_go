@@ -1,13 +1,13 @@
 package buslogic
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 )
 
-const ArchiveFile = "../assets/import/archive.csv"
+const ArchiveFile = "./assets/import/archive.csv"
 
 func (w *Workflow) ImportArchiveFromCSVFile() error {
-	data, err := util.ReadFromCSV(ArchiveFile)
+	data, err := utils.ReadFromCSV(ArchiveFile)
 	if err != nil {
 		return err
 	}

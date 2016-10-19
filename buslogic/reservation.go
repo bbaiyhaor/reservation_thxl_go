@@ -2,7 +2,7 @@ package buslogic
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"errors"
 	"sort"
 	"strings"
@@ -10,16 +10,16 @@ import (
 )
 
 // 学生查看前后一周内的所有咨询
-func (w *Workflow) GetReservationsByStudent(userId string, userType model.UserType) ([]*model.Reservation, error) {
+func (w *Workflow) GetReservationsByStudent(userId string, userType int) ([]*model.Reservation, error) {
 	if userId == "" {
 		return nil, errors.New("请先登录")
-	} else if userType != model.STUDENT {
+	} else if userType != model.USER_TYPE_STUDENT {
 		return nil, errors.New("请重新登录")
 	}
 	student, err := w.model.GetStudentById(userId)
 	if err != nil {
 		return nil, errors.New("请先登录")
-	} else if student.UserType != model.STUDENT {
+	} else if student.UserType != model.USER_TYPE_STUDENT {
 		return nil, errors.New("请重新登录")
 	}
 	from := time.Now().AddDate(0, 0, -7)
@@ -30,7 +30,7 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType model.UserTy
 	}
 	var result []*model.Reservation
 	for _, r := range reservations {
-		if r.Status == model.AVAILABLE && r.StartTime.Before(time.Now()) {
+		if r.Status == model.RESERVATION_STATUS_AVAILABLE && r.StartTime.Before(time.Now()) {
 			continue
 		} else if r.StudentId == student.Id.Hex() {
 			if !r.TeacherFeedback.IsEmpty() && r.TeacherFeedback.Participants[0] == 0 {
@@ -51,9 +51,9 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType model.UserTy
 	if err != nil {
 		return result, nil
 	}
-	today := util.BeginOfDay(time.Now())
+	today := utils.BeginOfDay(time.Now())
 	for _, tr := range timedReservations {
-		if tr.Status != model.AVAILABLE {
+		if tr.Status != model.RESERVATION_STATUS_AVAILABLE {
 			continue
 		}
 		if len(student.BindedTeacherId) != 0 && !strings.EqualFold(student.BindedTeacherId, tr.TeacherId) {
@@ -64,28 +64,28 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType model.UserTy
 			minusWeekday += 7
 		}
 		date := today.AddDate(0, 0, minusWeekday)
-		if util.ConcatTime(date, tr.StartTime).Before(time.Now()) {
+		if utils.ConcatTime(date, tr.StartTime).Before(time.Now()) {
 			date = today.AddDate(0, 0, 7)
 		}
 		if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
 			result = append(result, tr.ToReservation(date))
 		}
 	}
-	sort.Sort(model.ReservationSlice(result))
+	sort.Sort(ByStartTimeOfReservation(result))
 	return result, nil
 }
 
 // 咨询师查看负7天之后的所有咨询
-func (w *Workflow) GetReservationsByTeacher(userId string, userType model.UserType) ([]*model.Reservation, error) {
+func (w *Workflow) GetReservationsByTeacher(userId string, userType int) ([]*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.TEACHER {
+	} else if userType != model.USER_TYPE_TEACHER {
 		return nil, errors.New("权限不足")
 	}
 	teacher, err := w.model.GetTeacherById(userId)
 	if err != nil {
 		return nil, errors.New("请先登录")
-	} else if teacher.UserType != model.TEACHER {
+	} else if teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, errors.New("权限不足")
 	}
 	from := time.Now().AddDate(0, 0, -7)
@@ -95,16 +95,16 @@ func (w *Workflow) GetReservationsByTeacher(userId string, userType model.UserTy
 	}
 	var result []*model.Reservation
 	for _, r := range reservations {
-		if r.Status == model.AVAILABLE && r.StartTime.Before(time.Now()) {
+		if r.Status == model.RESERVATION_STATUS_AVAILABLE && r.StartTime.Before(time.Now()) {
 			continue
 		} else if strings.EqualFold(r.TeacherId, teacher.Id.Hex()) {
 			result = append(result, r)
 		}
 	}
 	if timedReservations, err := w.model.GetTimedReservationsByTeacherId(teacher.Id.Hex()); err == nil {
-		today := util.BeginOfDay(time.Now())
+		today := utils.BeginOfDay(time.Now())
 		for _, tr := range timedReservations {
-			if tr.Status != model.AVAILABLE {
+			if tr.Status != model.RESERVATION_STATUS_AVAILABLE {
 				continue
 			}
 			minusWeekday := int(tr.Weekday - today.Weekday())
@@ -112,7 +112,7 @@ func (w *Workflow) GetReservationsByTeacher(userId string, userType model.UserTy
 				minusWeekday += 7
 			}
 			date := today.AddDate(0, 0, minusWeekday)
-			if util.ConcatTime(date, tr.StartTime).Before(time.Now()) {
+			if utils.ConcatTime(date, tr.StartTime).Before(time.Now()) {
 				date = today.AddDate(0, 0, 7)
 			}
 			if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
@@ -127,19 +127,19 @@ func (w *Workflow) GetReservationsByTeacher(userId string, userType model.UserTy
 			}
 		}
 	}
-	sort.Sort(model.ReservationSlice(result))
+	sort.Sort(ByStartTimeOfReservation(result))
 	return result, nil
 }
 
 // 管理员查看负7天之后的所有咨询
-func (w *Workflow) GetReservationsByAdmin(userId string, userType model.UserType) ([]*model.Reservation, error) {
+func (w *Workflow) GetReservationsByAdmin(userId string, userType int) ([]*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	from := time.Now().AddDate(0, 0, -7)
@@ -149,15 +149,15 @@ func (w *Workflow) GetReservationsByAdmin(userId string, userType model.UserType
 	}
 	var result []*model.Reservation
 	for _, r := range reservations {
-		if r.Status == model.AVAILABLE && r.StartTime.Before(time.Now()) {
+		if r.Status == model.RESERVATION_STATUS_AVAILABLE && r.StartTime.Before(time.Now()) {
 			continue
 		}
 		result = append(result, r)
 	}
 	if timedReservations, err := w.model.GetTimedReservationsAll(); err == nil {
-		today := util.BeginOfDay(time.Now())
+		today := utils.BeginOfDay(time.Now())
 		for _, tr := range timedReservations {
-			if tr.Status != model.AVAILABLE {
+			if tr.Status != model.RESERVATION_STATUS_AVAILABLE {
 				continue
 			}
 			minusWeekday := int(tr.Weekday - today.Weekday())
@@ -165,7 +165,7 @@ func (w *Workflow) GetReservationsByAdmin(userId string, userType model.UserType
 				minusWeekday += 7
 			}
 			date := today.AddDate(0, 0, minusWeekday)
-			if util.ConcatTime(date, tr.StartTime).Before(time.Now()) {
+			if utils.ConcatTime(date, tr.StartTime).Before(time.Now()) {
 				date = today.AddDate(0, 0, 7)
 			}
 			if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
@@ -180,19 +180,19 @@ func (w *Workflow) GetReservationsByAdmin(userId string, userType model.UserType
 			}
 		}
 	}
-	sort.Sort(model.ReservationSlice(result))
+	sort.Sort(ByStartTimeOfReservation(result))
 	return result, nil
 }
 
 // 管理员查看指定日期的所有咨询
-func (w *Workflow) GetReservationsDailyByAdmin(fromDate string, userId string, userType model.UserType) ([]*model.Reservation, error) {
+func (w *Workflow) GetReservationsDailyByAdmin(fromDate string, userId string, userType int) ([]*model.Reservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错,请联系技术支持")
 	}
 	from, err := time.ParseInLocation("2006-01-02", fromDate, time.Local)
@@ -211,6 +211,23 @@ func (w *Workflow) GetReservationsDailyByAdmin(fromDate string, userId string, u
 			}
 		}
 	}
-	sort.Sort(model.ReservationSlice(reservations))
+	sort.Sort(ByStartTimeOfReservation(reservations))
 	return reservations, nil
+}
+
+type ByStartTimeOfReservation []*model.Reservation
+
+func (rs ByStartTimeOfReservation) Len() int {
+	return len(rs)
+}
+
+func (rs ByStartTimeOfReservation) Swap(i, j int) {
+	rs[i], rs[j] = rs[j], rs[i]
+}
+
+func (rs ByStartTimeOfReservation) Less(i, j int) bool {
+	if rs[i].StartTime.Equal(rs[j].StartTime) {
+		return strings.Compare(rs[i].TeacherId, rs[j].TeacherId) < 0
+	}
+	return rs[i].StartTime.Before(rs[j].StartTime)
 }

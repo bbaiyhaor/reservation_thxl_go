@@ -2,7 +2,7 @@ package buslogic
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"errors"
 )
 
@@ -21,11 +21,11 @@ func (w *Workflow) StudentLogin(username string, password string) (*model.Studen
 	student, err := w.model.GetStudentByUsername(username)
 	if err == nil {
 		if student.EncryptedPassword != "" {
-			if util.ValidatePassword(password, student.EncryptedPassword) {
+			if utils.ValidatePassword(password, student.EncryptedPassword) {
 				return student, nil
 			}
 		} else if password == student.Password {
-			if encryptedPassword, err := util.EncryptPassword(password); err == nil {
+			if encryptedPassword, err := utils.EncryptPassword(password); err == nil {
 				student.EncryptedPassword = encryptedPassword
 				w.model.UpsertStudent(student)
 			}
@@ -45,11 +45,11 @@ func (w *Workflow) TeacherLogin(username string, password string) (*model.Teache
 	teacher, err := w.model.GetTeacherByUsername(username)
 	if err == nil {
 		if teacher.EncryptedPassword != "" {
-			if util.ValidatePassword(password, teacher.EncryptedPassword) {
+			if utils.ValidatePassword(password, teacher.EncryptedPassword) {
 				return teacher, nil
 			}
 		} else if password == teacher.Password {
-			if encryptedPassword, err := util.EncryptPassword(password); err == nil {
+			if encryptedPassword, err := utils.EncryptPassword(password); err == nil {
 				teacher.EncryptedPassword = encryptedPassword
 				w.model.UpsertTeacher(teacher)
 			}
@@ -69,11 +69,11 @@ func (w *Workflow) AdminLogin(username string, password string) (*model.Admin, e
 	admin, err := w.model.GetAdminByUsername(username)
 	if err == nil {
 		if admin.EncryptedPassword != "" {
-			if util.ValidatePassword(password, admin.EncryptedPassword) {
+			if utils.ValidatePassword(password, admin.EncryptedPassword) {
 				return admin, nil
 			}
 		} else if password == admin.Password {
-			if encryptedPassword, err := util.EncryptPassword(password); err == nil {
+			if encryptedPassword, err := utils.EncryptPassword(password); err == nil {
 				admin.EncryptedPassword = encryptedPassword
 				w.model.UpsertAdmin(admin)
 			}
@@ -90,7 +90,7 @@ func (w *Workflow) StudentRegister(username string, password string) (*model.Stu
 	} else if len(password) == 0 {
 		return nil, errors.New("密码为空")
 	}
-	if !util.IsStudentId(username) {
+	if !utils.IsStudentId(username) {
 		return nil, errors.New("请用学号注册")
 	}
 	if _, err := w.model.GetStudentByUsername(username); err == nil {

@@ -3,7 +3,7 @@ package buslogic
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"errors"
 	"fmt"
 	"github.com/scorredoira/email"
@@ -15,20 +15,20 @@ import (
 )
 
 // 管理员查看时间表
-func (w *Workflow) ViewTimetableByAdmin(userId string, userType model.UserType) (map[time.Weekday][]*model.TimedReservation, error) {
+func (w *Workflow) ViewTimetableByAdmin(userId string, userType int) (map[time.Weekday][]*model.TimedReservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错，请联系技术支持")
 	}
 	timedReservations := make(map[time.Weekday][]*model.TimedReservation)
 	for i := time.Sunday; i <= time.Saturday; i++ {
 		if trs, err := w.model.GetTimedReservationsByWeekday(i); err == nil {
-			sort.Sort(model.TimedReservationSlice(trs))
+			sort.Sort(ByWeekdayOfTimedReservation(trs))
 			timedReservations[i] = trs
 		}
 	}
@@ -38,10 +38,10 @@ func (w *Workflow) ViewTimetableByAdmin(userId string, userType model.UserType) 
 // 管理员添加时间表
 func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClock string,
 	teacherUsername string, teacherFullname string, teacherMobile string, force bool,
-	userId string, userType model.UserType) (*model.TimedReservation, error) {
+	userId string, userType int) (*model.TimedReservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	} else if len(startClock) == 0 {
 		return nil, errors.New("开始时间为空")
@@ -53,14 +53,14 @@ func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClo
 		return nil, errors.New("咨询师姓名为空")
 	} else if len(teacherMobile) == 0 {
 		return nil, errors.New("咨询师手机号为空")
-	} else if !util.IsMobile(teacherMobile) {
+	} else if !utils.IsMobile(teacherMobile) {
 		return nil, errors.New("咨询师手机号格式不正确")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错，请联系技术支持")
 	}
-	week, err := util.StringToWeekday(weekday)
+	week, err := utils.StringToWeekday(weekday)
 	if err != nil {
 		return nil, errors.New("星期格式错误")
 	}
@@ -80,7 +80,7 @@ func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClo
 		if teacher, err = w.model.AddTeacher(teacherUsername, TeacherDefaultPassword, teacherFullname, teacherMobile); err != nil {
 			return nil, errors.New("获取数据失败")
 		}
-	} else if teacher.UserType != model.TEACHER {
+	} else if teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, errors.New("咨询师权限不足")
 	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
 		if !force {
@@ -102,10 +102,10 @@ func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClo
 // 管理员编辑时间表
 func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday string,
 	startClock string, endClock string, teacherUsername string, teacherFullname string, teacherMobile string,
-	force bool, userId string, userType model.UserType) (*model.TimedReservation, error) {
+	force bool, userId string, userType int) (*model.TimedReservation, error) {
 	if len(userId) == 0 {
 		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
 	} else if len(timedReservationId) == 0 {
 		return nil, errors.New("咨询已下架")
@@ -119,18 +119,18 @@ func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday strin
 		return nil, errors.New("咨询师姓名为空")
 	} else if len(teacherMobile) == 0 {
 		return nil, errors.New("咨询师手机号为空")
-	} else if !util.IsMobile(teacherMobile) {
+	} else if !utils.IsMobile(teacherMobile) {
 		return nil, errors.New("咨询师手机号格式不正确")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("管理员账户出错，请联系技术支持")
 	}
 	timedReservation, err := w.model.GetTimedReservationById(timedReservationId)
-	if err != nil || timedReservation.Status == model.DELETED {
+	if err != nil || timedReservation.Status == model.RESERVATION_STATUS_DELETED {
 		return nil, errors.New("咨询已下架")
 	}
-	week, err := util.StringToWeekday(weekday)
+	week, err := utils.StringToWeekday(weekday)
 	if err != nil {
 		return nil, errors.New("星期格式错误")
 	}
@@ -150,7 +150,7 @@ func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday strin
 		if teacher, err = w.model.AddTeacher(teacherUsername, TeacherDefaultPassword, teacherFullname, teacherMobile); err != nil {
 			return nil, errors.New("获取数据失败")
 		}
-	} else if teacher.UserType != model.TEACHER {
+	} else if teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, errors.New("咨询师权限不足")
 	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
 		if !force {
@@ -165,7 +165,7 @@ func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday strin
 	timedReservation.Weekday = week
 	timedReservation.StartTime = start
 	timedReservation.EndTime = end
-	timedReservation.Status = model.CLOSED
+	timedReservation.Status = model.RESERVATION_STATUS_CLOSED
 	timedReservation.TeacherId = teacher.Id.Hex()
 	if err = w.model.UpsertTimedReservation(timedReservation); err != nil {
 		return nil, errors.New("获取数据失败")
@@ -174,20 +174,20 @@ func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday strin
 }
 
 // 管理员删除时间表
-func (w *Workflow) RemoveTimetablesByAdmin(timedReservationIds []string, userId string, userType model.UserType) (int, error) {
+func (w *Workflow) RemoveTimetablesByAdmin(timedReservationIds []string, userId string, userType int) (int, error) {
 	if len(userId) == 0 {
 		return 0, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return 0, errors.New("权限不足")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return 0, errors.New("管理员账户出错，请联系技术支持")
 	}
 	removed := 0
 	for _, id := range timedReservationIds {
 		if timedReservation, err := w.model.GetTimedReservationById(id); err == nil {
-			timedReservation.Status = model.DELETED
+			timedReservation.Status = model.RESERVATION_STATUS_DELETED
 			if err = w.model.UpsertTimedReservation(timedReservation); err == nil {
 				removed++
 			}
@@ -197,21 +197,21 @@ func (w *Workflow) RemoveTimetablesByAdmin(timedReservationIds []string, userId 
 }
 
 // 管理员开启时间表
-func (w *Workflow) OpenTimetablesByAdmin(timedReservationIds []string, userId string, userType model.UserType) (int, error) {
+func (w *Workflow) OpenTimetablesByAdmin(timedReservationIds []string, userId string, userType int) (int, error) {
 	if len(userId) == 0 {
 		return 0, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return 0, errors.New("权限不足")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return 0, errors.New("管理员账户出错，请联系技术支持")
 	}
 	opened := 0
 	for _, id := range timedReservationIds {
 		if timedReservation, err := w.model.GetTimedReservationById(id); err == nil {
-			if timedReservation.Status == model.CLOSED {
-				timedReservation.Status = model.AVAILABLE
+			if timedReservation.Status == model.RESERVATION_STATUS_CLOSED {
+				timedReservation.Status = model.RESERVATION_STATUS_AVAILABLE
 				if err = w.model.UpsertTimedReservation(timedReservation); err == nil {
 					opened++
 				}
@@ -222,21 +222,21 @@ func (w *Workflow) OpenTimetablesByAdmin(timedReservationIds []string, userId st
 }
 
 // 管理员关闭时间表
-func (w *Workflow) CloseTimetablesByAdmin(timedReservationIds []string, userId string, userType model.UserType) (int, error) {
+func (w *Workflow) CloseTimetablesByAdmin(timedReservationIds []string, userId string, userType int) (int, error) {
 	if len(userId) == 0 {
 		return 0, errors.New("请先登录")
-	} else if userType != model.ADMIN {
+	} else if userType != model.USER_TYPE_ADMIN {
 		return 0, errors.New("权限不足")
 	}
 	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return 0, errors.New("管理员账户出错，请联系技术支持")
 	}
 	closed := 0
 	for _, id := range timedReservationIds {
 		if timedReservation, err := w.model.GetTimedReservationById(id); err == nil {
-			if timedReservation.Status == model.AVAILABLE {
-				timedReservation.Status = model.CLOSED
+			if timedReservation.Status == model.RESERVATION_STATUS_AVAILABLE {
+				timedReservation.Status = model.RESERVATION_STATUS_CLOSED
 				if err = w.model.UpsertTimedReservation(timedReservation); err == nil {
 					closed++
 				}
@@ -248,7 +248,7 @@ func (w *Workflow) CloseTimetablesByAdmin(timedReservationIds []string, userId s
 
 func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.Reservation, filename string) error {
 	data := make([][]string, 0)
-	today := util.BeginOfDay(time.Now())
+	today := utils.BeginOfDay(time.Now())
 	data = append(data, []string{today.Format("2006-01-02")})
 	data = append(data, []string{"时间", "咨询师", "学生姓名", "联系方式"})
 	for _, r := range reservations {
@@ -264,7 +264,7 @@ func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.R
 				teacher.Fullname, "", ""})
 		}
 	}
-	if err := util.WriteToCSV(data, filename); err != nil {
+	if err := utils.WriteToCSV(data, filename); err != nil {
 		return err
 	}
 	return nil
@@ -272,7 +272,7 @@ func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.R
 
 // 每天8:00发送当天咨询安排表邮件
 func (w *Workflow) SendTodayTimetableMail(mailTo string) {
-	today := util.BeginOfDay(time.Now())
+	today := utils.BeginOfDay(time.Now())
 	tomorrow := today.AddDate(0, 0, 1)
 	reservations, err := w.model.GetReservationsBetweenTime(today, tomorrow)
 	if err != nil {
@@ -287,8 +287,8 @@ func (w *Workflow) SendTodayTimetableMail(mailTo string) {
 			}
 		}
 	}
-	sort.Sort(model.ReservationSlice(reservations))
-	filename := "timetable_" + todayDate + util.CsvSuffix
+	sort.Sort(ByStartTimeOfReservation(reservations))
+	filename := "timetable_" + todayDate + utils.CsvSuffix
 	if err = w.ExportTodayReservationTimetableToFile(reservations, filename); err != nil {
 		log.Printf("%v", err)
 		return
@@ -298,10 +298,29 @@ func (w *Workflow) SendTodayTimetableMail(mailTo string) {
 	m := email.NewMessage(title, title)
 	m.From = mail.Address{Name: "", Address: config.Instance().SMTPUser}
 	m.To = strings.Split(mailTo, ",")
-	m.Attach(fmt.Sprintf("%s%s", util.ExportFolder, filename))
-	if err := util.SendEmail(m); err != nil {
+	m.Attach(fmt.Sprintf("%s%s", utils.ExportFolder, filename))
+	if err := utils.SendEmail(m); err != nil {
 		log.Printf("发送邮件失败：%v", err)
 		return
 	}
 	log.Printf("发送邮件成功")
+}
+
+type ByWeekdayOfTimedReservation []*model.TimedReservation
+
+func (ts ByWeekdayOfTimedReservation) Len() int {
+	return len(ts)
+}
+
+func (ts ByWeekdayOfTimedReservation) Swap(i, j int) {
+	ts[i], ts[j] = ts[j], ts[i]
+}
+
+func (ts ByWeekdayOfTimedReservation) Less(i, j int) bool {
+	if ts[i].Weekday != ts[j].Weekday {
+		return ts[i].Weekday < ts[j].Weekday
+	} else if !ts[i].StartTime.Equal(ts[j].StartTime) {
+		return ts[i].StartTime.Before(ts[j].StartTime)
+	}
+	return strings.Compare(ts[i].TeacherId, ts[j].TeacherId) < 0
 }

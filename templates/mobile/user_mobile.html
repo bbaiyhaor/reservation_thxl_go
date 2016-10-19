@@ -1,0 +1,22 @@
+{{ define "title" }}
+<title>学生心理发展指导中心预约系统</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<link rel="stylesheet" href="https://res.wx.qq.com/open/libs/weui/0.4.3/weui.min.css"/>
+{{ end }}
+
+{{ define "body_class" }}user_mobile{{ end }}
+
+{{ define "content" }}
+<div id="user_mobile"></div>
+
+<script>
+    window.assets = {
+        "imgStudent": "{{ assets "images/user_mobile/student.png"}}",
+        "imgTeacher": "{{ assets "images/user_mobile/teacher.png"}}",
+    };
+</script>
+
+<script src="{{ assets "javascripts/vendor-react-mobile.js" }}"></script>
+<script src="{{ assets "javascripts/user_mobile.js" }}"></script>
+
+{{ end }}

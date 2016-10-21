@@ -19,7 +19,7 @@ const (
 )
 
 func (uc *UserController) MuxHandlers(m JsonMuxer) {
-	m.Get("/m", "HomePage", uc.getHomePage)
+	m.Get("/m", "EntryPage", uc.getEntryPage)
 
 	baseUrl := kUserApiBaseUrl
 	m.PostJson(baseUrl+"/student/login", "StudentLogin", uc.studentLogin)
@@ -31,13 +31,13 @@ func (uc *UserController) MuxHandlers(m JsonMuxer) {
 
 func (uc *UserController) GetTemplates() []*render.TemplateSet {
 	return []*render.TemplateSet{
-		render.NewTemplateSet("user_mobile", "desktop.html", "mobile/user_mobile.html", "layout/desktop.html"),
+		render.NewTemplateSet("entry", "desktop.html", "reservation/entry.html", "layout/desktop.html"),
 	}
 }
 
-func (uc *UserController) getHomePage(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+func (uc *UserController) getEntryPage(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	params := map[string]interface{}{}
-	uc.RenderHtmlOr500(w, http.StatusOK, "user_mobile", params)
+	uc.RenderHtmlOr500(w, http.StatusOK, "entry", params)
 	return ctx
 }
 

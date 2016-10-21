@@ -59,7 +59,7 @@ var config = {
     plugins: plugins,
 
     entry: {
-        user_mobile: './assets/javascripts/user_mobile.js',
+        entry: './assets/javascripts/entry.js',
     },
     output: {
         path: 'public/bundles',

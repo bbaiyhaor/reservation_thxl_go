@@ -1,10 +1,8 @@
 package web
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/ifs"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/service"
-	"github.com/mijia/sweb/render"
 	"golang.org/x/net/context"
 	"net/http"
 	"net/url"
@@ -14,7 +12,7 @@ import (
 )
 
 type ReservationController struct {
-	ifs.BaseMux
+	BaseMuxController
 }
 
 const (
@@ -24,79 +22,73 @@ const (
 	kAdminApiBaseUrl    = "/api/admin"
 )
 
-func (rc *ReservationController) MuxHandlers(s ifs.Muxer) {
+func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	categoryBaseUrl := kCategoryApiBaseUrl
-	s.GetJson(categoryBaseUrl+"/feedback", "GetFeedbackCategories", rc.GetFeedbackCategories)
+	m.GetJson(categoryBaseUrl+"/feedback", "GetFeedbackCategories", rc.GetFeedbackCategories)
 
 	studentBaseUrl := kStudentApiBaseUrl
-	s.GetJson(studentBaseUrl+"/reservation/view", "ViewReservationsByStudent", RoleCookieInjection(rc.ViewReservationsByStudent))
-	s.PostJson(studentBaseUrl+"/reservation/make", "MakeReservationByStudent", RoleCookieInjection(rc.MakeReservationByStudent))
-	s.PostJson(studentBaseUrl+"/reservation/feedback/get", "GetFeedbackByStudent", RoleCookieInjection(rc.GetFeedbackByStudent))
-	s.PostJson(studentBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByStudent", RoleCookieInjection(rc.SubmitFeedbackByStudent))
+	m.GetJson(studentBaseUrl+"/reservation/view", "ViewReservationsByStudent", RoleCookieInjection(rc.ViewReservationsByStudent))
+	m.PostJson(studentBaseUrl+"/reservation/make", "MakeReservationByStudent", RoleCookieInjection(rc.MakeReservationByStudent))
+	m.PostJson(studentBaseUrl+"/reservation/feedback/get", "GetFeedbackByStudent", RoleCookieInjection(rc.GetFeedbackByStudent))
+	m.PostJson(studentBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByStudent", RoleCookieInjection(rc.SubmitFeedbackByStudent))
 
 	teacherBaseUrl := kTeacherApiBaseUrl
-	s.GetJson(teacherBaseUrl+"/reservation/view", "ViewReservationsByTeacher", RoleCookieInjection(rc.ViewReservationsByTeacher))
-	s.PostJson(teacherBaseUrl+"/reservation/feedback/get", "GetFeedbackByTeacher", RoleCookieInjection(rc.GetFeedbackByTeacher))
-	s.PostJson(teacherBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByTeacher", RoleCookieInjection(rc.SubmitFeedbackByTeacher))
-	s.PostJson(teacherBaseUrl+"/student/get", "GetStudentInfoByTeacher", RoleCookieInjection(rc.GetStudentInfoByTeacher))
-	s.PostJson(teacherBaseUrl+"/student/query", "QueryStudentInfoByTeacher", RoleCookieInjection(rc.QueryStudentInfoByTeacher))
+	m.GetJson(teacherBaseUrl+"/reservation/view", "ViewReservationsByTeacher", RoleCookieInjection(rc.ViewReservationsByTeacher))
+	m.PostJson(teacherBaseUrl+"/reservation/feedback/get", "GetFeedbackByTeacher", RoleCookieInjection(rc.GetFeedbackByTeacher))
+	m.PostJson(teacherBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByTeacher", RoleCookieInjection(rc.SubmitFeedbackByTeacher))
+	m.PostJson(teacherBaseUrl+"/student/get", "GetStudentInfoByTeacher", RoleCookieInjection(rc.GetStudentInfoByTeacher))
+	m.PostJson(teacherBaseUrl+"/student/query", "QueryStudentInfoByTeacher", RoleCookieInjection(rc.QueryStudentInfoByTeacher))
 
 	adminBaseUrl := kAdminApiBaseUrl
-	s.GetJson(adminBaseUrl+"/timetable/view", "ViewTimedReservationsByAdmin", RoleCookieInjection(rc.ViewTimedReservationsByAdmin))
-	s.PostJson(adminBaseUrl+"/timetable/add", "AddTimedReservationByAdmin", RoleCookieInjection(rc.AddTimedReservationByAdmin))
-	s.PostJson(adminBaseUrl+"/timetable/edit", "EditTimedReservationByAdmin", RoleCookieInjection(rc.EditTimedReservationByAdmin))
-	s.PostJson(adminBaseUrl+"/timetable/remove", "RemoveTimedReservationsByAdmin", RoleCookieInjection(rc.RemoveTimedReservationsByAdmin))
-	s.PostJson(adminBaseUrl+"/timetable/open", "OpenTimedReservationsByAdmin", RoleCookieInjection(rc.OpenTimedReservationsByAdmin))
-	s.PostJson(adminBaseUrl+"/timetable/close", "CloseTimedReservationsByAdmin", RoleCookieInjection(rc.CloseTimedReservationsByAdmin))
-	s.GetJson(adminBaseUrl+"/reservation/view", "ViewReservationsByAdmin", RoleCookieInjection(rc.ViewReservationsByAdmin))
-	s.GetJson(adminBaseUrl+"/reservation/view/daily", "ViewDailyReservationsByAdmin", RoleCookieInjection(rc.ViewDailyReservationsByAdmin))
-	s.GetJson(adminBaseUrl+"/reservation/export/today", "ExportTodayReservationsByAdmin", RoleCookieInjection(rc.ExportTodayReservationsByAdmin))
-	s.PostJson(adminBaseUrl+"/reservation/export/report", "ExportReportFormByAdmin", RoleCookieInjection(rc.ExportReportFormByAdmin))
-	s.PostJson(adminBaseUrl+"/reservation/export/report/monthly", "ExportReportMonthlyByAdmin", RoleCookieInjection(rc.ExportReportMonthlyByAdmin))
-	s.PostJson(adminBaseUrl+"/reservation/add", "AddReservationByAdmin", RoleCookieInjection(rc.AddReservationByAdmin))
-	s.PostJson(adminBaseUrl+"/reservation/edit", "EditReservationByAdmin", RoleCookieInjection(rc.EditReservationByAdmin))
-	s.PostJson(adminBaseUrl+"/reservation/remove", "RemoveReservationsByAdmin", RoleCookieInjection(rc.RemoveReservationsByAdmin))
-	s.PostJson(adminBaseUrl+"/reservation/cancel", "CancelReservationByAdmin", RoleCookieInjection(rc.CancelReservationByAdmin))
-	s.PostJson(adminBaseUrl+"/reservation/feedback/get", "GetFeedbackByAdmin", RoleCookieInjection(rc.GetFeedbackByAdmin))
-	s.PostJson(adminBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByAdmin", RoleCookieInjection(rc.SubmitFeedbackByAdmin))
-	s.PostJson(adminBaseUrl+"/reservation/student/set", "SetStudentByAdmin", RoleCookieInjection(rc.SetStudentByAdmin))
-	s.PostJson(adminBaseUrl+"/student/get", "GetStudentInfoByAdmin", RoleCookieInjection(rc.GetStudentInfoByAdmin))
-	s.PostJson(adminBaseUrl+"/student/search", "SearchStudentByAdmin", RoleCookieInjection(rc.SearchStudentByAdmin))
-	s.PostJson(adminBaseUrl+"/student/crisis/update", "UpdateStudentCrisisLevelByAdmin", RoleCookieInjection(rc.UpdateStudentCrisisLevelByAdmin))
-	s.PostJson(adminBaseUrl+"/student/archive/update", "UpdateStudentArchiveNumberByAdmin", RoleCookieInjection(rc.UpdateStudentArchiveNumberByAdmin))
-	s.PostJson(adminBaseUrl+"/student/password/reset", "ResetStudentPasswordByAdmin", RoleCookieInjection(rc.ResetStudentPasswordByAdmin))
-	s.PostJson(adminBaseUrl+"/student/account/delete", "DeleteStudentAccountByAdmin", RoleCookieInjection(rc.DeleteStudentAccountByAdmin))
-	s.PostJson(adminBaseUrl+"/student/export", "ExportStudentByAdmin", RoleCookieInjection(rc.ExportStudentByAdmin))
-	s.PostJson(adminBaseUrl+"/student/unbind", "UnbindStudentByAdmin", RoleCookieInjection(rc.UnbindStudentByAdmin))
-	s.PostJson(adminBaseUrl+"/student/bind", "BindStudentByAdmin", RoleCookieInjection(rc.BindStudentByAdmin))
-	s.PostJson(adminBaseUrl+"/student/query", "QueryStudentInfoByAdmin", RoleCookieInjection(rc.QueryStudentInfoByAdmin))
-	s.PostJson(adminBaseUrl+"/teacher/search", "SearchTeacherByAdmin", RoleCookieInjection(rc.SearchTeacherByAdmin))
-	s.PostJson(adminBaseUrl+"/teacher/workload", "GetTeacherWorkloadByAdmin", RoleCookieInjection(rc.GetTeacherWorkloadByAdmin))
-}
-
-func (rc *ReservationController) GetTemplates() []*render.TemplateSet {
-	return []*render.TemplateSet{}
+	m.GetJson(adminBaseUrl+"/timetable/view", "ViewTimedReservationsByAdmin", RoleCookieInjection(rc.ViewTimedReservationsByAdmin))
+	m.PostJson(adminBaseUrl+"/timetable/add", "AddTimedReservationByAdmin", RoleCookieInjection(rc.AddTimedReservationByAdmin))
+	m.PostJson(adminBaseUrl+"/timetable/edit", "EditTimedReservationByAdmin", RoleCookieInjection(rc.EditTimedReservationByAdmin))
+	m.PostJson(adminBaseUrl+"/timetable/remove", "RemoveTimedReservationsByAdmin", RoleCookieInjection(rc.RemoveTimedReservationsByAdmin))
+	m.PostJson(adminBaseUrl+"/timetable/open", "OpenTimedReservationsByAdmin", RoleCookieInjection(rc.OpenTimedReservationsByAdmin))
+	m.PostJson(adminBaseUrl+"/timetable/close", "CloseTimedReservationsByAdmin", RoleCookieInjection(rc.CloseTimedReservationsByAdmin))
+	m.GetJson(adminBaseUrl+"/reservation/view", "ViewReservationsByAdmin", RoleCookieInjection(rc.ViewReservationsByAdmin))
+	m.GetJson(adminBaseUrl+"/reservation/view/daily", "ViewDailyReservationsByAdmin", RoleCookieInjection(rc.ViewDailyReservationsByAdmin))
+	m.GetJson(adminBaseUrl+"/reservation/export/today", "ExportTodayReservationsByAdmin", RoleCookieInjection(rc.ExportTodayReservationsByAdmin))
+	m.PostJson(adminBaseUrl+"/reservation/export/report", "ExportReportFormByAdmin", RoleCookieInjection(rc.ExportReportFormByAdmin))
+	m.PostJson(adminBaseUrl+"/reservation/export/report/monthly", "ExportReportMonthlyByAdmin", RoleCookieInjection(rc.ExportReportMonthlyByAdmin))
+	m.PostJson(adminBaseUrl+"/reservation/add", "AddReservationByAdmin", RoleCookieInjection(rc.AddReservationByAdmin))
+	m.PostJson(adminBaseUrl+"/reservation/edit", "EditReservationByAdmin", RoleCookieInjection(rc.EditReservationByAdmin))
+	m.PostJson(adminBaseUrl+"/reservation/remove", "RemoveReservationsByAdmin", RoleCookieInjection(rc.RemoveReservationsByAdmin))
+	m.PostJson(adminBaseUrl+"/reservation/cancel", "CancelReservationByAdmin", RoleCookieInjection(rc.CancelReservationByAdmin))
+	m.PostJson(adminBaseUrl+"/reservation/feedback/get", "GetFeedbackByAdmin", RoleCookieInjection(rc.GetFeedbackByAdmin))
+	m.PostJson(adminBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByAdmin", RoleCookieInjection(rc.SubmitFeedbackByAdmin))
+	m.PostJson(adminBaseUrl+"/reservation/student/set", "SetStudentByAdmin", RoleCookieInjection(rc.SetStudentByAdmin))
+	m.PostJson(adminBaseUrl+"/student/get", "GetStudentInfoByAdmin", RoleCookieInjection(rc.GetStudentInfoByAdmin))
+	m.PostJson(adminBaseUrl+"/student/search", "SearchStudentByAdmin", RoleCookieInjection(rc.SearchStudentByAdmin))
+	m.PostJson(adminBaseUrl+"/student/crisis/update", "UpdateStudentCrisisLevelByAdmin", RoleCookieInjection(rc.UpdateStudentCrisisLevelByAdmin))
+	m.PostJson(adminBaseUrl+"/student/archive/update", "UpdateStudentArchiveNumberByAdmin", RoleCookieInjection(rc.UpdateStudentArchiveNumberByAdmin))
+	m.PostJson(adminBaseUrl+"/student/password/reset", "ResetStudentPasswordByAdmin", RoleCookieInjection(rc.ResetStudentPasswordByAdmin))
+	m.PostJson(adminBaseUrl+"/student/account/delete", "DeleteStudentAccountByAdmin", RoleCookieInjection(rc.DeleteStudentAccountByAdmin))
+	m.PostJson(adminBaseUrl+"/student/export", "ExportStudentByAdmin", RoleCookieInjection(rc.ExportStudentByAdmin))
+	m.PostJson(adminBaseUrl+"/student/unbind", "UnbindStudentByAdmin", RoleCookieInjection(rc.UnbindStudentByAdmin))
+	m.PostJson(adminBaseUrl+"/student/bind", "BindStudentByAdmin", RoleCookieInjection(rc.BindStudentByAdmin))
+	m.PostJson(adminBaseUrl+"/student/query", "QueryStudentInfoByAdmin", RoleCookieInjection(rc.QueryStudentInfoByAdmin))
+	m.PostJson(adminBaseUrl+"/teacher/search", "SearchTeacherByAdmin", RoleCookieInjection(rc.SearchTeacherByAdmin))
+	m.PostJson(adminBaseUrl+"/teacher/workload", "GetTeacherWorkloadByAdmin", RoleCookieInjection(rc.GetTeacherWorkloadByAdmin))
 }
 
 //==================== category ====================
-func (rc *ReservationController) GetFeedbackCategories(ctx context.Context, w http.ResponseWriter, r *http.Request) interface{} {
-	var result = map[string]interface{}{"status": "SUCCESS"}
+func (rc *ReservationController) GetFeedbackCategories(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
+	var result = make(map[string]interface{})
 
 	result["first_category"] = model.FeedbackFirstCategory
 	result["second_category"] = model.FeedbackSecondCategory
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
 //==================== student ====================
-func (rc *ReservationController) ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
-	var result = map[string]interface{}{"status": "SUCCESS"}
+func (rc *ReservationController) ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	var result = make(map[string]interface{})
 
 	student, err := service.Workflow().GetStudentById(userId)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	var studentJson = make(map[string]interface{})
 	studentJson["student_fullname"] = student.Fullname
@@ -124,9 +116,7 @@ func (rc *ReservationController) ViewReservationsByStudent(w http.ResponseWriter
 
 	reservations, err := service.Workflow().GetReservationsByStudent(userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	var array = make([]interface{}, 0)
 	for _, res := range reservations {
@@ -150,10 +140,10 @@ func (rc *ReservationController) ViewReservationsByStudent(w http.ResponseWriter
 	}
 	result["reservations"] = array
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) MakeReservationByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) MakeReservationByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 	startTime := r.PostFormValue("start_time")
@@ -179,7 +169,7 @@ func (rc *ReservationController) MakeReservationByStudent(w http.ResponseWriter,
 	siginificant := r.PostFormValue("student_significant")
 	problem := r.PostFormValue("student_problem")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var reservationJson = make(map[string]interface{})
 	reservation, err := service.Workflow().MakeReservationByStudent(reservationId, sourceId, startTime, fullname, gender, birthday,
@@ -187,9 +177,7 @@ func (rc *ReservationController) MakeReservationByStudent(w http.ResponseWriter,
 		fatherAge, fatherJob, fatherEdu, motherAge, motherJob, motherEdu, parentMarriage, siginificant, problem,
 		userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	reservationJson["start_time"] = reservation.StartTime.Format("2006-01-02 15:04")
 	reservationJson["end_time"] = reservation.EndTime.Format("2006-01-02 15:04")
@@ -198,35 +186,33 @@ func (rc *ReservationController) MakeReservationByStudent(w http.ResponseWriter,
 	}
 	result["reservation"] = reservationJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) GetFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) GetFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var feedbackJson = make(map[string]interface{})
 	reservation, err := service.Workflow().GetFeedbackByStudent(reservationId, sourceId, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	feedbackJson["scores"] = reservation.StudentFeedback.Scores
 	result["feedback"] = feedbackJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) SubmitFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) SubmitFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 	r.ParseForm()
 	scores := []string(r.Form["scores"])
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	scoresInt := []int{}
 	for _, p := range scores {
@@ -236,23 +222,19 @@ func (rc *ReservationController) SubmitFeedbackByStudent(w http.ResponseWriter, 
 	}
 	_, err := service.Workflow().SubmitFeedbackByStudent(reservationId, sourceId, scoresInt, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
 //==================== teacher ====================
-func (rc *ReservationController) ViewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
-	var result = map[string]interface{}{"status": "SUCCESS"}
+func (rc *ReservationController) ViewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	var result = make(map[string]interface{})
 
 	teacher, err := service.Workflow().GetTeacherById(userId)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	var teacherJson = make(map[string]interface{})
 	teacherJson["teacher_fullname"] = teacher.Fullname
@@ -261,9 +243,7 @@ func (rc *ReservationController) ViewReservationsByTeacher(w http.ResponseWriter
 
 	reservations, err := service.Workflow().GetReservationsByTeacher(userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	var array = make([]interface{}, 0)
 	for _, res := range reservations {
@@ -293,21 +273,19 @@ func (rc *ReservationController) ViewReservationsByTeacher(w http.ResponseWriter
 	}
 	result["reservations"] = array
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) GetFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) GetFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var feedback = make(map[string]interface{})
 	student, reservation, err := service.Workflow().GetFeedbackByTeacher(reservationId, sourceId, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	feedback["category"] = reservation.TeacherFeedback.Category
 	if len(reservation.TeacherFeedback.Participants) != len(model.PARTICIPANTS) {
@@ -335,10 +313,10 @@ func (rc *ReservationController) GetFeedbackByTeacher(w http.ResponseWriter, r *
 	feedback["crisis_level"] = student.CrisisLevel
 	result["feedback"] = feedback
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) SubmitFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) SubmitFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 	category := r.PostFormValue("category")
@@ -351,7 +329,7 @@ func (rc *ReservationController) SubmitFeedbackByTeacher(w http.ResponseWriter, 
 	record := r.PostFormValue("record")
 	crisisLevel := r.PostFormValue("crisis_level")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	participantsInt := make([]int, 0)
 	for _, p := range participants {
@@ -380,25 +358,21 @@ func (rc *ReservationController) SubmitFeedbackByTeacher(w http.ResponseWriter, 
 	_, err := service.Workflow().SubmitFeedbackByTeacher(reservationId, sourceId, category, participantsInt, emphasis, severityInt,
 		medicalDiagnosisInt, crisisInt, record, crisisLevel, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) GetStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) GetStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := r.PostFormValue("student_id")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var studentJson = make(map[string]interface{})
 	student, reservations, err := service.Workflow().GetStudentInfoByTeacher(studentId, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
@@ -467,20 +441,18 @@ func (rc *ReservationController) GetStudentInfoByTeacher(w http.ResponseWriter, 
 	}
 	result["reservations"] = reservationJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) QueryStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) QueryStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentUsername := r.PostFormValue("student_username")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var studentJson = make(map[string]interface{})
 	student, reservations, err := service.Workflow().QueryStudentInfoByTeacher(studentUsername, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
@@ -551,18 +523,16 @@ func (rc *ReservationController) QueryStudentInfoByTeacher(w http.ResponseWriter
 	}
 	result["reservations"] = reservationJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
 //==================== admin ====================
-func (rc *ReservationController) ViewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
-	var result = map[string]interface{}{"status": "SUCCESS"}
+func (rc *ReservationController) ViewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	var result = make(map[string]interface{})
 
 	reservations, err := service.Workflow().GetReservationsByAdmin(userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	var array = make([]interface{}, 0)
 	for _, res := range reservations {
@@ -593,27 +563,21 @@ func (rc *ReservationController) ViewReservationsByAdmin(w http.ResponseWriter, 
 	}
 	result["reservations"] = array
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ViewDailyReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) ViewDailyReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	queryForm, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil || len(queryForm["from_date"]) == 0 {
-		return map[string]string{
-			"status": "FAIL",
-			"error":  "参数错误",
-		}
-		return nil
+		return http.StatusOK, wrapJsonError("参数错误")
 	}
 	fromDate := queryForm["from_date"][0]
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	reservations, err := service.Workflow().GetReservationsDailyByAdmin(fromDate, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	var array = make([]interface{}, 0)
 	for _, res := range reservations {
@@ -644,24 +608,22 @@ func (rc *ReservationController) ViewDailyReservationsByAdmin(w http.ResponseWri
 	}
 	result["reservations"] = array
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ExportTodayReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
-	var result = map[string]interface{}{"status": "SUCCESS"}
+func (rc *ReservationController) ExportTodayReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	var result = make(map[string]interface{})
 
 	url, err := service.Workflow().ExportTodayReservationTimetableByAdmin(userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	result["url"] = url
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) AddReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) AddReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	startTime := r.PostFormValue("start_time")
 	endTime := r.PostFormValue("end_time")
 	teacherUsername := r.PostFormValue("teacher_username")
@@ -669,15 +631,13 @@ func (rc *ReservationController) AddReservationByAdmin(w http.ResponseWriter, r 
 	teacherMobile := r.PostFormValue("teacher_mobile")
 	force := strings.EqualFold(r.PostFormValue("force"), "FORCE")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var reservationJson = make(map[string]interface{})
 	reservation, err := service.Workflow().AddReservationByAdmin(startTime, endTime, teacherUsername, teacherFullname,
 		teacherMobile, force, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	reservationJson["reservation_id"] = reservation.Id
 	reservationJson["start_time"] = reservation.StartTime.Format("2006-01-02 15:04")
@@ -693,10 +653,10 @@ func (rc *ReservationController) AddReservationByAdmin(w http.ResponseWriter, r 
 	}
 	result["reservation"] = reservationJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) EditReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) EditReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 	originalStartTime := r.PostFormValue("original_start_time")
@@ -707,15 +667,13 @@ func (rc *ReservationController) EditReservationByAdmin(w http.ResponseWriter, r
 	teacherMobile := r.PostFormValue("teacher_mobile")
 	force := strings.EqualFold(r.PostFormValue("force"), "FORCE")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var reservationJson = make(map[string]interface{})
 	reservation, err := service.Workflow().EditReservationByAdmin(reservationId, sourceId, originalStartTime,
 		startTime, endTime, teacherUsername, teacherFullname, teacherMobile, force, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	reservationJson["reservation_id"] = reservation.Id
 	reservationJson["start_time"] = reservation.StartTime.Format("2006-01-02 15:04")
@@ -731,58 +689,52 @@ func (rc *ReservationController) EditReservationByAdmin(w http.ResponseWriter, r
 	}
 	result["reservation"] = reservationJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) RemoveReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) RemoveReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	r.ParseForm()
 	reservationIds := []string(r.Form["reservation_ids"])
 	sourceIds := []string(r.Form["source_ids"])
 	startTimes := []string(r.Form["start_times"])
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	removed, err := service.Workflow().RemoveReservationsByAdmin(reservationIds, sourceIds, startTimes, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	result["removed_count"] = removed
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) CancelReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) CancelReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	r.ParseForm()
 	reservationIds := []string(r.Form["reservation_ids"])
 	sourceIds := []string(r.Form["source_ids"])
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	removed, err := service.Workflow().CancelReservationsByAdmin(reservationIds, sourceIds, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	result["removed_count"] = removed
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) GetFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) GetFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var feedback = make(map[string]interface{})
 	student, reservation, err := service.Workflow().GetFeedbackByAdmin(reservationId, sourceId, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	feedback["category"] = reservation.TeacherFeedback.Category
 	if len(reservation.TeacherFeedback.Participants) != len(model.PARTICIPANTS) {
@@ -810,10 +762,10 @@ func (rc *ReservationController) GetFeedbackByAdmin(w http.ResponseWriter, r *ht
 	feedback["crisis_level"] = student.CrisisLevel
 	result["feedback"] = feedback
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) SubmitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) SubmitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 	category := r.PostFormValue("category")
@@ -826,7 +778,7 @@ func (rc *ReservationController) SubmitFeedbackByAdmin(w http.ResponseWriter, r 
 	record := r.PostFormValue("record")
 	crisisLevel := r.PostFormValue("crisis_level")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	participantsInt := make([]int, 0)
 	for _, p := range participants {
@@ -855,15 +807,13 @@ func (rc *ReservationController) SubmitFeedbackByAdmin(w http.ResponseWriter, r 
 	_, err := service.Workflow().SubmitFeedbackByAdmin(reservationId, sourceId, category, participantsInt, emphasis, severityInt,
 		medicalDiagnosisInt, crisisInt, record, crisisLevel, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) SetStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) SetStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := r.PostFormValue("reservation_id")
 	sourceId := r.PostFormValue("source_id")
 	startTime := r.PostFormValue("start_time")
@@ -891,13 +841,10 @@ func (rc *ReservationController) SetStudentByAdmin(w http.ResponseWriter, r *htt
 	problem := r.PostFormValue("student_problem")
 	sendSms, err := strconv.ParseBool(r.PostFormValue("student_sms"))
 	if err != nil {
-		return map[string]string{
-			"status": "FAIL",
-			"error":  "参数错误，请联系管理员",
-		}
+		return http.StatusOK, wrapJsonError("参数错误，请联系管理员")
 	}
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var reservationJson = make(map[string]interface{})
 	reservation, err := service.Workflow().SetStudentByAdmin(reservationId, sourceId, startTime, studentUsername, fullname, gender,
@@ -905,9 +852,7 @@ func (rc *ReservationController) SetStudentByAdmin(w http.ResponseWriter, r *htt
 		experienceLocation, experienceTeacher, fatherAge, fatherJob, fatherEdu, motherAge, motherJob, motherEdu,
 		parentMarriage, siginificant, problem, sendSms, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	reservationJson["reservation_id"] = reservation.Id
 	reservationJson["start_time"] = reservation.StartTime.Format("2006-01-02 15:04")
@@ -923,20 +868,18 @@ func (rc *ReservationController) SetStudentByAdmin(w http.ResponseWriter, r *htt
 	}
 	result["reservation"] = reservationJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := r.PostFormValue("student_id")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var studentJson = make(map[string]interface{})
 	student, reservations, err := service.Workflow().GetStudentInfoByAdmin(studentId, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
@@ -1005,20 +948,18 @@ func (rc *ReservationController) GetStudentInfoByAdmin(w http.ResponseWriter, r 
 	}
 	result["reservations"] = reservationJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) SearchStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) SearchStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentUsername := r.PostFormValue("student_username")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var studentJson = make(map[string]interface{})
 	student, err := service.Workflow().GetStudentByUsername(studentUsername)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
@@ -1062,100 +1003,88 @@ func (rc *ReservationController) SearchStudentByAdmin(w http.ResponseWriter, r *
 	}
 	result["student_info"] = studentJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) UpdateStudentCrisisLevelByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) UpdateStudentCrisisLevelByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := r.PostFormValue("student_id")
 	crisisLevel := r.PostFormValue("crisis_level")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	_, err := service.Workflow().UpdateStudentCrisisLevelByAdmin(studentId, crisisLevel, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) UpdateStudentArchiveNumberByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) UpdateStudentArchiveNumberByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := r.PostFormValue("student_id")
 	archiveCategory := r.PostFormValue("archive_category")
 	archiveNumber := r.PostFormValue("archive_number")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	_, err := service.Workflow().UpdateStudentArchiveNumberByAdmin(studentId, archiveCategory, archiveNumber, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ResetStudentPasswordByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) ResetStudentPasswordByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := r.PostFormValue("student_id")
 	password := r.PostFormValue("password")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	_, err := service.Workflow().ResetStudentPasswordByAdmin(studentId, password, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) DeleteStudentAccountByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) DeleteStudentAccountByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := r.PostFormValue("student_id")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	err := service.Workflow().DeleteStudentAccountByAdmin(studentId, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ExportStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) ExportStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := r.PostFormValue("student_id")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	url, err := service.Workflow().ExportStudentByAdmin(studentId, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	result["url"] = url
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) UnbindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) UnbindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := r.PostFormValue("student_id")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var studentJson = make(map[string]interface{})
 	student, err := service.Workflow().UnbindStudentByAdmin(studentId, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	if len(student.BindedTeacherId) != 0 {
 		teacher, err := service.Workflow().GetTeacherById(student.BindedTeacherId)
@@ -1171,21 +1100,19 @@ func (rc *ReservationController) UnbindStudentByAdmin(w http.ResponseWriter, r *
 	}
 	result["student_info"] = studentJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) BindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) BindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := r.PostFormValue("student_id")
 	teacherUsername := r.PostFormValue("teacher_username")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var studentJson = make(map[string]interface{})
 	student, err := service.Workflow().BindStudentByAdmin(studentId, teacherUsername, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	} else if len(student.BindedTeacherId) != 0 {
 		teacher, err := service.Workflow().GetTeacherById(student.BindedTeacherId)
 		if err != nil {
@@ -1200,20 +1127,18 @@ func (rc *ReservationController) BindStudentByAdmin(w http.ResponseWriter, r *ht
 	}
 	result["student_info"] = studentJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentUsername := r.PostFormValue("student_username")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var studentJson = make(map[string]interface{})
 	student, reservations, err := service.Workflow().QueryStudentInfoByAdmin(studentUsername, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	studentJson["student_id"] = student.Id.Hex()
 	studentJson["student_username"] = student.Username
@@ -1284,23 +1209,21 @@ func (rc *ReservationController) QueryStudentInfoByAdmin(w http.ResponseWriter, 
 	}
 	result["reservations"] = reservationJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) SearchTeacherByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) SearchTeacherByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	teacherUsername := r.PostFormValue("teacher_username")
 	teacherFullname := r.PostFormValue("teacher_fullname")
 	teacherMoble := r.PostFormValue("teacher_mobile")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var teacherJson = make(map[string]interface{})
 	teacher, err := service.Workflow().SearchTeacherByAdmin(teacherFullname, teacherUsername, teacherMoble,
 		userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	teacherJson["teacher_id"] = teacher.Id.Hex()
 	teacherJson["teacher_username"] = teacher.Username
@@ -1308,69 +1231,61 @@ func (rc *ReservationController) SearchTeacherByAdmin(w http.ResponseWriter, r *
 	teacherJson["teacher_mobile"] = teacher.Mobile
 	result["teacher"] = teacherJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) GetTeacherWorkloadByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) GetTeacherWorkloadByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	fromDate := r.PostFormValue("from_date")
 	toDate := r.PostFormValue("to_date")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	workload, err := service.Workflow().GetTeacherWorkloadByAdmin(fromDate, toDate, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	result["workload"] = workload
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ExportReportFormByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) ExportReportFormByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	fromDate := r.PostFormValue("from_date")
 	toDate := r.PostFormValue("to_date")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	url, err := service.Workflow().ExportReportFormByAdmin(fromDate, toDate, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	result["url"] = url
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ExportReportMonthlyByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) ExportReportMonthlyByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	monthlyDate := r.PostFormValue("monthly_date")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	reportUrl, keyCaseUrl, err := service.Workflow().ExportReportMonthlyByAdmin(monthlyDate, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	result["report"] = reportUrl
 	result["key_case"] = keyCaseUrl
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
 //==================== timetable ====================
-func (rc *ReservationController) ViewTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
-	var result = map[string]interface{}{"status": "SUCCESS"}
+func (rc *ReservationController) ViewTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	var result = make(map[string]interface{})
 
 	timedReservations, err := service.Workflow().ViewTimetableByAdmin(userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	var timetable = make(map[string]interface{})
 	for weekday, trs := range timedReservations {
@@ -1394,10 +1309,10 @@ func (rc *ReservationController) ViewTimedReservationsByAdmin(w http.ResponseWri
 	}
 	result["timed_reservations"] = timetable
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	weekday := r.PostFormValue("weekday")
 	startTime := r.PostFormValue("start_clock")
 	endTime := r.PostFormValue("end_clock")
@@ -1406,15 +1321,13 @@ func (rc *ReservationController) AddTimedReservationByAdmin(w http.ResponseWrite
 	teacherMobile := r.PostFormValue("teacher_mobile")
 	force := strings.EqualFold(r.PostFormValue("force"), "FORCE")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var timedReservationJson = make(map[string]interface{})
 	timedReservation, err := service.Workflow().AddTimetableByAdmin(weekday, startTime, endTime, teacherUsername, teacherFullname,
 		teacherMobile, force, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	timedReservationJson["timed_reservation_id"] = timedReservation.Id.Hex()
 	timedReservationJson["weekday"] = timedReservation.Weekday
@@ -1429,10 +1342,10 @@ func (rc *ReservationController) AddTimedReservationByAdmin(w http.ResponseWrite
 	}
 	result["timed_reservation"] = timedReservationJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) EditTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) EditTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	timedReservationId := r.PostFormValue("timed_reservation_id")
 	weekday := r.PostFormValue("weekday")
 	startTime := r.PostFormValue("start_clock")
@@ -1442,15 +1355,13 @@ func (rc *ReservationController) EditTimedReservationByAdmin(w http.ResponseWrit
 	teacherMobile := r.PostFormValue("teacher_mobile")
 	force := strings.EqualFold(r.PostFormValue("force"), "FORCE")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	var timedReservationJson = make(map[string]interface{})
 	timedReservation, err := service.Workflow().EditTimetableByAdmin(timedReservationId, weekday, startTime, endTime, teacherUsername,
 		teacherFullname, teacherMobile, force, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	timedReservationJson["timed_reservation_id"] = timedReservation.Id.Hex()
 	timedReservationJson["weekday"] = timedReservation.Weekday
@@ -1465,56 +1376,50 @@ func (rc *ReservationController) EditTimedReservationByAdmin(w http.ResponseWrit
 	}
 	result["timed_reservation"] = timedReservationJson
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) RemoveTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) RemoveTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	r.ParseForm()
 	timedReservationIds := []string(r.Form["timed_reservation_ids"])
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	removed, err := service.Workflow().RemoveTimetablesByAdmin(timedReservationIds, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	result["removed_count"] = removed
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) OpenTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) OpenTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	r.ParseForm()
 	timedReservationIds := []string(r.Form["timed_reservation_ids"])
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	opened, err := service.Workflow().OpenTimetablesByAdmin(timedReservationIds, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	result["opened_count"] = opened
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) CloseTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
+func (rc *ReservationController) CloseTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	r.ParseForm()
 	timedReservationIds := []string(r.Form["timed_reservation_ids"])
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	closed, err := service.Workflow().CloseTimetablesByAdmin(timedReservationIds, userId, userType)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	result["closed_count"] = closed
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }

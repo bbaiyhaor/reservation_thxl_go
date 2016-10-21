@@ -1,7 +1,6 @@
 package web
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/ifs"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/service"
 	"github.com/mijia/sweb/render"
@@ -12,22 +11,22 @@ import (
 )
 
 type UserController struct {
-	ifs.BaseMux
+	BaseMuxController
 }
 
 const (
 	kUserApiBaseUrl = "/api/user"
 )
 
-func (uc *UserController) MuxHandlers(s ifs.Muxer) {
-	s.Get("/m", "HomePage", uc.GetHomePage)
+func (uc *UserController) MuxHandlers(m JsonMuxer) {
+	m.Get("/m", "HomePage", uc.getHomePage)
 
 	baseUrl := kUserApiBaseUrl
-	s.PostJson(baseUrl+"/student/login", "StudentLogin", uc.StudentLogin)
-	s.PostJson(baseUrl+"/student/register", "StudentRegister", uc.StudentRegister)
-	s.PostJson(baseUrl+"/teacher/login", "TeacherLogin", uc.TeacherLogin)
-	s.PostJson(baseUrl+"/admin/login", "AdminLogin", uc.AdminLogin)
-	s.GetJson(baseUrl+"/logout", "Logout", RoleCookieInjection(uc.Logout))
+	m.PostJson(baseUrl+"/student/login", "StudentLogin", uc.studentLogin)
+	m.PostJson(baseUrl+"/student/register", "StudentRegister", uc.studentRegister)
+	m.PostJson(baseUrl+"/teacher/login", "TeacherLogin", uc.teacherLogin)
+	m.PostJson(baseUrl+"/admin/login", "AdminLogin", uc.adminLogin)
+	m.GetJson(baseUrl+"/logout", "Logout", RoleCookieInjection(uc.logout))
 }
 
 func (uc *UserController) GetTemplates() []*render.TemplateSet {
@@ -36,23 +35,21 @@ func (uc *UserController) GetTemplates() []*render.TemplateSet {
 	}
 }
 
-func (uc *UserController) GetHomePage(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+func (uc *UserController) getHomePage(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	params := map[string]interface{}{}
 	uc.RenderHtmlOr500(w, http.StatusOK, "user_mobile", params)
 	return ctx
 }
 
-func (uc *UserController) StudentRegister(ctx context.Context, w http.ResponseWriter, r *http.Request) interface{} {
+func (uc *UserController) studentRegister(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	student, err := service.Workflow().StudentRegister(username, password)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     "user_id",
@@ -80,20 +77,18 @@ func (uc *UserController) StudentRegister(ctx context.Context, w http.ResponseWr
 	})
 	result["url"] = "/reservation/student"
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (uc *UserController) StudentLogin(ctx context.Context, w http.ResponseWriter, r *http.Request) interface{} {
+func (uc *UserController) studentLogin(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	student, err := service.Workflow().StudentLogin(username, password)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     "user_id",
@@ -121,20 +116,18 @@ func (uc *UserController) StudentLogin(ctx context.Context, w http.ResponseWrite
 	})
 	result["url"] = "/reservation/student"
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (uc *UserController) TeacherLogin(ctx context.Context, w http.ResponseWriter, r *http.Request) interface{} {
+func (uc *UserController) teacherLogin(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	teacher, err := service.Workflow().TeacherLogin(username, password)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     "user_id",
@@ -167,20 +160,18 @@ func (uc *UserController) TeacherLogin(ctx context.Context, w http.ResponseWrite
 		result["url"] = "/reservation/entry"
 	}
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (uc *UserController) AdminLogin(ctx context.Context, w http.ResponseWriter, r *http.Request) interface{} {
+func (uc *UserController) adminLogin(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
-	var result = map[string]interface{}{"status": "SUCCESS"}
+	var result = make(map[string]interface{})
 
 	admin, err := service.Workflow().AdminLogin(username, password)
 	if err != nil {
-		result["status"] = "FAIL"
-		result["error"] = err.Error()
-		return result
+		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     "user_id",
@@ -213,11 +204,11 @@ func (uc *UserController) AdminLogin(ctx context.Context, w http.ResponseWriter,
 		result["url"] = "/reservation/entry"
 	}
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (uc *UserController) Logout(w http.ResponseWriter, r *http.Request, userId string, userType int) interface{} {
-	var result = map[string]interface{}{"status": "SUCCESS"}
+func (uc *UserController) logout(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	var result = make(map[string]interface{})
 
 	switch userType {
 	case model.USER_TYPE_ADMIN:
@@ -245,5 +236,5 @@ func (uc *UserController) Logout(w http.ResponseWriter, r *http.Request, userId 
 		MaxAge: -1,
 	})
 
-	return result
+	return http.StatusOK, wrapJsonOk(result)
 }

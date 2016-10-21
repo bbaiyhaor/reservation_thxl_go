@@ -1,7 +1,6 @@
 package web
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/ifs"
 	"golang.org/x/net/context"
 	"net/http"
 	"regexp"
@@ -13,8 +12,8 @@ var redirectStudentPath = regexp.MustCompile("^(/reservation/student$|/student/)
 var redirectTeacherPath = regexp.MustCompile("^(/reservation/teacher$|/teacher/)")
 var redirectAdminPath = regexp.MustCompile("^(/reservation/admin|/admin/)")
 
-func RoleCookieInjection(handle func(http.ResponseWriter, *http.Request, string, int) interface{}) ifs.JsonHandler {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) interface{} {
+func RoleCookieInjection(handle func(http.ResponseWriter, *http.Request, string, int) (int, interface{})) JsonHandler {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
 		if !needUserPath.MatchString(r.URL.Path) {
 			return handle(w, r, "", 0)
 		}
@@ -30,21 +29,21 @@ func RoleCookieInjection(handle func(http.ResponseWriter, *http.Request, string,
 		var userType int
 		if cookie, err := r.Cookie("user_id"); err != nil {
 			http.Redirect(w, r, redirectUrl, http.StatusFound)
-			return nil
+			return http.StatusOK, wrapJsonError(err.Error())
 		} else {
 			userId = cookie.Value
 		}
 		if _, err := r.Cookie("username"); err != nil {
 			http.Redirect(w, r, redirectUrl, http.StatusFound)
-			return nil
+			return http.StatusOK, wrapJsonError(err.Error())
 		}
 		if cookie, err := r.Cookie("user_type"); err != nil {
 			http.Redirect(w, r, redirectUrl, http.StatusFound)
-			return nil
+			return http.StatusOK, wrapJsonError(err.Error())
 		} else {
 			if ut, err := strconv.Atoi(cookie.Value); err != nil {
 				http.Redirect(w, r, redirectUrl, http.StatusFound)
-				return nil
+				return http.StatusOK, wrapJsonError(err.Error())
 			} else {
 				userType = ut
 			}

@@ -1,8 +1,8 @@
 package web
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/ifs"
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/mijia/sweb/log"
@@ -11,34 +11,40 @@ import (
 	"golang.org/x/net/context"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"runtime"
+	"sync"
 	"time"
 )
 
 type Server struct {
 	*server.Server
 	render         *render.Render
-	confPath       string
 	isDebug        bool
-	muxControllers []ifs.MuxController
+	assetsDomain   string
+	muxControllers []MuxController
 }
 
-func (s *Server) AddMuxController(mcs ...ifs.MuxController) {
+func (s *Server) addMuxController(mcs ...MuxController) {
 	s.muxControllers = append(s.muxControllers, mcs...)
 }
 
 func (s *Server) ListenAndServe(addr string) error {
-	s.AddMuxController(&UserController{})
-	s.AddMuxController(&ReservationController{})
-
+	if s.isDebug && s.assetsDomain != "" {
+		log.Infof("Use AssetsPrefix %s", s.assetsDomain)
+		s.EnableAssetsPrefix(s.assetsDomain)
+	}
+	s.addMuxController(&UserController{})
+	s.addMuxController(&ReservationController{})
 	s.render = s.initRender()
 
-	ignoredUrls := []string{"/javascripts/", "/images/", "/stylesheets/", "/fonts/", "/debug/vars", "/favicon", "/robots"}
-	s.Middleware(NewRecoveryWare(s.isDebug))
+	ignoredUrls := []string{"/bundles/", "/fonts/", "/debug/vars", "/favicon", "/robots"}
+	//s.Middleware(NewRecoveryWare(s.isDebug))
+	s.Middleware(server.NewRecoveryWare(s.isDebug))
 	s.Middleware(server.NewStatWare(ignoredUrls...))
 	s.Middleware(server.NewRuntimeWare(ignoredUrls, true, 15*time.Minute))
-	s.EnableExtraAssetsJson("assets_map.json")
+	s.Middleware(s.wareWebpackAssets("webpack-assets.json", "bundles"))
 
 	// Change the asset prefix to CDN host for external prod server
 	//if config.Instance().Env != "staging" && !config.Instance().IsSmokeServer() {
@@ -49,7 +55,6 @@ func (s *Server) ListenAndServe(addr string) error {
 
 	s.Get("/debug/vars", "RuntimeStat", s.getRuntimeStat)
 	s.Files("/assets/*filepath", http.Dir("public"))
-
 	for _, mc := range s.muxControllers {
 		mc.SetResponseRenderer(s)
 		mc.SetUrlReverser(s)
@@ -57,6 +62,49 @@ func (s *Server) ListenAndServe(addr string) error {
 	}
 
 	return s.Run(addr)
+}
+
+func (s *Server) getRuntimeStat(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+	http.DefaultServeMux.ServeHTTP(w, r)
+	return ctx
+}
+
+func (s *Server) wareWebpackAssets(webpackAssetsFile string, subPath string) server.MiddleFn {
+	var loadOnce sync.Once
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request, next server.Handler) context.Context {
+		if s.isDebug {
+			s.loadWebpackAssets(webpackAssetsFile, subPath)
+		} else {
+			loadOnce.Do(func() {
+				s.loadWebpackAssets(webpackAssetsFile, subPath)
+			})
+		}
+		return next(ctx, w, r)
+	}
+}
+
+func (s *Server) loadWebpackAssets(webpackAssetsFile string, subPath string) {
+	start := time.Now()
+	if data, err := ioutil.ReadFile(webpackAssetsFile); err == nil {
+		var packMappings map[string]map[string]string
+		if err := json.Unmarshal(data, &packMappings); err == nil {
+			newMappings := make(map[string]string)
+			for entry, types := range packMappings {
+				for ty, target := range types {
+					if subPath != "" {
+						target = fmt.Sprintf("%s/%s", subPath, target)
+					}
+					newMappings[fmt.Sprintf("%s.%s", entry, ty)] = target
+				}
+			}
+			s.EnableExtraAssetsMapping(newMappings)
+			log.Infof("[Server] Loaded webpack assets from %s, duration=%s", webpackAssetsFile, time.Now().Sub(start))
+		} else {
+			log.Errorf("[Server] Failed to decode the web pack assets, %s", err)
+		}
+	} else {
+		log.Errorf("[Server] Failed to load webpack assets from %s, %s", webpackAssetsFile, err)
+	}
 }
 
 func (s *Server) initRender() *render.Render {
@@ -75,11 +123,6 @@ func (s *Server) initRender() *render.Render {
 	}, tSets)
 	log.Info("Templates loaded ...")
 	return r
-}
-
-func (s *Server) getRuntimeStat(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
-	http.DefaultServeMux.ServeHTTP(w, r)
-	return ctx
 }
 
 func formatTime(tm time.Time, layout string) string {
@@ -169,14 +212,27 @@ func (s *Server) Get(path, name string, handle server.Handler) {
 	s.Server.Get(path, name, newHandle)
 }
 
-func (s *Server) GetJson(path string, name string, handle ifs.JsonHandler) {
+func (s *Server) GetJson(path string, name string, handle JsonHandler) {
 	s.Get(path, name, s.makeJsonHandler(handle))
 }
 
-func (s *Server) PostJson(path string, name string, handle ifs.JsonHandler) {
+func (s *Server) PostJson(path string, name string, handle JsonHandler) {
 	s.Post(path, name, s.makeJsonHandler(handle))
 }
-func (s *Server) makeJsonHandler(handle ifs.JsonHandler) server.Handler {
+
+func (s *Server) PutJson(path string, name string, handle JsonHandler) {
+	s.Put(path, name, s.makeJsonHandler(handle))
+}
+
+func (s *Server) PatchJson(path string, name string, handle JsonHandler) {
+	s.Patch(path, name, s.makeJsonHandler(handle))
+}
+
+func (s *Server) DeleteJson(path string, name string, handle JsonHandler) {
+	s.Delete(path, name, s.makeJsonHandler(handle))
+}
+
+func (s *Server) makeJsonHandler(handle JsonHandler) server.Handler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 		// request log
 		switch r.Method {
@@ -191,52 +247,36 @@ func (s *Server) makeJsonHandler(handle ifs.JsonHandler) server.Handler {
 			log.Infof("%s %s %+v", r.Method, r.URL.Path, r.PostForm)
 		}
 
-		resp := handle(ctx, w, r)
+		statusCode, data := handle(ctx, w, r)
 
 		// response log
 		if r.Method != http.MethodGet {
-			log.Infof("response: %s %+v", r.URL.Path, resp)
+			log.Infof("response %d: %s %+v", statusCode, r.URL.Path, data)
 		}
 
-		s.renderJsonOr500(w, 200, resp)
+		s.renderJsonOr500(w, statusCode, data)
 		return ctx
 	}
 }
 
-func NewServer(confPath string, isDebug bool) *Server {
+func (s *Server) SetAssetDomain(domain string) {
+	s.assetsDomain = domain
+}
+
+func (s *Server) Cleanup() {
+}
+
+func NewServer(isDebug bool) *Server {
 	if isDebug {
 		log.EnableDebug()
 	}
-	srv := &Server{
-		confPath:       confPath,
-		isDebug:        isDebug,
-		muxControllers: []ifs.MuxController{},
-	}
 
 	ctx := context.Background()
-	srv.Server = server.New(ctx, isDebug)
 
-	// utils.GetAllWxUserAndUpdate(buslogic.WX_ACCOUNT_LICAI)
-	// allWxUserTicker := time.NewTicker(time.Minute * 10)
-	// go func(){
-	// 	utils.GetAllWxUserAndUpdate(buslogic.WX_ACCOUNT_LICAI)
-	// 	for  t := range allWxUserTicker.C {
-	// 		logger.Info("get all wx user %+v", t)
-	// 		utils.GetAllWxUserAndUpdate(buslogic.WX_ACCOUNT_LICAI)
-	// 	}
-	// }()
+	srv := &Server{
+		Server:         server.New(ctx, isDebug),
+		muxControllers: []MuxController{},
+		isDebug:        isDebug,
+	}
 	return srv
-}
-
-type BaseHandler struct {
-	rr ifs.ResponseRenderer
-	s  ifs.UrlReverser
-}
-
-func (d *BaseHandler) SetResponseRenderer(rr ifs.ResponseRenderer) {
-	d.rr = rr
-}
-
-func (d *BaseHandler) SetUrlReverser(s ifs.UrlReverser) {
-	d.s = s
 }

@@ -72,6 +72,7 @@ var config = {
         extensions: ['', '.js', '.jsx', '.css', '.png'],
         alias: {
             '#imgs': path.join(__dirname, 'assets/images'),
+            '#coms': path.join(__dirname, 'assets/javascripts/components'),
         },
     },
 

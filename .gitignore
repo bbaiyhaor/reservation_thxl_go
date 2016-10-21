@@ -1,6 +1,7 @@
 .idea
 .DS_Store
 *.swp
+.pid
 thxl/thxl
 external/external
 reservation_thxl_go
@@ -8,5 +9,5 @@ reservation_thxl_go-*
 reservation_thxl_go.iml
 node_modules
 node_modules/
-public/bundle
+public/bundles
 webpack-assets.json

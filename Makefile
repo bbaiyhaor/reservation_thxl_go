@@ -23,7 +23,7 @@ $(BUNDLE): $(ASSETS)
 
 $(TARGET): $(GO_FILES)
 	@printf "Buiding go binary ......"
-	@go build -race -o $@
+	@godep go build -race -o $@
 
 kill:
 	@kill `cat $(PID)` || true

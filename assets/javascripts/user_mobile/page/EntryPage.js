@@ -6,12 +6,16 @@ import {Link, Router} from "react-router";
 
 import WeUI from 'react-weui';
 const {Panel, PanelHeader, PanelBody, MediaBox, MediaBoxHeader, MediaBoxTitle, MediaBoxDescription} = WeUI;
+import 'weui';
+
+import StudentImg from '../../../images/user_mobile/student.png';
+import TeacherImg from '../../../images/user_mobile/teacher.png';
 
 let EntryPage = React.createClass({
     getInitialState() {
         return {
-            studentEntry: "",
-            teacherEntry: "",
+            studentEntry: "entry",
+            teacherEntry: "entry",
         };
     },
 
@@ -23,7 +27,7 @@ let EntryPage = React.createClass({
                     <Link to={this.state.studentEntry}>
                         <MediaBox type="appmsg">
                             <MediaBoxHeader>
-                                <img src={window.assets["imgStudent"]}/>
+                                <img src={StudentImg}/>
                             </MediaBoxHeader>
                             <PanelBody>
                                 <MediaBoxTitle>我是学生</MediaBoxTitle>
@@ -34,7 +38,7 @@ let EntryPage = React.createClass({
                     <Link to={this.state.teacherEntry}>
                         <MediaBox type="appmsg">
                             <MediaBoxHeader>
-                                <img src={window.assets["imgTeacher"]}/>
+                                <img src={TeacherImg}/>
                             </MediaBoxHeader>
                             <PanelBody>
                                 <MediaBoxTitle>我是咨询师</MediaBoxTitle>

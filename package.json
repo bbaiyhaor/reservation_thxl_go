@@ -14,12 +14,11 @@
   "license": "ISC",
   "homepage": "https://bitbucket.org/shudiwsh2009/reservation_thxl_go#readme",
   "dependencies": {
-    "classnames": "^2.2.5",
-    "lodash": "^4.16.4",
-    "material-design-lite": "^1.2.1",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
-    "whatwg-fetch": "^1.0.0"
+    "react-router": "^2.8.1",
+    "react-weui": "^0.4.0",
+    "weui": "^0.4.3"
   },
   "devDependencies": {
     "assets-webpack-plugin": "^3.4.0",

@@ -28,7 +28,7 @@ if (production) {
         new webpack.optimize.DedupePlugin(),
         new webpack.optimize.OccurenceOrderPlugin(),
         new webpack.optimize.CommonsChunkPlugin({
-            name: 'main',
+            name: 'common',
             children: true,
             minChunks: 2,
         }),
@@ -58,7 +58,9 @@ var config = {
     devtool: production ? false : 'eval',
     plugins: plugins,
 
-    entry: './assets/index.js',
+    entry: {
+        user_mobile: './assets/javascripts/user_mobile.js',
+    },
     output: {
         path: 'public/bundles',
         publicPath: '/assets/bundles/',
@@ -69,7 +71,7 @@ var config = {
     resolve: {
         extensions: ['', '.js', '.jsx', '.css'],
         alias: {
-            '#coms': path.join(__dirname, 'assets/components'),
+            // '#coms': path.join(__dirname, 'assets/components'),
         },
     },
 

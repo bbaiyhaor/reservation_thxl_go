@@ -8,8 +8,8 @@ import WeUI from 'react-weui';
 const {Panel, PanelHeader, PanelBody, MediaBox, MediaBoxHeader, MediaBoxTitle, MediaBoxDescription} = WeUI;
 import 'weui';
 
-import StudentImg from '../../../images/user_mobile/student.png';
-import TeacherImg from '../../../images/user_mobile/teacher.png';
+import StudentImg from '#imgs/user_mobile/student.png';
+import TeacherImg from '#imgs/user_mobile/teacher.png';
 
 let EntryPage = React.createClass({
     getInitialState() {

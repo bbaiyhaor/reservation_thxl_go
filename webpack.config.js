@@ -69,9 +69,9 @@ var config = {
     },
 
     resolve: {
-        extensions: ['', '.js', '.jsx', '.css'],
+        extensions: ['', '.js', '.jsx', '.css', '.png'],
         alias: {
-            // '#coms': path.join(__dirname, 'assets/components'),
+            '#imgs': path.join(__dirname, 'assets/images'),
         },
     },
 

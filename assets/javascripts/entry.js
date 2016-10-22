@@ -1,26 +1,23 @@
 /**
  * Created by shudi on 2016/10/20.
  */
-import React from "react";
-import ReactDOM from "react-dom";
-import {Link, Router} from "react-router";
-
-import WeUI from 'react-weui';
-const {Panel, PanelHeader, PanelBody, MediaBox, MediaBoxHeader, MediaBoxTitle, MediaBoxDescription} = WeUI;
+import React from 'react';
+import ReactDOM from 'react-dom';
+import {Link, Router} from 'react-router';
+import {Panel, PanelHeader, PanelBody, MediaBox, MediaBoxHeader, MediaBoxTitle, MediaBoxDescription} from 'react-weui';
 import 'weui';
 
 import PageBottom from '#coms/page-bottom';
-
 import StudentEntryIcon from '#imgs/mobile/student.png';
 import TeacherEntryIcon from '#imgs/mobile/teacher.png';
 
 let EntryPage = React.createClass({
     render() {
         return (
-            <Panel access="true">
+            <Panel access={true}>
                 <PanelHeader style={{fontSize: "18px"}}>学生心理发展指导中心预约系统</PanelHeader>
                 <PanelBody>
-                    <MediaBox type="appmsg" href="">
+                    <MediaBox type="appmsg" href="/m/student">
                         <MediaBoxHeader>
                             <img src={StudentEntryIcon}/>
                         </MediaBoxHeader>
@@ -29,7 +26,7 @@ let EntryPage = React.createClass({
                             <MediaBoxDescription>点击进入</MediaBoxDescription>
                         </PanelBody>
                     </MediaBox>
-                    <MediaBox type="appmsg" href="">
+                    <MediaBox type="appmsg" href="/m/teacher">
                         <MediaBoxHeader>
                             <img src={TeacherEntryIcon}/>
                         </MediaBoxHeader>

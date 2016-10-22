@@ -60,6 +60,7 @@ var config = {
 
     entry: {
         entry: './assets/javascripts/entry.js',
+        student: './assets/javascripts/student.js',
     },
     output: {
         path: 'public/bundles',
@@ -73,6 +74,7 @@ var config = {
         alias: {
             '#imgs': path.join(__dirname, 'assets/images'),
             '#coms': path.join(__dirname, 'assets/javascripts/components'),
+            '#pages': path.join(__dirname, 'assets/javascripts/pages'),
         },
     },
 

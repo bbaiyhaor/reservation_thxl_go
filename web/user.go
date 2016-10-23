@@ -222,9 +222,9 @@ func (uc *UserController) logout(w http.ResponseWriter, r *http.Request, userId 
 	case model.USER_TYPE_ADMIN:
 		result["redirect_url"] = "/reservation/admin"
 	case model.USER_TYPE_TEACHER:
-		result["redirect_url"] = "/m/teacher"
+		result["redirect_url"] = "/m/teacher#/login"
 	case model.USER_TYPE_STUDENT:
-		result["redirect_url"] = "/m/student"
+		result["redirect_url"] = "/m/student#/login"
 	default:
 		result["redirect_url"] = "/m"
 	}

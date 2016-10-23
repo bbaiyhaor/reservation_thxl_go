@@ -93,6 +93,10 @@ export let Application = {
         let succ = (data) => {
             if (data.status === 'OK') {
                 this.reservations = data.payload['reservations'];
+                // for (let i = 0; i < 10; i++) {
+                //     this.reservations.push(this.reservations[0]);
+                // }
+                // this.reservations.push(this.reservations[1]);
                 User.student = data.payload['student'];
                 succCallback && succCallback(data.payload);
             } else {

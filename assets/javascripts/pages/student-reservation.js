@@ -7,6 +7,7 @@ import {Panel, PanelHeader, PanelBody, CellsTitle, MediaBox, MediaBoxDescription
 import 'weui';
 
 import {UserLogoutButton} from '#coms/user-form';
+import PageBottom from '#coms/page-bottom';
 import {AlertDialog, ConfirmDialog, LoadingHud} from '#coms/huds';
 import {User, Application} from '#models/models';
 
@@ -60,6 +61,9 @@ export default class StudentReservationPage extends React.Component {
                 </Panel>
                 <LoadingHud ref="loading"/>
                 <AlertDialog ref="alert"/>
+                <PageBottom style={{color: "#999999", textAlign: "center", backgroundColor: "white", fontSize: "14px"}}
+                            contents={["清华大学学生心理发展指导中心", "联系方式：010-62782007"]}
+                            height="50px"/>
             </div>
         )
     }

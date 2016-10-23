@@ -31,8 +31,11 @@ export default class StudentReservationPage extends React.Component {
                     this.refs['loading'].hide();
                 });
             }, 500);
-        }, () => {
-            hashHistory.push('login');
+        }, (status) => {
+            this.refs['loading'].hide();
+            this.refs['alert'].show('', status, '好的', () => {
+                hashHistory.push('login');
+            });
         });
     }
 

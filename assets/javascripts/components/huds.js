@@ -10,44 +10,52 @@ export class AlertDialog extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            alertTitle: '',
             alertShow: false,
-            alertMsg: '',
-            alertButtons: [
-                {
-                    label: '',
-                    onClick: this.hide.bind(this),
-                }
-            ],
+            alert: {
+                title: '',
+                msg: '',
+                buttons: [
+                    {
+                        label: '',
+                        onClick: this.hide.bind(this),
+                    }
+                ],
+            },
         };
+        this.show = this.show.bind(this);
+        this.hide = this.hide.bind(this);
     }
 
-    show(title, msg, label) {
+    show(title, msg, label, click) {
         this.setState({
-            alertTitle: title,
             alertShow: true,
-            alertMsg: msg,
-            alertButtons: [
-                {
-                    label: label,
-                    onClick: this.hide.bind(this),
-                }
-            ],
+            alert: {
+                title: title,
+                msg: msg,
+                buttons: [
+                    {
+                        label: label,
+                        onClick: click || this.hide.bind(this),
+                    }
+                ],
+            },
         });
     }
 
     hide() {
         this.setState({
-            alertTitle: '',
             alertShow: false,
-            alertMsg: '',
+            alert: {
+                title: '',
+                msg: '',
+            },
         });
     }
 
     render() {
         return (
-            <Alert title={this.state.alertTitle} buttons={this.state.alertButtons} show={this.state.alertShow}>
-                {this.state.alertMsg}
+            <Alert title={this.state.alert.title} buttons={this.state.alert.buttons} show={this.state.alertShow}>
+                {this.state.alert.msg}
             </Alert>
         );
     }
@@ -60,13 +68,20 @@ export class LoadingHud extends React.Component {
             showLoading: false,
             loadingMsg: '',
         };
+        this.show = this.show.bind(this);
+        this.hide = this.hide.bind(this);
     }
 
-    show(msg) {
+    show(msg, duration) {
         this.setState({
             showLoading: true,
             loadingMsg: msg,
         });
+        if (duration && duration > 0) {
+            setTimeout(() => {
+                this.hide();
+            }, duration);
+        }
     }
 
     hide() {

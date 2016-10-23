@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import {Dialog, Toast} from 'react-weui';
-const {Alert} = Dialog;
+const {Alert, Confirm} = Dialog;
 import 'weui';
 
 export class AlertDialog extends React.Component {
@@ -57,6 +57,81 @@ export class AlertDialog extends React.Component {
             <Alert title={this.state.alert.title} buttons={this.state.alert.buttons} show={this.state.alertShow}>
                 {this.state.alert.msg}
             </Alert>
+        );
+    }
+}
+
+export class ConfirmDialog extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            confirmShow: false,
+            confirm: {
+                title: '',
+                msg: '',
+                buttons: [
+                    {
+                        type: 'default',
+                        label: '',
+                    },
+                    {
+                        type: 'primary',
+                        label: '',
+                    }
+                ],
+            },
+        };
+        this.show = this.show.bind(this);
+        this.hide = this.hide.bind(this);
+    }
+
+    show(title, msg, label1, label2, click1, click2) {
+        this.setState({
+            confirmShow: true,
+            confirm: {
+                title: title,
+                msg: msg,
+                buttons: [
+                    {
+                        type: 'default',
+                        label: label1,
+                        onClick: click1 || this.hide.bind(this),
+                    },
+                    {
+                        type: 'primary',
+                        label: label2,
+                        onClick: click2,
+                    },
+                ],
+            },
+        });
+    }
+
+    hide() {
+        this.setState({
+            confirmShow: false,
+            confirm: {
+                title: '',
+                msg: '',
+                buttons: [
+                    {
+                        type: 'default',
+                        label: '',
+                    },
+                    {
+                        type: 'primary',
+                        label: '',
+                    }
+                ],
+            },
+        });
+    }
+
+    render() {
+        return (
+            <Confirm title={this.state.confirm.title} buttons={this.state.confirm.buttons} show={this.state.confirmShow}>
+                {this.state.confirm.msg}
+            </Confirm>
         );
     }
 }

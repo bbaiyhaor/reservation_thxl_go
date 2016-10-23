@@ -93,7 +93,6 @@ export let Application = {
         let succ = (data) => {
             if (data.status === 'OK') {
                 this.reservations = data.payload['reservations'];
-                console.log(this.reservations);
                 User.student = data.payload['student'];
                 succCallback && succCallback(data.payload);
             } else {

@@ -7,7 +7,7 @@ import {Panel, PanelHeader, PanelBody, CellsTitle, MediaBox, MediaBoxDescription
 import 'weui';
 
 import {UserLogoutButton} from '#coms/user-form';
-import {AlertDialog, LoadingHud} from '#coms/huds';
+import {AlertDialog, ConfirmDialog, LoadingHud} from '#coms/huds';
 import {User, Application} from '#models/models';
 
 export default class StudentReservationPage extends React.Component {
@@ -72,12 +72,16 @@ class StudentReservationList extends React.Component {
         this.feedback = this.feedback.bind(this);
     }
 
-    makeReservation(reservationId) {
-        console.log(reservationId);
+    makeReservation(reservation) {
+        this.refs['confirm'].show('',
+            '确定预约后请准确填写个人信息，方便心理咨询中心老师与你取得联系。',
+            '暂不预约', '立即预约', null, () => {
+                console.log(reservation);
+            });
     }
 
-    feedback(reservationId) {
-        console.log(reservationId);
+    feedback(reservation) {
+        console.log(reservation);
     }
 
     render() {
@@ -90,12 +94,12 @@ class StudentReservationList extends React.Component {
                                 return (
                                     <Cell key={`reservation-cell-${index}`}>
                                         <CellBody>
-                                            <p style={{fontSize: "14px"}}>{reservation['start_time']} - {reservation['end_time'].slice(-5)}&nbsp;&nbsp;{reservation['teacher_fullname']}</p>
+                                            <p style={{fontSize: "14px"}}>{reservation['start_time']} - {reservation['end_time'].slice(-5)}　{reservation['teacher_fullname']}</p>
                                         </CellBody>
                                         {
                                             reservation['status'] === 1 ?
                                                 <Button size="small" onClick={(e) => {
-                                                    this.makeReservation(reservation['reservation_id']);
+                                                    this.makeReservation(reservation);
                                                     e.stopPropagation();
                                                     e.preventDefault();
                                                 }}>预约</Button> :
@@ -105,7 +109,7 @@ class StudentReservationList extends React.Component {
                                                         (
                                                             reservation['status'] === 3 ?
                                                                 <Button size="small" type="warn" onClick={(e) => {
-                                                                    this.feedback(reservation['reservation_id']);
+                                                                    this.feedback(reservation);
                                                                     e.stopPropagation();
                                                                     e.preventDefault();
                                                                 }}>反馈</Button> : null
@@ -118,6 +122,7 @@ class StudentReservationList extends React.Component {
                         }
                     </Cells>
                 </MediaBox>
+                <ConfirmDialog ref="confirm"/>
             </div>
         );
     }

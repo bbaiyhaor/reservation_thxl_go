@@ -14,9 +14,6 @@ export class LoginForm extends React.Component {
             username: '',
             usernameWarn: false,
             passwordWarn: false,
-            alertShow: false,
-            alertTitle: '',
-            alertMsg: '',
         };
         this.onSubmit = this.onSubmit.bind(this);
     }
@@ -90,6 +87,58 @@ export class LoginForm extends React.Component {
 };
 
 export class RegisterForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            username: '',
+            usernameWarn: false,
+            passwordWarn: false,
+            confirmPasswordWarn: false,
+            protocolWarn: false,
+        };
+        this.onSubmit = this.onSubmit.bind(this);
+    }
+
+    onSubmit() {
+        let username = ReactDOM.findDOMNode(this.refs['usernameInput']).value;
+        let password = ReactDOM.findDOMNode(this.refs['passwordInput']).value;
+        let confirmPassword = ReactDOM.findDOMNode(this.refs['confirmPasswordInput']).value;
+        let protocolChecked = ReactDOM.findDOMNode(this.refs['protocolCheckbox']).children[0].checked;
+        this.setState({
+            usernameWarn: false,
+            passwordWarn: false,
+            confirmPasswordWarn: false,
+            protocolWarn: false,
+        });
+        if (username === '') {
+            this.setState({usernameWarn: true});
+            return;
+        }
+        if (password === '') {
+            this.setState({passwordWarn: true});
+            return;
+        }
+        if (confirmPassword === '') {
+            this.setState({confirmPasswordWarn: true});
+            return;
+        }
+        if (!protocolChecked) {
+            this.setState({protocolWarn: true});
+            return;
+        }
+        if (password !== confirmPassword) {
+            this.setState({
+                passwordWarn: true,
+                confirmPasswordWarn: true,
+            });
+            this.props.showAlert && this.props.showAlert('注册失败', '两次密码不一致，请重新输入');
+            ReactDOM.findDOMNode(this.refs['passwordInput']).value = '';
+            ReactDOM.findDOMNode(this.refs['confirmPasswordInput']).value = '';
+            return;
+        }
+        this.props.onSubmit && this.props.onSubmit(username, password);
+    }
+
     render() {
         return (
             <div>
@@ -97,39 +146,80 @@ export class RegisterForm extends React.Component {
                     (this.props.titleTip && this.props.titleTip !== '') ?
                         <CellsTitle>{this.props.titleTip}</CellsTitle> : null
                 }
-                <Form radio={false} checkbox={false}>
-                    <FormCell key={`cell-${index}`} vcode={false} warn={false} radio={false}>
+                <Form checkbox={this.props.protocol ? true : false}>
+                    <FormCell warn={this.state.usernameWarn}>
                         <CellHeader>
-                            <Label>{name}</Label>
+                            <Label>{this.props.usernameLabel}</Label>
                         </CellHeader>
                         <CellBody>
-                            <Input type={this.props.types[index]}
-                                   placeholder={this.props.placeholders[index]}/>
+                            <Input ref="usernameInput"
+                                   type={this.props.usernameType}
+                                   placeholder={this.props.usernamePlaceholder}/>
                         </CellBody>
+                        {
+                            this.state.usernameWarn ?
+                                <CellFooter>
+                                    <Icon value="warn"/>
+                                </CellFooter> : null
+                        }
+                    </FormCell>
+                    <FormCell warn={this.state.passwordWarn}>
+                        <CellHeader>
+                            <Label>{this.props.passwordLabel}</Label>
+                        </CellHeader>
+                        <CellBody>
+                            <Input ref="passwordInput"
+                                   type={this.props.passwordType}
+                                   placeholder={this.props.passwordPlaceholder}/>
+                        </CellBody>
+                        {
+                            this.state.passwordWarn ?
+                                <CellFooter>
+                                    <Icon value="warn"/>
+                                </CellFooter> : null
+                        }
+                    </FormCell>
+                    <FormCell warn={this.state.confirmPasswordWarn}>
+                        <CellHeader>
+                            <Label>{this.props.confirmPasswordLabel}</Label>
+                        </CellHeader>
+                        <CellBody>
+                            <Input ref="confirmPasswordInput"
+                                   type={this.props.confirmPasswordType}
+                                   placeholder={this.props.confirmPasswordPlaceholder}/>
+                        </CellBody>
+                        {
+                            this.state.confirmPasswordWarn ?
+                                <CellFooter>
+                                    <Icon value="warn"/>
+                                </CellFooter> : null
+                        }
                     </FormCell>
                     {
-                        this.props.protocolNames && this.props.protocolNames.length > 0 ?
-                            this.props.protocolNames.map((protocolName, index) => {
-                                return (
-                                    <FormCell key={`protocol-${index}`} checkbox={true} vcode={false} warn={false}>
-                                        <CellHeader>
-                                            <Checkbox name="checkbox2" value="2" defaultChecked={true}/>
-                                        </CellHeader>
-                                        <CellBody>
-                                            {this.props.protocolPrefix[index]}
-                                            <Link to={this.props.protocolLinks[index]}>{protocolName}</Link>
-                                            {this.props.protocolSuffix[index]}
-                                        </CellBody>
-                                    </FormCell>
-                                )
-                            }) : null
+                        this.props.protocol ?
+                            <FormCell checkbox warn={this.state.protocolWarn}>
+                                <CellHeader>
+                                    <Checkbox ref="protocolCheckbox" defaultChecked/>
+                                </CellHeader>
+                                <CellBody>
+                                    {this.props.protocolPrefix}
+                                    <Link to={this.props.protocolLink}>{this.props.protocol}</Link>
+                                    {this.props.protocolSuffix}
+                                </CellBody>
+                                {
+                                    this.state.protocolWarn ?
+                                        <CellFooter>
+                                            <Icon value="warn"/>
+                                        </CellFooter> : null
+                                }
+                            </FormCell> : null
                     }
                 </Form>
                 <ButtonArea direction="horizontal">
-                    <Button type="primary" size="normal" disabled={false} href="javascript:;" onClick={this.props.onSubmit}>{this.props.submitText}</Button>
-                    <Button type="default" size="normal" disabled={false} href="javascript:;" onClick={this.props.onCancel}>{this.props.cancelText}</Button>
+                    <Button onClick={this.onSubmit}>{this.props.submitText}</Button>
+                    <Button type="default" onClick={this.props.onCancel}>{this.props.cancelText}</Button>
                 </ButtonArea>
             </div>
         );
     }
-}
+};

@@ -28,7 +28,7 @@ export default class StudentLoginPage extends React.Component {
         };
         this.onLogin = this.onLogin.bind(this);
         this.toRegister = this.toRegister.bind(this);
-        console.log(process.env.NODE_ENV);
+        this.showAlert = this.showAlert.bind(this);
     }
 
     onLogin(username, password) {
@@ -42,17 +42,21 @@ export default class StudentLoginPage extends React.Component {
         }, (status) => {
             this.setState({showLoading: false});
             setTimeout(() => {
-                this.setState({
-                    alertTitle: '登录失败',
-                    alertShow: true,
-                    alertMsg: status,
-                });
+                this.showAlert('登录失败', status);
             }, 500);
         });
     }
 
     toRegister() {
         hashHistory.push('register');
+    }
+
+    showAlert(title, msg) {
+        this.setState({
+            alertTitle: title,
+            alertShow: true,
+            alertMsg: msg,
+        });
     }
 
     hideAlert() {

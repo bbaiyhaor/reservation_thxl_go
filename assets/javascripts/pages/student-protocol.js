@@ -7,7 +7,7 @@ import 'weui';
 
 import PageBottom from '#coms/page-bottom';
 
-let StudentProtocolPage = React.createClass({
+export default class StudentProtocolPage extends React.Component {
     render() {
         let styles = {
             "h1": {
@@ -78,9 +78,5 @@ let StudentProtocolPage = React.createClass({
                             height="50px"/>
             </div>
         );
-    },
-});
-
-
-
-export default StudentProtocolPage;
+    }
+}

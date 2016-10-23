@@ -2,31 +2,34 @@
  * Created by shudi on 2016/10/22.
  */
 import React from 'react';
+import {hashHistory} from 'react-router';
 import {Panel, PanelHeader} from 'react-weui';
 import 'weui';
 
-import {UserSignForm} from '#coms/user-form';
+import {RegisterForm} from '#coms/user-form';
 import PageBottom from '#coms/page-bottom';
 
-let StudentRegisterpage = React.createClass({
-    contextTypes: {
-        router: React.PropTypes.object
-    },
+export default class StudentRegisterPage extends React.Component {
+    constructor(props) {
+        super(props);
+        this.onRegister = this.onRegister.bind(this);
+        this.toLogin = this.toLogin.bind(this);
+    }
 
-    onSubmit() {
+    onRegister() {
 
-    },
+    }
 
-    onCancel() {
-        this.context.router.push("login");
-    },
+    toLogin() {
+        hashHistory.push('login');
+    }
 
     render() {
         return (
             <div>
                 <Panel access={true}>
                     <PanelHeader style={{fontSize: "18px"}}>学生注册</PanelHeader>
-                    <UserSignForm titleTip="请用学号和密码注册（密码与info账号不同）"
+                    <RegisterForm titleTip="请用学号和密码注册（密码与info账号不同）"
                                names={["学号", "密码", "确认密码"]}
                                types={["tel", "number", "number"]}
                                placeholders={["请输入学号", "请输入密码", "请确认密码"]}
@@ -46,7 +49,5 @@ let StudentRegisterpage = React.createClass({
                             contents={["清华大学学生心理发展指导中心", "联系方式：010-62782007"]}/>
             </div>
         );
-    },
-});
-
-export default StudentRegisterpage;
+    }
+}

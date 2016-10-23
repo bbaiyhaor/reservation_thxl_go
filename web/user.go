@@ -83,7 +83,9 @@ func (uc *UserController) studentRegister(ctx context.Context, w http.ResponseWr
 		MaxAge:   365 * 24 * 60 * 60,
 		HttpOnly: true,
 	})
-	result["url"] = "/reservation/student"
+	result["user_id"] = student.Id.Hex()
+	result["username"] = student.Username
+	result["user_type"] = student.UserType
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -122,7 +124,9 @@ func (uc *UserController) studentLogin(ctx context.Context, w http.ResponseWrite
 		MaxAge:   365 * 24 * 60 * 60,
 		HttpOnly: true,
 	})
-	result["url"] = "/reservation/student"
+	result["user_id"] = student.Id.Hex()
+	result["username"] = student.Username
+	result["user_type"] = student.UserType
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -161,12 +165,9 @@ func (uc *UserController) teacherLogin(ctx context.Context, w http.ResponseWrite
 		MaxAge:   365 * 24 * 60 * 60,
 		HttpOnly: true,
 	})
-	switch teacher.UserType {
-	case model.USER_TYPE_TEACHER:
-		result["url"] = "/reservation/teacher"
-	default:
-		result["url"] = "/reservation/entry"
-	}
+	result["user_id"] = teacher.Id.Hex()
+	result["username"] = teacher.Username
+	result["user_type"] = teacher.UserType
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -205,12 +206,9 @@ func (uc *UserController) adminLogin(ctx context.Context, w http.ResponseWriter,
 		MaxAge:   365 * 24 * 60 * 60,
 		HttpOnly: true,
 	})
-	switch admin.UserType {
-	case model.USER_TYPE_ADMIN:
-		result["url"] = "/reservation/admin"
-	default:
-		result["url"] = "/reservation/entry"
-	}
+	result["user_id"] = admin.Id.Hex()
+	result["username"] = admin.Username
+	result["user_type"] = admin.UserType
 
 	return http.StatusOK, wrapJsonOk(result)
 }

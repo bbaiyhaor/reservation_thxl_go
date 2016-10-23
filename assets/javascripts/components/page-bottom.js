@@ -3,7 +3,7 @@
  */
 import React from "react";
 
-let PageBottom = React.createClass({
+export default class PageBottom extends React.Component{
     render() {
         let bottomStyle = {
             position: "fixed",
@@ -27,7 +27,5 @@ let PageBottom = React.createClass({
                 </div>
             </div>
         );
-    },
-});
-
-export default PageBottom;
+    }
+}

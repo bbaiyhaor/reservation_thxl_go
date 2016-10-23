@@ -51,6 +51,15 @@ if (production) {
             },
         }),
     ]);
+} else {
+    plugins = plugins.concat([
+        new webpack.DefinePlugin({
+            'process.env': {
+                BABEL_ENV: JSON.stringify(process.env.NODE_ENV),
+                NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+            },
+        }),
+    ]);
 }
 
 var config = {
@@ -75,6 +84,7 @@ var config = {
             '#imgs': path.join(__dirname, 'assets/images'),
             '#coms': path.join(__dirname, 'assets/javascripts/components'),
             '#pages': path.join(__dirname, 'assets/javascripts/pages'),
+            '#models': path.join(__dirname, 'assets/javascripts/models'),
         },
     },
 

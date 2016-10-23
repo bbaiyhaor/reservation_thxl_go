@@ -7,6 +7,8 @@ import {Link} from 'react-router';
 import {CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, ButtonArea, Button, Checkbox} from 'react-weui';
 import 'weui';
 
+import {User} from '#models/models';
+
 export class LoginForm extends React.Component {
     constructor(props) {
         super(props);
@@ -84,7 +86,7 @@ export class LoginForm extends React.Component {
             </div>
         );
     }
-};
+}
 
 export class RegisterForm extends React.Component {
     constructor(props) {
@@ -131,7 +133,7 @@ export class RegisterForm extends React.Component {
                 passwordWarn: true,
                 confirmPasswordWarn: true,
             });
-            this.props.showAlert && this.props.showAlert('注册失败', '两次密码不一致，请重新输入');
+            this.props.showAlert && this.props.showAlert('注册失败', '两次密码不一致，请重新输入', '好的');
             ReactDOM.findDOMNode(this.refs['passwordInput']).value = '';
             ReactDOM.findDOMNode(this.refs['confirmPasswordInput']).value = '';
             return;
@@ -222,4 +224,29 @@ export class RegisterForm extends React.Component {
             </div>
         );
     }
-};
+}
+
+export class UserLogoutButton extends React.Component {
+    constructor(props) {
+        super(props);
+        this.logout = this.logout.bind(this);
+    }
+
+    logout() {
+        User.logout((payload) => {
+            if (payload['redirect_url']) {
+                window.location.href = payload['redirect_url'];
+            }
+        }, (status) => {
+            this.props.alert && this.props.alert('登出失败', status, '好的');
+        });
+    }
+
+    render() {
+        const {children, ...others} = this.props;
+
+        return (
+            <Button {...others} onClick={this.logout}>{children}</Button>
+        );
+    }
+}

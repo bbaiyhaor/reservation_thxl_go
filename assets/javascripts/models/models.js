@@ -13,11 +13,22 @@ const apiStudentRegister = `${apiServer}/user/student/register`;
 const apiTeacherLogin = `${apiServer}/user/teacher/login`;
 const apiAdminLogin = `${apiServer}/user/admin/login`;
 const apiLogout = `${apiServer}/user/logout`;
+const apiViewReservationsByStudent = `${apiServer}/student/reservation/view`;
 
 export let User = {
-    userId: "",
-    username: "",
+    userId: '',
+    username: '',
     userType: -1,
+    fullname: '',
+    student: null,
+
+    clearUser() {
+        this.userId = '';
+        this.username = '';
+        this.userType = -1;
+        this.fullname = '';
+        this.student = null;
+    },
 
     studentLogin(username, password, succCallback, errCallback) {
         let succ = (data) => {
@@ -25,9 +36,10 @@ export let User = {
                 this.userId = data.payload['user_id'];
                 this.username = data.payload['username'];
                 this.userType = data.payload['user_type'];
+                this.fullname = data.payload['fullname'];
                 succCallback && succCallback(data.payload);
             } else {
-                errCallback && errCallback(data.status);
+                errCallback && errCallback(data.status, data.payload);
             }
         };
         let payload = {
@@ -43,9 +55,10 @@ export let User = {
                 this.userId = data.payload['user_id'];
                 this.username = data.payload['username'];
                 this.userType = data.payload['user_type'];
+                this.fullname = data.payload['fullname'];
                 succCallback && succCallback(data.payload);
             } else {
-                errCallback && errCallback(data.status);
+                errCallback && errCallback(data.status, data.payload);
             }
         };
         let payload = {
@@ -53,8 +66,43 @@ export let User = {
             password: password,
         };
         fetch(apiStudentRegister, "POST", payload, succ, errCallback);
+    },
+
+    logout(succCallback, errCallback) {
+        let succ = (data) => {
+            if (data.status === 'OK') {
+                this.clearUser();
+                Application.clearApplication();
+                succCallback && succCallback(data.payload);
+            } else {
+                errCallback && errCallback(data.status, data.payload);
+            }
+        }
+        fetch(apiLogout, "GET", {}, succ, errCallback);
     }
-}
+};
+
+export let Application = {
+    reservations: null,
+
+    clearApplication() {
+        this.reservations = null;
+    },
+
+    ViewReservationsByStudent(succCallback, errCallback) {
+        let succ = (data) => {
+            if (data.status === 'OK') {
+                this.reservations = data.payload['reservations'];
+                console.log(this.reservations);
+                User.student = data.payload['student'];
+                succCallback && succCallback(data.payload);
+            } else {
+                errCallback && errCallback(data.status, data.payload);
+            }
+        };
+        fetch(apiViewReservationsByStudent, "GET", {}, succ, errCallback);
+    }
+};
 
 function fetch(url, method, payload, succCallback, errCallback) {
     $.ajax({
@@ -78,6 +126,6 @@ function fetch(url, method, payload, succCallback, errCallback) {
         if (process.env.NODE_ENV === "development") {
             console.log(`fetch ${url} error:`, errorType, error, xhr);
         }
-        errCallback && errCallback(31415, "服务器开小差了，请稍候重试！");
+        errCallback && errCallback("服务器开小差了，请稍候重试！");
     });
 }

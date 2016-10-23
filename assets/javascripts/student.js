@@ -8,6 +8,7 @@ import {Router, Route, IndexRoute, hashHistory} from 'react-router';
 import StudentLoginPage from '#pages/student-login';
 import StudentRegisterPage from '#pages/student-register';
 import StudentProtocolPage from '#pages/student-protocol';
+import StudentReservationPage from '#pages/student-reservation';
 
 class StudentApp extends React.Component{
     render() {
@@ -21,10 +22,11 @@ class StudentApp extends React.Component{
 
 const routes = (
     <Route path="/" component={StudentApp}>
-        <IndexRoute component={StudentLoginPage}/>
+        <IndexRoute component={StudentReservationPage}/>
         <Route path="login" component={StudentLoginPage}/>
         <Route path="register" component={StudentRegisterPage}/>
         <Route path="protocol" component={StudentProtocolPage}/>
+        <Route path="reservation" component={StudentReservationPage}/>
     </Route>
 );
 

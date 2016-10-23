@@ -7,21 +7,17 @@ import (
 	"strconv"
 )
 
-var needUserPath = regexp.MustCompile("^(/reservation/(student|teacher|admin)$|/(user/logout|(student|teacher|admin)/))")
-var redirectStudentPath = regexp.MustCompile("^(/reservation/student$|/student/)")
-var redirectTeacherPath = regexp.MustCompile("^(/reservation/teacher$|/teacher/)")
-var redirectAdminPath = regexp.MustCompile("^(/reservation/admin|/admin/)")
+var redirectStudentPath = regexp.MustCompile("^(/api/student|/api/user/student)")
+var redirectTeacherPath = regexp.MustCompile("^(/api/teacher|/api/user/teacher)")
+var redirectAdminPath = regexp.MustCompile("^(/api/admin|/api/user/admin)")
 
 func RoleCookieInjection(handle func(http.ResponseWriter, *http.Request, string, int) (int, interface{})) JsonHandler {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
-		if !needUserPath.MatchString(r.URL.Path) {
-			return handle(w, r, "", 0)
-		}
-		redirectUrl := "/reservation/entry"
+		redirectUrl := "/m"
 		if redirectStudentPath.MatchString(r.URL.Path) {
-			redirectUrl = "/reservation/student/login"
+			redirectUrl = "/m/student"
 		} else if redirectTeacherPath.MatchString(r.URL.Path) {
-			redirectUrl = "/reservation/teacher/login"
+			redirectUrl = "/m/teacher"
 		} else if redirectAdminPath.MatchString(r.URL.Path) {
 			redirectUrl = "/reservation/admin/login"
 		}

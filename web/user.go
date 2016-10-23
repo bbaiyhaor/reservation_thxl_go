@@ -86,6 +86,7 @@ func (uc *UserController) studentRegister(ctx context.Context, w http.ResponseWr
 	result["user_id"] = student.Id.Hex()
 	result["username"] = student.Username
 	result["user_type"] = student.UserType
+	result["fullname"] = student.Fullname
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -127,6 +128,7 @@ func (uc *UserController) studentLogin(ctx context.Context, w http.ResponseWrite
 	result["user_id"] = student.Id.Hex()
 	result["username"] = student.Username
 	result["user_type"] = student.UserType
+	result["fullname"] = student.Fullname
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -218,13 +220,13 @@ func (uc *UserController) logout(w http.ResponseWriter, r *http.Request, userId 
 
 	switch userType {
 	case model.USER_TYPE_ADMIN:
-		result["url"] = "/reservation/admin"
+		result["redirect_url"] = "/reservation/admin"
 	case model.USER_TYPE_TEACHER:
-		result["url"] = "/reservation/teacher"
+		result["redirect_url"] = "/m/teacher"
 	case model.USER_TYPE_STUDENT:
-		result["url"] = "/reservation/student"
+		result["redirect_url"] = "/m/student"
 	default:
-		result["url"] = "/reservation/entry"
+		result["redirect_url"] = "/m"
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:   "user_id",

@@ -16,31 +16,31 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 	experienceTeacher string, fatherAge string, fatherJob string, fatherEdu string, motherAge string, motherJob string,
 	motherEdu string, parentMarriage string, siginificant string, problem string,
 	userId string, userType int) (*model.Reservation, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != model.USER_TYPE_STUDENT {
 		return nil, errors.New("请重新登录")
-	} else if len(reservationId) == 0 {
+	} else if reservationId == "" {
 		return nil, errors.New("咨询已下架")
-	} else if len(fullname) == 0 {
+	} else if fullname == "" {
 		return nil, errors.New("姓名为空")
-	} else if len(gender) == 0 {
+	} else if gender != model.USER_GENDER_MALE && gender != model.USER_GENDER_FEMALE {
 		return nil, errors.New("性别为空")
-	} else if len(birthday) == 0 {
+	} else if birthday == "" {
 		return nil, errors.New("出生日期为空")
-	} else if len(school) == 0 {
+	} else if school == "" {
 		return nil, errors.New("院系为空")
-	} else if len(grade) == 0 {
-		return nil, errors.New("年纪为空")
-	} else if len(currentAddress) == 0 {
+	} else if grade == "" {
+		return nil, errors.New("年级为空")
+	} else if currentAddress == "" {
 		return nil, errors.New("现在住址为空")
-	} else if len(familyAddress) == 0 {
+	} else if familyAddress == "" {
 		return nil, errors.New("家庭住址为空")
-	} else if len(mobile) == 0 {
+	} else if mobile == "" {
 		return nil, errors.New("手机号为空")
-	} else if len(email) == 0 {
+	} else if email == "" {
 		return nil, errors.New("邮箱为空")
-	} else if len(problem) == 0 {
+	} else if problem == "" {
 		return nil, errors.New("问题为空")
 	} else if !utils.IsMobile(mobile) {
 		return nil, errors.New("手机号格式不正确")
@@ -62,8 +62,8 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 			return nil, errors.New("你好！你已有一个咨询预约，请完成这次咨询后再预约下一次，或致电62782007取消已有预约。")
 		}
 	}
-	reservation := &model.Reservation{}
-	if len(sourceId) == 0 {
+	var reservation *model.Reservation
+	if sourceId == "" {
 		// Source为ADD，无SourceId：直接预约
 		reservation, err = w.model.GetReservationById(reservationId)
 		if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
@@ -72,10 +72,10 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 			return nil, errors.New("咨询已过期")
 		} else if reservation.Status != model.RESERVATION_STATUS_AVAILABLE {
 			return nil, errors.New("咨询已被预约")
-		} else if len(student.BindedTeacherId) != 0 && !strings.EqualFold(student.BindedTeacherId, reservation.TeacherId) {
+		} else if student.BindedTeacherId != "" && student.BindedTeacherId != reservation.TeacherId {
 			return nil, errors.New("只能预约匹配咨询师")
 		}
-	} else if strings.EqualFold(reservationId, sourceId) {
+	} else if reservationId == sourceId {
 		// Source为TIMETABLE且未被预约
 		timedReservation, err := w.model.GetTimedReservationById(sourceId)
 		if err != nil || timedReservation.Status == model.RESERVATION_STATUS_DELETED {
@@ -86,12 +86,11 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 			return nil, errors.New("开始时间格式错误")
 		} else if start.Before(time.Now()) {
 			return nil, errors.New("咨询已过期")
-		} else if !strings.EqualFold(start.Format("15:04"),
-			timedReservation.StartTime.Format("15:04")) {
+		} else if start.Format("15:04") != timedReservation.StartTime.Format("15:04") {
 			return nil, errors.New("开始时间不匹配")
 		} else if timedReservation.Timed[start.Format("2006-01-02")] {
 			return nil, errors.New("咨询已被预约")
-		} else if len(student.BindedTeacherId) != 0 && !strings.EqualFold(student.BindedTeacherId, timedReservation.TeacherId) {
+		} else if student.BindedTeacherId != "" && student.BindedTeacherId != timedReservation.TeacherId {
 			return nil, errors.New("只能预约匹配咨询师")
 		}
 		end := utils.ConcatTime(start, timedReservation.EndTime)

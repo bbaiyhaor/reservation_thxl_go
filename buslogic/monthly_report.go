@@ -69,10 +69,10 @@ func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, fil
 				amount.Amount++
 			}
 			switch student.Gender {
-			case "男":
+			case model.USER_GENDER_MALE:
 				report[category].Male++
 				amount.Male++
-			case "女":
+			case model.USER_GENDER_FEMALE:
 				report[category].Female++
 				amount.Female++
 			}

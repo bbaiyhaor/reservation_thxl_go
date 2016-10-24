@@ -63,7 +63,7 @@ export default class StudentReservationPage extends React.Component {
                 <AlertDialog ref="alert"/>
                 <PageBottom style={{color: "#999999", textAlign: "center", backgroundColor: "white", fontSize: "14px"}}
                             contents={["清华大学学生心理发展指导中心", "联系方式：010-62782007"]}
-                            height="50px"/>
+                            height="55px"/>
             </div>
         )
     }
@@ -80,7 +80,7 @@ class StudentReservationList extends React.Component {
         this.refs['confirm'].show('',
             '确定预约后请准确填写个人信息，方便心理咨询中心老师与你取得联系。',
             '暂不预约', '立即预约', null, () => {
-                console.log(reservation);
+                hashHistory.push(`/reservation/make?reservation_id=${reservation['reservation_id']}`);
             });
     }
 

@@ -12,6 +12,9 @@ const (
 	USER_TYPE_STUDENT
 	USER_TYPE_TEACHER
 	USER_TYPE_ADMIN
+
+	USER_GENDER_MALE = "男"
+	USER_GENDER_FEMALE = "女"
 )
 
 type Student struct {

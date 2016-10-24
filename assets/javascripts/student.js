@@ -9,6 +9,7 @@ import StudentLoginPage from '#pages/student-login';
 import StudentRegisterPage from '#pages/student-register';
 import StudentProtocolPage from '#pages/student-protocol';
 import StudentReservationPage from '#pages/student-reservation';
+import StudentReservationMakePage from '#pages/student-reservation-make';
 
 class StudentApp extends React.Component{
     render() {
@@ -27,6 +28,7 @@ const routes = (
         <Route path="register" component={StudentRegisterPage}/>
         <Route path="protocol" component={StudentProtocolPage}/>
         <Route path="reservation" component={StudentReservationPage}/>
+        <Route path="reservation/make" component={StudentReservationMakePage}/>
     </Route>
 );
 

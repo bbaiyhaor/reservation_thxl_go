@@ -847,8 +847,8 @@ func (rc *ReservationController) SetStudentByAdmin(w http.ResponseWriter, r *htt
 	var result = make(map[string]interface{})
 
 	var reservationJson = make(map[string]interface{})
-	reservation, err := service.Workflow().SetStudentByAdmin(reservationId, sourceId, startTime, studentUsername, fullname, gender,
-		birthday, school, grade, currentAddress, familyAddress, mobile, email, experienceTime,
+	reservation, err := service.Workflow().SetStudentByAdmin(reservationId, sourceId, startTime, studentUsername, fullname,
+		gender, birthday, school, grade, currentAddress, familyAddress, mobile, email, experienceTime,
 		experienceLocation, experienceTeacher, fatherAge, fatherJob, fatherEdu, motherAge, motherJob, motherEdu,
 		parentMarriage, siginificant, problem, sendSms, userId, userType)
 	if err != nil {

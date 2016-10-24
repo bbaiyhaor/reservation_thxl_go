@@ -56,7 +56,7 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType int) ([]*mod
 		if tr.Status != model.RESERVATION_STATUS_AVAILABLE {
 			continue
 		}
-		if len(student.BindedTeacherId) != 0 && !strings.EqualFold(student.BindedTeacherId, tr.TeacherId) {
+		if student.BindedTeacherId != "" && student.BindedTeacherId != tr.TeacherId {
 			continue
 		}
 		minusWeekday := int(tr.Weekday - today.Weekday())

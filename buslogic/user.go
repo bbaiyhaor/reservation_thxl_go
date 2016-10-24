@@ -111,7 +111,7 @@ func (w *Workflow) StudentRegister(username string, password string) (*model.Stu
 
 // 获取学生
 func (w *Workflow) GetStudentById(userId string) (*model.Student, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	}
 	student, err := w.model.GetStudentById(userId)
@@ -146,7 +146,7 @@ func (w *Workflow) GetTeacherByUsername(username string) (*model.Teacher, error)
 
 // 获取咨询师
 func (w *Workflow) GetTeacherById(userId string) (*model.Teacher, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	}
 	teacher, err := w.model.GetTeacherById(userId)

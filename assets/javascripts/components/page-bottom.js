@@ -11,6 +11,7 @@ export default class PageBottom extends React.Component{
             borderTop: "1px solid #E5E5E5",
             padding: "5px 0 5px 0",
             width: "100%",
+            zIndex: 10,
         };
 
         return (

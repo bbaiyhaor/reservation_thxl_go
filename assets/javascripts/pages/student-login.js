@@ -61,7 +61,7 @@ export default class StudentLoginPage extends React.Component {
                 <AlertDialog ref="alert"/>
                 <PageBottom style={{color: "#999999", textAlign: "center", backgroundColor: "white", fontSize: "14px"}}
                             contents={["清华大学学生心理发展指导中心", "联系方式：010-62782007"]}
-                            height="50px"/>
+                            height="55px"/>
             </div>
         );
     }

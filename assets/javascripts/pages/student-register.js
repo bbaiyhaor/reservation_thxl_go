@@ -43,11 +43,12 @@ export default class StudentRegisterPage extends React.Component {
     render() {
         return (
             <div>
-                <Panel access={true}>
+                <Panel access>
                     <PanelHeader style={{fontSize: "18px"}}>学生注册</PanelHeader>
                     <RegisterForm titleTip="请用学号注册（密码与info账号不同）"
                                   usernameLabel="学号"
-                                  usernameType="tel"usernamePlaceholder="请输入学号"
+                                  usernameType="tel"
+                                  usernamePlaceholder="请输入学号"
                                   passwordLabel="密码"
                                   passwordType="password"
                                   passwordPlaceholder="请输入密码"
@@ -70,7 +71,7 @@ export default class StudentRegisterPage extends React.Component {
                 <AlertDialog ref="alert"/>
                 <PageBottom style={{color: "#999999", textAlign: "center", backgroundColor: "white", fontSize: "14px"}}
                             contents={["清华大学学生心理发展指导中心", "联系方式：010-62782007"]}
-                            height="50px"/>
+                            height="55  px"/>
             </div>
         );
     }

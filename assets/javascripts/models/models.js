@@ -119,12 +119,7 @@ function fetch(url, method, payload, succCallback, errCallback) {
             console.log(payload);
             console.log(data);
         }
-        if (data.return_code === 3) {
-            // return_code: 3, use has been kicked out
-            window.location.hash = "/logout?ko=1";
-        } else {
-            succCallback && succCallback(data);
-        }
+        succCallback && succCallback(data);
     }).fail((xhr, errorType, error) => {
         if (process.env.NODE_ENV === "development") {
             console.log(`fetch ${url} error:`, errorType, error, xhr);

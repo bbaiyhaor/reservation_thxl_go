@@ -13,9 +13,9 @@ const (
 
 // 学生登录
 func (w *Workflow) StudentLogin(username string, password string) (*model.Student, error) {
-	if len(username) == 0 {
+	if username == "" {
 		return nil, errors.New("用户名为空")
-	} else if len(password) == 0 {
+	} else if password == "" {
 		return nil, errors.New("密码为空")
 	}
 	student, err := w.model.GetStudentByUsername(username)
@@ -37,9 +37,9 @@ func (w *Workflow) StudentLogin(username string, password string) (*model.Studen
 
 // 咨询师登录
 func (w *Workflow) TeacherLogin(username string, password string) (*model.Teacher, error) {
-	if len(username) == 0 {
+	if username == "" {
 		return nil, errors.New("用户名为空")
-	} else if len(password) == 0 {
+	} else if password == "" {
 		return nil, errors.New("密码为空")
 	}
 	teacher, err := w.model.GetTeacherByUsername(username)
@@ -61,9 +61,9 @@ func (w *Workflow) TeacherLogin(username string, password string) (*model.Teache
 
 // 管理员登录
 func (w *Workflow) AdminLogin(username string, password string) (*model.Admin, error) {
-	if len(username) == 0 {
+	if username == "" {
 		return nil, errors.New("用户名为空")
-	} else if len(password) == 0 {
+	} else if password == "" {
 		return nil, errors.New("密码为空")
 	}
 	admin, err := w.model.GetAdminByUsername(username)
@@ -85,15 +85,15 @@ func (w *Workflow) AdminLogin(username string, password string) (*model.Admin, e
 
 // 学生注册
 func (w *Workflow) StudentRegister(username string, password string) (*model.Student, error) {
-	if len(username) == 0 {
+	if username == "" {
 		return nil, errors.New("用户名为空")
-	} else if len(password) == 0 {
+	} else if password == "" {
 		return nil, errors.New("密码为空")
 	}
 	if !utils.IsStudentId(username) {
 		return nil, errors.New("请用学号注册")
 	}
-	if _, err := w.model.GetStudentByUsername(username); err == nil {
+	if student, _ := w.model.GetStudentByUsername(username); student != nil {
 		return nil, errors.New("该学号已被注册")
 	}
 	newStudent, err := w.model.AddStudent(username, password)
@@ -101,7 +101,7 @@ func (w *Workflow) StudentRegister(username string, password string) (*model.Stu
 		return nil, errors.New("注册失败，请联系管理员")
 	}
 	archive, err := w.model.GetArchiveByStudentUsername(newStudent.Username)
-	if err == nil && archive != nil {
+	if err == nil {
 		newStudent.ArchiveCategory = archive.ArchiveCategory
 		newStudent.ArchiveNumber = archive.ArchiveNumber
 		w.model.UpsertStudent(newStudent)

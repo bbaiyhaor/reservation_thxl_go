@@ -50,13 +50,13 @@ func (m *Model) UpsertTimedReservation(timedReservation *TimedReservation) error
 	return err
 }
 
-func (m *Model) GetTimedReservationById(timedReservtionId string) (*TimedReservation, error) {
-	if len(timedReservtionId) == 0 || !bson.IsObjectIdHex(timedReservtionId) {
+func (m *Model) GetTimedReservationById(id string) (*TimedReservation, error) {
+	if id == "" || !bson.IsObjectIdHex(id) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("timetable")
-	timedReservation := &TimedReservation{}
-	if err := collection.FindId(bson.ObjectIdHex(timedReservtionId)).One(timedReservation); err != nil {
+	var timedReservation *TimedReservation
+	if err := collection.FindId(bson.ObjectIdHex(id)).One(timedReservation); err != nil {
 		return nil, err
 	}
 	return timedReservation, nil

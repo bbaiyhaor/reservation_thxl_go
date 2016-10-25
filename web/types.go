@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
 	"github.com/mijia/sweb/render"
 	"github.com/mijia/sweb/server"
 	"golang.org/x/net/context"
@@ -57,6 +58,8 @@ func (b *BaseMuxController) SetUrlReverser(ur UrlReverser) {
 
 type JsonData struct {
 	Status  string      `json:"status"`
+	ErrCode int         `json:"err_code"`
+	ErrMsg  string      `json:"err_msg"`
 	Payload interface{} `json:"payload"`
 }
 
@@ -68,8 +71,18 @@ func wrapJsonOk(payload interface{}) JsonData {
 }
 
 func wrapJsonError(msg string, payloads ...interface{}) JsonData {
+	if msg == "" {
+		msg = "服务器开小差了，请稍候重试！"
+	}
 	data := JsonData{
-		Status: msg,
+		Status:  "FAIL",
+		ErrCode: -1,
+		ErrMsg:  msg,
+	}
+	if msg == buslogic.CHECK_FORCE_ERROR {
+		data = JsonData{
+			Status: buslogic.CHECK_FORCE_ERROR,
+		}
 	}
 	if len(payloads) > 0 {
 		data.Payload = payloads[0]

@@ -22,12 +22,11 @@ func (uc *UserController) MuxHandlers(m JsonMuxer) {
 	m.Get("/m", "EntryPage", uc.getEntryPage)
 	m.Get("/m/student", "StudentPage", uc.getStudentPage)
 
-	baseUrl := kUserApiBaseUrl
-	m.PostJson(baseUrl+"/student/login", "StudentLogin", uc.studentLogin)
-	m.PostJson(baseUrl+"/student/register", "StudentRegister", uc.studentRegister)
-	m.PostJson(baseUrl+"/teacher/login", "TeacherLogin", uc.teacherLogin)
-	m.PostJson(baseUrl+"/admin/login", "AdminLogin", uc.adminLogin)
-	m.GetJson(baseUrl+"/logout", "Logout", RoleCookieInjection(uc.logout))
+	m.PostJson(kUserApiBaseUrl+"/student/login", "StudentLogin", uc.studentLogin)
+	m.PostJson(kUserApiBaseUrl+"/student/register", "StudentRegister", uc.studentRegister)
+	m.PostJson(kUserApiBaseUrl+"/teacher/login", "TeacherLogin", uc.teacherLogin)
+	m.PostJson(kUserApiBaseUrl+"/admin/login", "AdminLogin", uc.adminLogin)
+	m.GetJson(kUserApiBaseUrl+"/logout", "Logout", RoleCookieInjection(uc.logout))
 }
 
 func (uc *UserController) GetTemplates() []*render.TemplateSet {
@@ -50,8 +49,8 @@ func (uc *UserController) getStudentPage(ctx context.Context, w http.ResponseWri
 }
 
 func (uc *UserController) studentRegister(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
-	username := r.PostFormValue("username")
-	password := r.PostFormValue("password")
+	username := r.FormValue("username")
+	password := r.FormValue("password")
 
 	var result = make(map[string]interface{})
 
@@ -92,8 +91,8 @@ func (uc *UserController) studentRegister(ctx context.Context, w http.ResponseWr
 }
 
 func (uc *UserController) studentLogin(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
-	username := r.PostFormValue("username")
-	password := r.PostFormValue("password")
+	username := r.FormValue("username")
+	password := r.FormValue("password")
 
 	var result = make(map[string]interface{})
 
@@ -134,8 +133,8 @@ func (uc *UserController) studentLogin(ctx context.Context, w http.ResponseWrite
 }
 
 func (uc *UserController) teacherLogin(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
-	username := r.PostFormValue("username")
-	password := r.PostFormValue("password")
+	username := r.FormValue("username")
+	password := r.FormValue("password")
 
 	var result = make(map[string]interface{})
 
@@ -175,8 +174,8 @@ func (uc *UserController) teacherLogin(ctx context.Context, w http.ResponseWrite
 }
 
 func (uc *UserController) adminLogin(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
-	username := r.PostFormValue("username")
-	password := r.PostFormValue("password")
+	username := r.FormValue("username")
+	password := r.FormValue("password")
 
 	var result = make(map[string]interface{})
 

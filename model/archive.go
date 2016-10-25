@@ -13,7 +13,7 @@ type Archive struct {
 }
 
 func (m *Model) AddArchive(studentUsername string, archiveCategory string, archiveNumber string) (*Archive, error) {
-	if len(studentUsername) == 0 || len(archiveCategory) == 0 || len(archiveNumber) == 0 {
+	if studentUsername == "" || archiveCategory == "" || archiveNumber == "" {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("archive")
@@ -30,11 +30,11 @@ func (m *Model) AddArchive(studentUsername string, archiveCategory string, archi
 }
 
 func (m *Model) GetArchiveByStudentUsername(studentUsername string) (*Archive, error) {
-	if len(studentUsername) == 0 {
+	if studentUsername == "" {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("archive")
-	archive := &Archive{}
+	var archive *Archive
 	if err := collection.Find(bson.M{"student_username": studentUsername}).One(archive); err != nil {
 		return nil, err
 	}
@@ -42,11 +42,11 @@ func (m *Model) GetArchiveByStudentUsername(studentUsername string) (*Archive, e
 }
 
 func (m *Model) GetArchiveByArchiveNumber(archiveNumber string) (*Archive, error) {
-	if len(archiveNumber) == 0 {
+	if archiveNumber == "" {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("archive")
-	archive := &Archive{}
+	var archive *Archive
 	if err := collection.Find(bson.M{"archive_number": archiveNumber}).One(archive); err != nil {
 		return nil, err
 	}

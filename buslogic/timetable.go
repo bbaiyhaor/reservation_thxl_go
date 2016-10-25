@@ -16,7 +16,7 @@ import (
 
 // 管理员查看时间表
 func (w *Workflow) ViewTimetableByAdmin(userId string, userType int) (map[time.Weekday][]*model.TimedReservation, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
@@ -39,19 +39,19 @@ func (w *Workflow) ViewTimetableByAdmin(userId string, userType int) (map[time.W
 func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClock string,
 	teacherUsername string, teacherFullname string, teacherMobile string, force bool,
 	userId string, userType int) (*model.TimedReservation, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
-	} else if len(startClock) == 0 {
+	} else if startClock == "" {
 		return nil, errors.New("开始时间为空")
-	} else if len(endClock) == 0 {
+	} else if endClock == "" {
 		return nil, errors.New("结束时间为空")
-	} else if len(teacherUsername) == 0 {
+	} else if teacherUsername == "" {
 		return nil, errors.New("咨询师工号为空")
-	} else if len(teacherFullname) == 0 {
+	} else if teacherFullname == "" {
 		return nil, errors.New("咨询师姓名为空")
-	} else if len(teacherMobile) == 0 {
+	} else if teacherMobile == "" {
 		return nil, errors.New("咨询师手机号为空")
 	} else if !utils.IsMobile(teacherMobile) {
 		return nil, errors.New("咨询师手机号格式不正确")
@@ -82,9 +82,9 @@ func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClo
 		}
 	} else if teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, errors.New("咨询师权限不足")
-	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
+	} else if teacher.Fullname != teacherFullname || teacher.Mobile != teacherMobile {
 		if !force {
-			return nil, errors.New(model.CHECK_MESSAGE)
+			return nil, errors.New(CHECK_FORCE_ERROR)
 		}
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
@@ -103,21 +103,21 @@ func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClo
 func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday string,
 	startClock string, endClock string, teacherUsername string, teacherFullname string, teacherMobile string,
 	force bool, userId string, userType int) (*model.TimedReservation, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
-	} else if len(timedReservationId) == 0 {
+	} else if timedReservationId == "" {
 		return nil, errors.New("咨询已下架")
-	} else if len(startClock) == 0 {
+	} else if startClock == "" {
 		return nil, errors.New("开始时间为空")
-	} else if len(endClock) == 0 {
+	} else if endClock == "" {
 		return nil, errors.New("结束时间为空")
-	} else if len(teacherUsername) == 0 {
+	} else if teacherUsername == "" {
 		return nil, errors.New("咨询师工号为空")
-	} else if len(teacherFullname) == 0 {
+	} else if teacherFullname == "" {
 		return nil, errors.New("咨询师姓名为空")
-	} else if len(teacherMobile) == 0 {
+	} else if teacherMobile == "" {
 		return nil, errors.New("咨询师手机号为空")
 	} else if !utils.IsMobile(teacherMobile) {
 		return nil, errors.New("咨询师手机号格式不正确")
@@ -152,9 +152,9 @@ func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday strin
 		}
 	} else if teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, errors.New("咨询师权限不足")
-	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
+	} else if teacher.Fullname != teacherFullname || teacher.Mobile != teacherMobile {
 		if !force {
-			return nil, errors.New(model.CHECK_MESSAGE)
+			return nil, errors.New(CHECK_FORCE_ERROR)
 		}
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
@@ -175,7 +175,7 @@ func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday strin
 
 // 管理员删除时间表
 func (w *Workflow) RemoveTimetablesByAdmin(timedReservationIds []string, userId string, userType int) (int, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return 0, errors.New("请先登录")
 	} else if userType != model.USER_TYPE_ADMIN {
 		return 0, errors.New("权限不足")
@@ -198,7 +198,7 @@ func (w *Workflow) RemoveTimetablesByAdmin(timedReservationIds []string, userId 
 
 // 管理员开启时间表
 func (w *Workflow) OpenTimetablesByAdmin(timedReservationIds []string, userId string, userType int) (int, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return 0, errors.New("请先登录")
 	} else if userType != model.USER_TYPE_ADMIN {
 		return 0, errors.New("权限不足")
@@ -223,7 +223,7 @@ func (w *Workflow) OpenTimetablesByAdmin(timedReservationIds []string, userId st
 
 // 管理员关闭时间表
 func (w *Workflow) CloseTimetablesByAdmin(timedReservationIds []string, userId string, userType int) (int, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return 0, errors.New("请先登录")
 	} else if userType != model.USER_TYPE_ADMIN {
 		return 0, errors.New("权限不足")
@@ -322,5 +322,24 @@ func (ts ByWeekdayOfTimedReservation) Less(i, j int) bool {
 	} else if !ts[i].StartTime.Equal(ts[j].StartTime) {
 		return ts[i].StartTime.Before(ts[j].StartTime)
 	}
-	return strings.Compare(ts[i].TeacherId, ts[j].TeacherId) < 0
+	return ts[i].TeacherId < ts[j].TeacherId
+}
+
+func (w *Workflow) WrapTimedReservation(timedReservation *model.TimedReservation) map[string]interface{} {
+	var result = make(map[string]interface{})
+	if timedReservation == nil {
+		return result
+	}
+	result["id"] = timedReservation.Id.Hex()
+	result["weekday"] = timedReservation.Weekday
+	result["start_clock"] = timedReservation.StartTime.Format("15:04")
+	result["end_clock"] = timedReservation.EndTime.Format("15:04")
+	result["status"] = timedReservation.Status
+	result["teacher_id"] = timedReservation.TeacherId
+	if teacher, err := w.model.GetTeacherById(timedReservation.TeacherId); err == nil {
+		result["teacher_username"] = teacher.Username
+		result["teacher_fullname"] = teacher.Fullname
+		result["teacher_mobile"] = teacher.Mobile
+	}
+	return result
 }

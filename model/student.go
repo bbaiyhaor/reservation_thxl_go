@@ -13,7 +13,7 @@ const (
 	USER_TYPE_TEACHER
 	USER_TYPE_ADMIN
 
-	USER_GENDER_MALE = "男"
+	USER_GENDER_MALE   = "男"
 	USER_GENDER_FEMALE = "女"
 )
 
@@ -63,7 +63,7 @@ func (e Experience) IsEmpty() bool {
 }
 
 func (m *Model) AddStudent(username string, password string) (*Student, error) {
-	if len(username) == 0 || len(password) == 0 {
+	if username == "" || password == "" {
 		return nil, errors.New("字段不合法")
 	}
 	encryptedPassword, err := utils.EncryptPassword(password)
@@ -98,24 +98,24 @@ func (m *Model) UpsertStudent(student *Student) error {
 	return err
 }
 
-func (m *Model) GetStudentById(studentId string) (*Student, error) {
-	if studentId == "" || !bson.IsObjectIdHex(studentId) {
+func (m *Model) GetStudentById(id string) (*Student, error) {
+	if id == "" || !bson.IsObjectIdHex(id) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("student")
-	student := &Student{}
-	if err := collection.FindId(bson.ObjectIdHex(studentId)).One(student); err != nil {
+	var student *Student
+	if err := collection.FindId(bson.ObjectIdHex(id)).One(student); err != nil {
 		return nil, err
 	}
 	return student, nil
 }
 
 func (m *Model) GetStudentByUsername(username string) (*Student, error) {
-	if len(username) == 0 {
+	if username == "" {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("student")
-	student := &Student{}
+	var student *Student
 	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_STUDENT}).One(student); err != nil {
 		return nil, err
 	}
@@ -123,11 +123,11 @@ func (m *Model) GetStudentByUsername(username string) (*Student, error) {
 }
 
 func (m *Model) GetStudentByArchiveNumber(archiveNumber string) (*Student, error) {
-	if len(archiveNumber) == 0 {
+	if archiveNumber == "" {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("student")
-	student := &Student{}
+	var student *Student
 	if err := collection.Find(bson.M{"archive_number": archiveNumber}).One(student); err != nil {
 		return nil, err
 	}

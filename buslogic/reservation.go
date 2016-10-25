@@ -5,9 +5,10 @@ import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"errors"
 	"sort"
-	"strings"
 	"time"
 )
+
+const CHECK_FORCE_ERROR = "%CHECK%"
 
 // 学生查看前后一周内的所有咨询
 func (w *Workflow) GetReservationsByStudent(userId string, userType int) ([]*model.Reservation, error) {
@@ -77,7 +78,7 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType int) ([]*mod
 
 // 咨询师查看负7天之后的所有咨询
 func (w *Workflow) GetReservationsByTeacher(userId string, userType int) ([]*model.Reservation, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != model.USER_TYPE_TEACHER {
 		return nil, errors.New("权限不足")
@@ -97,7 +98,7 @@ func (w *Workflow) GetReservationsByTeacher(userId string, userType int) ([]*mod
 	for _, r := range reservations {
 		if r.Status == model.RESERVATION_STATUS_AVAILABLE && r.StartTime.Before(time.Now()) {
 			continue
-		} else if strings.EqualFold(r.TeacherId, teacher.Id.Hex()) {
+		} else if r.TeacherId == teacher.Id.Hex() {
 			result = append(result, r)
 		}
 	}
@@ -133,7 +134,7 @@ func (w *Workflow) GetReservationsByTeacher(userId string, userType int) ([]*mod
 
 // 管理员查看负7天之后的所有咨询
 func (w *Workflow) GetReservationsByAdmin(userId string, userType int) ([]*model.Reservation, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
@@ -186,7 +187,7 @@ func (w *Workflow) GetReservationsByAdmin(userId string, userType int) ([]*model
 
 // 管理员查看指定日期的所有咨询
 func (w *Workflow) GetReservationsDailyByAdmin(fromDate string, userId string, userType int) ([]*model.Reservation, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, errors.New("权限不足")
@@ -227,7 +228,51 @@ func (rs ByStartTimeOfReservation) Swap(i, j int) {
 
 func (rs ByStartTimeOfReservation) Less(i, j int) bool {
 	if rs[i].StartTime.Equal(rs[j].StartTime) {
-		return strings.Compare(rs[i].TeacherId, rs[j].TeacherId) < 0
+		return rs[i].TeacherId < rs[j].TeacherId
 	}
 	return rs[i].StartTime.Before(rs[j].StartTime)
+}
+
+func (w *Workflow) WrapSimpleReservation(reservation *model.Reservation) map[string]interface{} {
+	var result = make(map[string]interface{})
+	if reservation == nil {
+		return result
+	}
+	result["id"] = reservation.Id.Hex()
+	result["start_time"] = reservation.StartTime.Format("2006-01-02 15:04")
+	result["end_time"] = reservation.EndTime.Format("2006-01-02 15:04")
+	result["status"] = reservation.StartTime
+	result["source"] = reservation.Source
+	result["source_id"] = reservation.SourceId
+	result["teacher_id"] = reservation.TeacherId
+	if teacher, err := w.model.GetTeacherById(reservation.TeacherId); err == nil {
+		result["teacher_fullname"] = teacher.Fullname
+	}
+	return result
+}
+
+func (w *Workflow) WrapReservation(reservation *model.Reservation) map[string]interface{} {
+	var result = make(map[string]interface{})
+	if reservation == nil {
+		return result
+	}
+	result["id"] = reservation.Id.Hex()
+	result["start_time"] = reservation.StartTime.Format("2006-01-02 15:04")
+	result["end_time"] = reservation.EndTime.Format("2006-01-02 15:04")
+	result["status"] = reservation.StartTime
+	result["source"] = reservation.Source
+	result["source_id"] = reservation.SourceId
+	result["teacher_id"] = reservation.TeacherId
+	if teacher, err := w.model.GetTeacherById(reservation.TeacherId); err == nil {
+		result["teacher_username"] = teacher.Username
+		result["teacher_fullname"] = teacher.Fullname
+		result["teacher_mobile"] = teacher.Mobile
+	}
+	result["student_id"] = reservation.StudentId
+	if student, err := w.model.GetStudentById(reservation.StudentId); err == nil {
+		result["student_crisis_level"] = student.CrisisLevel
+	}
+	result["student_feedback"] = reservation.StudentFeedback.ToStringJson()
+	result["teacher_feedback"] = reservation.TeacherFeedback.ToStringJson()
+	return result
 }

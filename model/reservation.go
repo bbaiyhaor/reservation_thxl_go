@@ -17,6 +17,8 @@ const (
 	RESERVATION_SOURCE_TIMETABLE = 1 + iota
 	RESERVATION_SOURCE_TEACHER_ADD
 	RESERVATION_SOURCE_ADMIN_ADD
+
+	RESERVATION_STUDENT_FEEDBACK_SCORES_LENGTH = 5
 )
 
 type Reservation struct {
@@ -44,7 +46,7 @@ func (sf StudentFeedback) IsEmpty() bool {
 	return len(sf.Scores) == 0
 }
 
-func (sf StudentFeedback) ToJson() map[string]interface{} {
+func (sf StudentFeedback) ToStringJson() map[string]interface{} {
 	var json = make(map[string]interface{})
 	scores := ""
 	for _, s := range sf.Scores {
@@ -78,9 +80,37 @@ func (tf TeacherFeedback) IsEmpty() bool {
 }
 
 func (tf TeacherFeedback) ToJson() map[string]interface{} {
+	var feedback = make(map[string]interface{})
+	feedback["category"] = tf.Category
+	if len(tf.Participants) != len(PARTICIPANTS) {
+		feedback["participants"] = make([]int, len(PARTICIPANTS))
+	} else {
+		feedback["participants"] = tf.Participants
+	}
+	feedback["emphasis"] = tf.Emphasis
+	if len(tf.Severity) != len(SEVERITY) {
+		feedback["severity"] = make([]int, len(SEVERITY))
+	} else {
+		feedback["severity"] = tf.Severity
+	}
+	if len(tf.MedicalDiagnosis) != len(MEDICAL_DIAGNOSIS) {
+		feedback["medical_diagnosis"] = make([]int, len(MEDICAL_DIAGNOSIS))
+	} else {
+		feedback["medical_diagnosis"] = tf.MedicalDiagnosis
+	}
+	if len(tf.Crisis) != len(CRISIS) {
+		feedback["crisis"] = make([]int, len(CRISIS))
+	} else {
+		feedback["crisis"] = tf.Crisis
+	}
+	feedback["record"] = tf.Record
+	return feedback
+}
+
+func (tf TeacherFeedback) ToStringJson() map[string]interface{} {
 	var json = make(map[string]interface{})
 	json["category"] = FeedbackAllCategory[tf.Category]
-	participants := ""
+	var participants string
 	if len(tf.Participants) == len(PARTICIPANTS) {
 		for i := 0; i < len(tf.Participants); i++ {
 			if tf.Participants[i] > 0 {
@@ -90,7 +120,7 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	}
 	json["participants"] = participants
 	json["emphasis"] = strconv.Itoa(tf.Emphasis)
-	severity := ""
+	var severity string
 	if len(tf.Severity) == len(SEVERITY) {
 		for i := 0; i < len(tf.Severity); i++ {
 			if tf.Severity[i] > 0 {
@@ -99,7 +129,7 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 		}
 	}
 	json["severity"] = severity
-	medicalDiagnosis := ""
+	var medicalDiagnosis string
 	if len(tf.MedicalDiagnosis) == len(MEDICAL_DIAGNOSIS) {
 		for i := 0; i < len(tf.MedicalDiagnosis); i++ {
 			if tf.MedicalDiagnosis[i] > 0 {
@@ -108,7 +138,7 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 		}
 	}
 	json["medical_diagnosis"] = medicalDiagnosis
-	crisis := ""
+	var crisis string
 	if len(tf.Crisis) == len(CRISIS) {
 		for i := 0; i < len(tf.Crisis); i++ {
 			if tf.Crisis[i] > 0 {
@@ -121,8 +151,7 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	return json
 }
 
-func (m *Model) AddReservation(startTime time.Time, endTime time.Time, source int, sourceId string,
-	teacherId string) (*Reservation, error) {
+func (m *Model) AddReservation(startTime time.Time, endTime time.Time, source int, sourceId string, teacherId string) (*Reservation, error) {
 	collection := m.mongo.C("reservation")
 	newReservation := &Reservation{
 		Id:              bson.NewObjectId(),
@@ -154,11 +183,11 @@ func (m *Model) UpsertReservation(reservation *Reservation) error {
 }
 
 func (m *Model) GetReservationById(id string) (*Reservation, error) {
-	if len(id) == 0 || !bson.IsObjectIdHex(id) {
+	if id == "" || !bson.IsObjectIdHex(id) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("reservation")
-	reservation := &Reservation{}
+	var reservation *Reservation
 	if err := collection.FindId(bson.ObjectIdHex(id)).One(reservation); err != nil {
 		return nil, err
 	}
@@ -166,7 +195,7 @@ func (m *Model) GetReservationById(id string) (*Reservation, error) {
 }
 
 func (m *Model) GetReservationsByStudentId(studentId string) ([]*Reservation, error) {
-	if len(studentId) == 0 || !bson.IsObjectIdHex(studentId) {
+	if studentId == "" || !bson.IsObjectIdHex(studentId) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("reservation")
@@ -348,5 +377,3 @@ var FeedbackAllCategory = map[string]string{
 	"Y4": "Y4 辅导员团体",
 	"Z1": "Z1 个体心理督导",
 }
-
-const CHECK_MESSAGE = "CHECK"

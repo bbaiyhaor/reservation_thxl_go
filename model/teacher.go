@@ -14,13 +14,13 @@ type Teacher struct {
 	Username          string        `bson:"username"` // Indexed
 	Password          string        `bson:"password"` // will be deprecated soon
 	EncryptedPassword string        `bson:"encrypted_password"`
+	UserType          int           `bson:"user_type"`
 	Fullname          string        `bson:"fullname"`
 	Mobile            string        `bson:"mobile"`
-	UserType          int           `bson:"user_type"`
 }
 
 func (m *Model) AddTeacher(username string, password string, fullname string, mobile string) (*Teacher, error) {
-	if len(username) == 0 || len(password) == 0 || len(fullname) == 0 || len(mobile) == 0 {
+	if username == "" || password == "" || fullname == "" || mobile == "" {
 		return nil, errors.New("字段不合法")
 	}
 	encryptedPassword, err := utils.EncryptPassword(password)
@@ -54,24 +54,24 @@ func (m *Model) UpsertTeacher(teacher *Teacher) error {
 	return err
 }
 
-func (m *Model) GetTeacherById(teacherId string) (*Teacher, error) {
-	if len(teacherId) == 0 || !bson.IsObjectIdHex(teacherId) {
+func (m *Model) GetTeacherById(id string) (*Teacher, error) {
+	if id == "" || !bson.IsObjectIdHex(id) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("teacher")
-	teacher := &Teacher{}
-	if err := collection.FindId(bson.ObjectIdHex(teacherId)).One(teacher); err != nil {
+	var teacher *Teacher
+	if err := collection.FindId(bson.ObjectIdHex(id)).One(teacher); err != nil {
 		return nil, err
 	}
 	return teacher, nil
 }
 
 func (m *Model) GetTeacherByUsername(username string) (*Teacher, error) {
-	if len(username) == 0 {
+	if username == "" {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("teacher")
-	teacher := &Teacher{}
+	var teacher *Teacher
 	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_TEACHER}).One(teacher); err != nil {
 		return nil, err
 	}
@@ -79,11 +79,11 @@ func (m *Model) GetTeacherByUsername(username string) (*Teacher, error) {
 }
 
 func (m *Model) GetTeacherByFullname(fullname string) (*Teacher, error) {
-	if len(fullname) == 0 {
+	if fullname == "" {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("teacher")
-	teacher := &Teacher{}
+	var teacher *Teacher
 	if err := collection.Find(bson.M{"fullname": fullname}).One(teacher); err != nil {
 		return nil, err
 	}
@@ -91,11 +91,11 @@ func (m *Model) GetTeacherByFullname(fullname string) (*Teacher, error) {
 }
 
 func (m *Model) GetTeacherByMobile(mobile string) (*Teacher, error) {
-	if len(mobile) == 0 {
+	if mobile == "" {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("teacher")
-	teacher := &Teacher{}
+	var teacher *Teacher
 	if err := collection.Find(bson.M{"mobile": mobile}).One(teacher); err != nil {
 		return nil, err
 	}

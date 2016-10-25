@@ -40,7 +40,6 @@ func (s *Server) ListenAndServe(addr string) error {
 	s.render = s.initRender()
 
 	ignoredUrls := []string{"/bundles/", "/fonts/", "/debug/vars", "/favicon", "/robots"}
-	//s.Middleware(NewRecoveryWare(s.isDebug))
 	s.Middleware(server.NewRecoveryWare(s.isDebug))
 	s.Middleware(server.NewStatWare(ignoredUrls...))
 	s.Middleware(server.NewRuntimeWare(ignoredUrls, true, 15*time.Minute))

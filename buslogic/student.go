@@ -5,7 +5,6 @@ import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"errors"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -145,13 +144,13 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 // 学生拉取反馈
 func (w *Workflow) GetFeedbackByStudent(reservationId string, sourceId string,
 	userId string, userType int) (*model.Reservation, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != model.USER_TYPE_STUDENT {
 		return nil, errors.New("请重新登录")
-	} else if len(reservationId) == 0 {
+	} else if reservationId == "" {
 		return nil, errors.New("咨询已下架")
-	} else if strings.EqualFold(reservationId, sourceId) {
+	} else if reservationId == sourceId {
 		return nil, errors.New("咨询未被预约，不能反馈")
 	}
 	student, err := w.model.GetStudentById(userId)
@@ -167,7 +166,7 @@ func (w *Workflow) GetFeedbackByStudent(reservationId string, sourceId string,
 		return nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == model.RESERVATION_STATUS_AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
-	} else if !strings.EqualFold(reservation.StudentId, student.Id.Hex()) {
+	} else if reservation.StudentId != student.Id.Hex() {
 		return nil, errors.New("只能反馈本人预约的咨询")
 	}
 	return reservation, nil
@@ -176,15 +175,15 @@ func (w *Workflow) GetFeedbackByStudent(reservationId string, sourceId string,
 // 学生反馈
 func (w *Workflow) SubmitFeedbackByStudent(reservationId string, sourceId string, scores []int,
 	userId string, userType int) (*model.Reservation, error) {
-	if len(userId) == 0 {
+	if userId == "" {
 		return nil, errors.New("请先登录")
 	} else if userType != model.USER_TYPE_STUDENT {
 		return nil, errors.New("请重新登录")
-	} else if len(reservationId) == 0 {
+	} else if reservationId == "" {
 		return nil, errors.New("咨询已下架")
-	} else if len(scores) != 5 {
+	} else if len(scores) != model.RESERVATION_STUDENT_FEEDBACK_SCORES_LENGTH {
 		return nil, errors.New("请完整填写反馈")
-	} else if strings.EqualFold(reservationId, sourceId) {
+	} else if reservationId == sourceId {
 		return nil, errors.New("咨询未被预约，不能反馈")
 	}
 	student, err := w.model.GetStudentById(userId)
@@ -200,7 +199,7 @@ func (w *Workflow) SubmitFeedbackByStudent(reservationId string, sourceId string
 		return nil, errors.New("咨询未开始,暂不能反馈")
 	} else if reservation.Status == model.RESERVATION_STATUS_AVAILABLE {
 		return nil, errors.New("咨询未被预约,不能反馈")
-	} else if !strings.EqualFold(reservation.StudentId, student.Id.Hex()) {
+	} else if reservation.StudentId != student.Id.Hex() {
 		return nil, errors.New("只能反馈本人预约的咨询")
 	}
 	reservation.StudentFeedback = model.StudentFeedback{
@@ -317,4 +316,80 @@ func (w *Workflow) ExportStudentInfoToFile(student *model.Student, filename stri
 		return err
 	}
 	return nil
+}
+
+func (w *Workflow) WrapSimpleStudent(student *model.Student) map[string]interface{} {
+	var result = make(map[string]interface{})
+	if student == nil {
+		return result
+	}
+	result["id"] = student.Id.Hex()
+	result["username"] = student.Username
+	result["user_type"] = student.UserType
+	result["binded_teacher_id"] = student.BindedTeacherId
+	result["fullname"] = student.Fullname
+	result["gender"] = student.Gender
+	result["birthday"] = student.Birthday
+	result["school"] = student.School
+	result["grade"] = student.Grade
+	result["current_address"] = student.CurrentAddress
+	result["family_address"] = student.FamilyAddress
+	result["mobile"] = student.Mobile
+	result["email"] = student.Email
+	result["experience_time"] = student.Experience.Time
+	result["experience_location"] = student.Experience.Location
+	result["experience_teacher"] = student.Experience.Teacher
+	result["father_age"] = student.FatherAge
+	result["father_job"] = student.FatherJob
+	result["father_edu"] = student.FatherEdu
+	result["mother_age"] = student.MotherAge
+	result["mother_job"] = student.MotherJob
+	result["mother_edu"] = student.MotherEdu
+	result["parent_marriage"] = student.ParentMarriage
+	result["significant"] = student.Significant
+	result["problem"] = student.Problem
+	return result
+}
+
+func (w *Workflow) WrapStudent(student *model.Student) map[string]interface{} {
+	var result = make(map[string]interface{})
+	if student == nil {
+		return result
+	}
+	result["id"] = student.Id.Hex()
+	result["username"] = student.Username
+	result["user_type"] = student.UserType
+	result["binded_teacher_id"] = student.BindedTeacherId
+	if bindedTeacher, err := w.model.GetTeacherById(student.BindedTeacherId); err == nil {
+		result["binded_teacher_username"] = bindedTeacher.Username
+		result["binded_teacher_fullname"] = bindedTeacher.Fullname
+	} else {
+		result["binded_teacher_username"] = ""
+		result["binded_teacher_fullname"] = ""
+	}
+	result["archive_category"] = student.ArchiveCategory
+	result["archive_number"] = student.ArchiveNumber
+	result["crisis_level"] = student.CrisisLevel
+	result["fullname"] = student.Fullname
+	result["gender"] = student.Gender
+	result["birthday"] = student.Birthday
+	result["school"] = student.School
+	result["grade"] = student.Grade
+	result["current_address"] = student.CurrentAddress
+	result["family_address"] = student.FamilyAddress
+	result["mobile"] = student.Mobile
+	result["email"] = student.Email
+	result["experience_time"] = student.Experience.Time
+	result["experience_location"] = student.Experience.Location
+	result["experience_teacher"] = student.Experience.Teacher
+	result["father_age"] = student.FatherAge
+	result["father_job"] = student.FatherJob
+	result["father_edu"] = student.FatherEdu
+	result["mother_age"] = student.MotherAge
+	result["mother_job"] = student.MotherJob
+	result["mother_edu"] = student.MotherEdu
+	result["parent_marriage"] = student.ParentMarriage
+	result["significant"] = student.Significant
+	result["problem"] = student.Problem
+	return result
 }

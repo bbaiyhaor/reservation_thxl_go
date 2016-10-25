@@ -55,11 +55,11 @@ func (m *Model) GetTimedReservationById(id string) (*TimedReservation, error) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("timetable")
-	var timedReservation *TimedReservation
-	if err := collection.FindId(bson.ObjectIdHex(id)).One(timedReservation); err != nil {
+	var timedReservation TimedReservation
+	if err := collection.FindId(bson.ObjectIdHex(id)).One(&timedReservation); err != nil {
 		return nil, err
 	}
-	return timedReservation, nil
+	return &timedReservation, nil
 }
 
 func (m *Model) GetTimedReservationsAll() ([]*TimedReservation, error) {

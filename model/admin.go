@@ -33,11 +33,11 @@ func (m *Model) GetAdminById(id string) (*Admin, error) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("admin")
-	var admin *Admin
-	if err := collection.FindId(bson.ObjectIdHex(id)).One(admin); err != nil {
+	var admin Admin
+	if err := collection.FindId(bson.ObjectIdHex(id)).One(&admin); err != nil {
 		return nil, err
 	}
-	return admin, nil
+	return &admin, nil
 }
 
 func (m *Model) GetAdminByUsername(username string) (*Admin, error) {
@@ -45,9 +45,9 @@ func (m *Model) GetAdminByUsername(username string) (*Admin, error) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("admin")
-	var admin *Admin
-	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_ADMIN}).One(admin); err != nil {
+	var admin Admin
+	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_ADMIN}).One(&admin); err != nil {
 		return nil, err
 	}
-	return admin, nil
+	return &admin, nil
 }

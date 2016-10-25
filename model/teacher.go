@@ -59,11 +59,11 @@ func (m *Model) GetTeacherById(id string) (*Teacher, error) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("teacher")
-	var teacher *Teacher
-	if err := collection.FindId(bson.ObjectIdHex(id)).One(teacher); err != nil {
+	var teacher Teacher
+	if err := collection.FindId(bson.ObjectIdHex(id)).One(&teacher); err != nil {
 		return nil, err
 	}
-	return teacher, nil
+	return &teacher, nil
 }
 
 func (m *Model) GetTeacherByUsername(username string) (*Teacher, error) {
@@ -71,11 +71,11 @@ func (m *Model) GetTeacherByUsername(username string) (*Teacher, error) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("teacher")
-	var teacher *Teacher
-	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_TEACHER}).One(teacher); err != nil {
+	var teacher Teacher
+	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_TEACHER}).One(&teacher); err != nil {
 		return nil, err
 	}
-	return teacher, nil
+	return &teacher, nil
 }
 
 func (m *Model) GetTeacherByFullname(fullname string) (*Teacher, error) {
@@ -83,11 +83,11 @@ func (m *Model) GetTeacherByFullname(fullname string) (*Teacher, error) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("teacher")
-	var teacher *Teacher
-	if err := collection.Find(bson.M{"fullname": fullname}).One(teacher); err != nil {
+	var teacher Teacher
+	if err := collection.Find(bson.M{"fullname": fullname}).One(&teacher); err != nil {
 		return nil, err
 	}
-	return teacher, nil
+	return &teacher, nil
 }
 
 func (m *Model) GetTeacherByMobile(mobile string) (*Teacher, error) {
@@ -95,9 +95,9 @@ func (m *Model) GetTeacherByMobile(mobile string) (*Teacher, error) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("teacher")
-	var teacher *Teacher
-	if err := collection.Find(bson.M{"mobile": mobile}).One(teacher); err != nil {
+	var teacher Teacher
+	if err := collection.Find(bson.M{"mobile": mobile}).One(&teacher); err != nil {
 		return nil, err
 	}
-	return teacher, nil
+	return &teacher, nil
 }

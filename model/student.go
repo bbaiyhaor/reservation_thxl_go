@@ -103,11 +103,11 @@ func (m *Model) GetStudentById(id string) (*Student, error) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("student")
-	var student *Student
-	if err := collection.FindId(bson.ObjectIdHex(id)).One(student); err != nil {
+	var student Student
+	if err := collection.FindId(bson.ObjectIdHex(id)).One(&student); err != nil {
 		return nil, err
 	}
-	return student, nil
+	return &student, nil
 }
 
 func (m *Model) GetStudentByUsername(username string) (*Student, error) {
@@ -115,11 +115,11 @@ func (m *Model) GetStudentByUsername(username string) (*Student, error) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("student")
-	var student *Student
-	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_STUDENT}).One(student); err != nil {
+	var student Student
+	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_STUDENT}).One(&student); err != nil {
 		return nil, err
 	}
-	return student, nil
+	return &student, nil
 }
 
 func (m *Model) GetStudentByArchiveNumber(archiveNumber string) (*Student, error) {
@@ -127,9 +127,9 @@ func (m *Model) GetStudentByArchiveNumber(archiveNumber string) (*Student, error
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("student")
-	var student *Student
-	if err := collection.Find(bson.M{"archive_number": archiveNumber}).One(student); err != nil {
+	var student Student
+	if err := collection.Find(bson.M{"archive_number": archiveNumber}).One(&student); err != nil {
 		return nil, err
 	}
-	return student, nil
+	return &student, nil
 }

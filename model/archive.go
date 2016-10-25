@@ -34,11 +34,11 @@ func (m *Model) GetArchiveByStudentUsername(studentUsername string) (*Archive, e
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("archive")
-	var archive *Archive
-	if err := collection.Find(bson.M{"student_username": studentUsername}).One(archive); err != nil {
+	var archive Archive
+	if err := collection.Find(bson.M{"student_username": studentUsername}).One(&archive); err != nil {
 		return nil, err
 	}
-	return archive, nil
+	return &archive, nil
 }
 
 func (m *Model) GetArchiveByArchiveNumber(archiveNumber string) (*Archive, error) {
@@ -46,9 +46,9 @@ func (m *Model) GetArchiveByArchiveNumber(archiveNumber string) (*Archive, error
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("archive")
-	var archive *Archive
-	if err := collection.Find(bson.M{"archive_number": archiveNumber}).One(archive); err != nil {
+	var archive Archive
+	if err := collection.Find(bson.M{"archive_number": archiveNumber}).One(&archive); err != nil {
 		return nil, err
 	}
-	return archive, nil
+	return &archive, nil
 }

@@ -187,11 +187,11 @@ func (m *Model) GetReservationById(id string) (*Reservation, error) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("reservation")
-	var reservation *Reservation
-	if err := collection.FindId(bson.ObjectIdHex(id)).One(reservation); err != nil {
+	var reservation Reservation
+	if err := collection.FindId(bson.ObjectIdHex(id)).One(&reservation); err != nil {
 		return nil, err
 	}
-	return reservation, nil
+	return &reservation, nil
 }
 
 func (m *Model) GetReservationsByStudentId(studentId string) ([]*Reservation, error) {

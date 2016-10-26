@@ -26,6 +26,7 @@
     "assets-webpack-plugin": "^3.4.0",
     "autoprefixer": "^6.5.1",
     "babel-core": "^6.18.0",
+    "babel-eslint": "^6.1.2",
     "babel-loader": "^6.2.5",
     "babel-preset-es2015": "^6.18.0",
     "babel-preset-react": "^6.16.0",

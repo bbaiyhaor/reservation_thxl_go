@@ -89,6 +89,13 @@ var config = {
     },
 
     module: {
+        preLoaders: [
+            {
+                test: /\.jsx?$/,
+                loader: "eslint-loader",
+                exclude: /(node_modules|bower_components)/,
+            },
+        ],
         loaders: [
             { test: /\.css$/, loader: ExtractPlugin.extract('style', 'css') },
             { test: /\.scss$/, loader: ExtractPlugin.extract('style', 'css!sass') },

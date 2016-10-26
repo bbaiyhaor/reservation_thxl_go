@@ -5,7 +5,7 @@ import React from 'react';
 import {Article} from 'react-weui';
 import 'weui';
 
-import PageBottom from '#coms/page-bottom';
+import PageBottom from '#coms/PageBottom';
 
 export default class StudentProtocolPage extends React.Component {
     render() {

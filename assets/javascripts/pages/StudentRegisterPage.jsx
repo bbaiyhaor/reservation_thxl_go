@@ -6,10 +6,10 @@ import {hashHistory} from 'react-router';
 import {Panel, PanelHeader, Toast} from 'react-weui';
 import 'weui';
 
-import {RegisterForm} from '#coms/user-form';
-import PageBottom from '#coms/page-bottom';
-import {AlertDialog, LoadingHud} from '#coms/huds';
-import {User} from '#models/models';
+import RegisterForm from '#forms/RegisterForm';
+import PageBottom from '#coms/PageBottom';
+import {AlertDialog, LoadingHud} from '#coms/Huds';
+import {User} from '#models/Models';
 
 export default class StudentRegisterPage extends React.Component {
     constructor(props) {

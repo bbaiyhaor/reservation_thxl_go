@@ -6,12 +6,12 @@ import {hashHistory} from 'react-router';
 import {Panel, PanelHeader} from 'react-weui';
 import 'weui';
 
-import ReservationMakeForm from '#coms/reservation-make-form';
-import PageBottom from '#coms/page-bottom';
-import {AlertDialog, LoadingHud} from '#coms/huds';
-import {User, Application} from '#models/models';
+import MakeReservationForm from '#forms/MakeReservationForm';
+import PageBottom from '#coms/PageBottom';
+import {AlertDialog, LoadingHud} from '#coms/Huds';
+import {User, Application} from '#models/Models';
 
-export default class StudentReservationMakePage extends React.Component {
+export default class StudentMakeReservationPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -32,7 +32,7 @@ export default class StudentReservationMakePage extends React.Component {
             }
             let i = 0;
             for (; i < Application.reservations.length; i++) {
-                if (Application.reservations[i]['reservation_id'] === reservationId) {
+                if (Application.reservations[i]['id'] === reservationId) {
                     this.setState({
                         student: User.student,
                         reservation: Application.reservations[i],
@@ -57,7 +57,7 @@ export default class StudentReservationMakePage extends React.Component {
             <div>
                 <Panel access>
                     <PanelHeader style={{fontSize: "18px"}}>学生信息登记表</PanelHeader>
-                    <ReservationMakeForm student={this.state.student}
+                    <MakeReservationForm student={this.state.student}
                                          reservation={this.state.reservation}
                                          onCancel={this.onCancel}/>
                 </Panel>

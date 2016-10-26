@@ -7,11 +7,11 @@ import {Link, Router} from 'react-router';
 import {Panel, PanelHeader, PanelBody, MediaBox, MediaBoxHeader, MediaBoxBody, MediaBoxTitle, MediaBoxDescription} from 'react-weui';
 import 'weui';
 
-import PageBottom from '#coms/page-bottom';
+import PageBottom from '#coms/PageBottom';
 import StudentEntryIcon from '#imgs/mobile/student.png';
 import TeacherEntryIcon from '#imgs/mobile/teacher.png';
 
-class EntryPage extends React.Component{
+class EntryApp extends React.Component{
     render() {
         let studentEntryIcon = <img src={StudentEntryIcon}/>;
         let teacherEntryIcon = <img src={TeacherEntryIcon}/>;
@@ -45,6 +45,6 @@ class EntryPage extends React.Component{
 }
 
 ReactDOM.render(
-    React.createElement(EntryPage, null),
+    React.createElement(EntryApp, null),
     document.getElementById('content')
 );

@@ -68,8 +68,8 @@ var config = {
     plugins: plugins,
 
     entry: {
-        entry: './assets/javascripts/entry.js',
-        student: './assets/javascripts/student.js',
+        entry: './assets/javascripts/EntryApp.jsx',
+        student: './assets/javascripts/StudentApp.jsx',
     },
     output: {
         path: 'public/bundles',
@@ -83,19 +83,20 @@ var config = {
         alias: {
             '#imgs': path.join(__dirname, 'assets/images'),
             '#coms': path.join(__dirname, 'assets/javascripts/components'),
+            '#forms': path.join(__dirname, 'assets/javascripts/forms'),
             '#pages': path.join(__dirname, 'assets/javascripts/pages'),
             '#models': path.join(__dirname, 'assets/javascripts/models'),
         },
     },
 
     module: {
-        preLoaders: [
-            {
-                test: /\.jsx?$/,
-                loader: "eslint-loader",
-                exclude: /(node_modules|bower_components)/,
-            },
-        ],
+        // preLoaders: [
+        //     {
+        //         test: /\.jsx?$/,
+        //         loader: "eslint-loader",
+        //         exclude: /(node_modules|bower_components)/,
+        //     },
+        // ],
         loaders: [
             { test: /\.css$/, loader: ExtractPlugin.extract('style', 'css') },
             { test: /\.scss$/, loader: ExtractPlugin.extract('style', 'css!sass') },

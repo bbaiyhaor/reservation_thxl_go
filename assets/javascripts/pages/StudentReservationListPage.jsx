@@ -6,12 +6,12 @@ import {hashHistory} from 'react-router';
 import {Panel, PanelHeader, PanelBody, CellsTitle, MediaBox, MediaBoxDescription, MediaBoxInfo, MediaBoxInfoMeta, Button, Cells, Cell, CellBody, CellFooter} from 'react-weui';
 import 'weui';
 
-import {UserLogoutButton} from '#coms/user-form';
-import PageBottom from '#coms/page-bottom';
-import {AlertDialog, ConfirmDialog, LoadingHud} from '#coms/huds';
-import {User, Application} from '#models/models';
+import UserLogoutButton from '#coms/LogoutButton';
+import PageBottom from '#coms/PageBottom';
+import {AlertDialog, ConfirmDialog, LoadingHud} from '#coms/Huds';
+import {User, Application} from '#models/Models';
 
-export default class StudentReservationPage extends React.Component {
+export default class StudentReservationListPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -80,7 +80,7 @@ class StudentReservationList extends React.Component {
         this.refs['confirm'].show('',
             '确定预约后请准确填写个人信息，方便心理咨询中心老师与你取得联系。',
             '暂不预约', '立即预约', null, () => {
-                hashHistory.push(`/reservation/make?reservation_id=${reservation['reservation_id']}`);
+                hashHistory.push(`/reservation/make?reservation_id=${reservation['id']}`);
             });
     }
 
@@ -96,7 +96,7 @@ class StudentReservationList extends React.Component {
                         {
                             this.props.reservations && this.props.reservations.map((reservation, index) => {
                                 return (
-                                    <Cell key={`reservation-cell-${index}`}>
+                                    <Cell key={`reservation-cell-${reservation.id}`}>
                                         <CellBody>
                                             <p style={{fontSize: "14px"}}>{reservation['start_time']} - {reservation['end_time'].slice(-5)}　{reservation['teacher_fullname']}</p>
                                         </CellBody>

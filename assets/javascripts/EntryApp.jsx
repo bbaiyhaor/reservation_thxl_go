@@ -10,6 +10,11 @@ import PageBottom from '#coms/PageBottom';
 import StudentEntryIcon from '#imgs/mobile/student.png';
 import TeacherEntryIcon from '#imgs/mobile/teacher.png';
 
+const propTypes = {
+  studentEntryIcon: React.PropTypes.string.isRequired,
+  teacherEntryIcon: React.PropTypes.string.isRequired,
+};
+
 function EntryApp({ studentEntryIcon, teacherEntryIcon }) {
   return (
     <Panel access>
@@ -37,17 +42,14 @@ function EntryApp({ studentEntryIcon, teacherEntryIcon }) {
         </MediaBox>
       </PanelBody>
       <PageBottom
-        style={{ color: '#999999', textAlign: 'center' }}
+        styles={{ color: '#999999', textAlign: 'center' }}
         contents={['清华大学学生心理发展指导中心', '联系方式：010-62782007']}
       />
     </Panel>
   );
 }
 
-EntryApp.propTypes = {
-  studentEntryIcon: React.PropTypes.string.isRequired,
-  teacherEntryIcon: React.PropTypes.string.isRequired,
-};
+EntryApp.propTypes = propTypes;
 
 ReactDOM.render(
   <EntryApp

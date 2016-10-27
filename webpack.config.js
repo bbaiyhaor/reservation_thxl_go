@@ -8,7 +8,7 @@ var argv = process.argv;
 var DEV_HOT = false;
 
 //TODO change to parse argv instead
-if(process.env.DEV_HOT){
+if(process.env.DEV_HOT) {
     DEV_HOT = true;
 }
 
@@ -68,8 +68,8 @@ var config = {
     plugins: plugins,
 
     entry: {
-        entry: './assets/javascripts/EntryApp.jsx',
-        student: './assets/javascripts/StudentApp.jsx',
+        entry: path.join(__dirname, 'assets/javascripts/EntryApp.jsx'),
+        student: path.join(__dirname, 'assets/javascripts/StudentApp.jsx'),
     },
     output: {
         path: 'public/bundles',
@@ -79,13 +79,14 @@ var config = {
     },
 
     resolve: {
+        root: path.resolve(__dirname),
         extensions: ['', '.js', '.jsx', '.css', '.png'],
         alias: {
-            '#imgs': path.join(__dirname, 'assets/images'),
-            '#coms': path.join(__dirname, 'assets/javascripts/components'),
-            '#forms': path.join(__dirname, 'assets/javascripts/forms'),
-            '#pages': path.join(__dirname, 'assets/javascripts/pages'),
-            '#models': path.join(__dirname, 'assets/javascripts/models'),
+            '#imgs': 'assets/images',
+            '#coms': 'assets/javascripts/components',
+            '#forms': 'assets/javascripts/forms',
+            '#pages': 'assets/javascripts/pages',
+            '#models': 'assets/javascripts/models',
         },
     },
 
@@ -109,7 +110,7 @@ var config = {
                 query: {
                     presets: ['es2015', 'react', 'stage-0'],
                 },
-                include: __dirname + '/assets',
+                include: path.join(__dirname, 'assets'),
                 exclude: /(node_modules|bower_components)/,
             },
         ],

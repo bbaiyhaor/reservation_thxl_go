@@ -1,32 +1,36 @@
 /**
  * Created by shudi on 2016/10/21.
  */
-import React from "react";
+import React from 'react';
 
-export default class PageBottom extends React.Component{
-    render() {
-        let bottomStyle = {
-            position: "fixed",
-            bottom: "0px",
-            borderTop: "1px solid #E5E5E5",
-            padding: "5px 0 5px 0",
-            width: "100%",
-            zIndex: 10,
-        };
+const propTypes = {
+  contents: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
+  styles: React.PropTypes.object,
+  height: React.PropTypes.string,
+};
 
-        return (
-            <div>
-                <div style={{height: this.props.height}}></div>
-                <div style={{...bottomStyle, ...this.props.style}}>
-                    {
-                        this.props.contents.map((content, index) => {
-                            return (
-                                <p key={`content-${index}`}>{content}</p>
-                            );
-                        })
-                    }
-                </div>
-            </div>
-        );
-    }
+function PageBottom({ contents, styles, height }) {
+  const bottomStyle = {
+    position: 'fixed',
+    bottom: '0px',
+    borderTop: '1px solid #E5E5E5',
+    padding: '5px 0 5px 0',
+    width: '100%',
+    zIndex: 10,
+  };
+
+  return (
+    <div>
+      <div style={{ height }} />
+      <div style={{ ...bottomStyle, ...styles }}>
+        {
+          contents.map((content, index) => <p key={`content-${index}`}>{content}</p>)
+        }
+      </div>
+    </div>
+  );
 }
+
+PageBottom.propTypes = propTypes;
+
+export default PageBottom;

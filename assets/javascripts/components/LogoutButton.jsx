@@ -2,33 +2,43 @@
  * Created by shudi on 2016/10/22.
  */
 import React from 'react';
-import {Link} from 'react-router';
-import {CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, ButtonArea, Button, Checkbox} from 'react-weui';
+import { Button } from 'react-weui';
 import 'weui';
 
-import {User} from '#models/Models';
+import { User } from '#models/Models';
 
-export default class UserLogoutButton extends React.Component {
-    constructor(props) {
-        super(props);
-        this.logout = this.logout.bind(this);
-    }
+const propTypes = {
+  children: React.PropTypes.node,
+  alert: React.PropTypes.func,
+};
 
-    logout() {
-        User.logout((payload) => {
-            if (payload['redirect_url']) {
-                window.location.href = payload['redirect_url'];
-            }
-        }, (status) => {
-            this.props.alert && this.props.alert('登出失败', status, '好的');
-        });
-    }
+class UserLogoutButton extends React.Component {
+  constructor(props) {
+    super(props);
+    this.logout = this.logout.bind(this);
+  }
 
-    render() {
-        const {children, ...others} = this.props;
+  logout() {
+    User.logout((payload) => {
+      if (payload.redirect_url) {
+        window.location.href = payload.redirect_url;
+      }
+    }, (status) => {
+      this.props.alert('登出失败', status, '好的');
+    });
+  }
 
-        return (
-            <Button {...others} onClick={this.logout}>{children}</Button>
-        );
-    }
+  render() {
+    const { children, ...others } = this.props;
+
+    return (
+      <Button {...others} onClick={this.logout}>
+        {children}
+      </Button>
+    );
+  }
 }
+
+UserLogoutButton.propTypes = propTypes;
+
+export default UserLogoutButton;

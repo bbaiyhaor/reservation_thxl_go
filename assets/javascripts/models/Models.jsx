@@ -80,7 +80,7 @@ export const User = {
         this.fullname = data.payload.fullname;
         succCallback && succCallback(data.payload);
       } else {
-        errCallback && errCallback(data.status, data.payload);
+        errCallback && errCallback(data.err_msg, data.payload);
       }
     };
     const payload = {

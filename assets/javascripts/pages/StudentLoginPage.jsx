@@ -48,8 +48,8 @@ class StudentLoginPage extends React.Component {
               passwordPlaceholder="请输入密码"
               submitText="登录"
               cancelText="没有账户"
-              onSubmit={this.onLogin}
-              onCancel={StudentLoginPage.toRegister}
+              handleSubmit={this.onLogin}
+              handleCancel={StudentLoginPage.toRegister}
             />
             <div style={{ color: '#999999', padding: '10px 20px', textAlign: 'center', fontSize: '13px' }}>
               账号密码遇到任何问题，请在工作时间（周一至周五8:00-12:00；13:00-17:00）致电010-62782007。

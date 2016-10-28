@@ -13,8 +13,8 @@ const propTypes = {
   passwordPlaceholder: React.PropTypes.string,
   submitText: React.PropTypes.string.isRequired,
   cancelText: React.PropTypes.string.isRequired,
-  onSubmit: React.PropTypes.func.isRequired,
-  onCancel: React.PropTypes.func.isRequired,
+  handleSubmit: React.PropTypes.func.isRequired,
+  handleCancel: React.PropTypes.func.isRequired,
 };
 
 class LoginForm extends React.Component {
@@ -26,10 +26,15 @@ class LoginForm extends React.Component {
       usernameWarn: false,
       passwordWarn: false,
     };
-    this.onSubmit = this.onSubmit.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  onSubmit() {
+  handleChange(e, name) {
+    this.setState({ [name]: e.target.value });
+  }
+
+  handleSubmit() {
     this.setState({
       usernameWarn: false,
       passwordWarn: false,
@@ -42,19 +47,15 @@ class LoginForm extends React.Component {
       this.setState({ passwordWarn: true });
       return;
     }
-    this.props.onSubmit(this.state.username, this.state.password);
-  }
-
-  handleChange(e, name) {
-    this.setState({ [name]: e.target.value });
+    this.props.handleSubmit(this.state.username, this.state.password);
   }
 
   render() {
     return (
       <div>
         {
-          (this.props.titleTip && this.props.titleTip !== '' &&
-            <CellsTitle>{this.props.titleTip}</CellsTitle>)
+          this.props.titleTip && this.props.titleTip !== '' &&
+            <CellsTitle>{this.props.titleTip}</CellsTitle>
         }
         <Form>
           <FormCell warn={this.state.usernameWarn}>
@@ -63,7 +64,7 @@ class LoginForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
-                type="input"
+                type="tel"
                 placeholder={this.props.usernamePlaceholder}
                 value={this.state.username}
                 onChange={(e) => { this.handleChange(e, 'username'); }}
@@ -97,8 +98,8 @@ class LoginForm extends React.Component {
           </FormCell>
         </Form>
         <ButtonArea direction="horizontal">
-          <Button onClick={this.onSubmit}>{this.props.submitText}</Button>
-          <Button type="default" onClick={this.props.onCancel}>{this.props.cancelText}</Button>
+          <Button onClick={this.handleSubmit}>{this.props.submitText}</Button>
+          <Button type="default" onClick={this.props.handleCancel}>{this.props.cancelText}</Button>
         </ButtonArea>
       </div>
         );

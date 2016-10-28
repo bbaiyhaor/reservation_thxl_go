@@ -94,9 +94,8 @@ class RegisterForm extends React.Component {
   render() {
     return (
       <div>
-        {
-          this.props.titleTip && this.props.titleTip !== '' &&
-            <CellsTitle>{this.props.titleTip}</CellsTitle>
+        {this.props.titleTip && this.props.titleTip !== '' &&
+          <CellsTitle>{this.props.titleTip}</CellsTitle>
         }
         <Form checkbox={this.props.protocol && true} className="weui_cells_form">
           <FormCell warn={this.state.usernameWarn}>
@@ -111,11 +110,10 @@ class RegisterForm extends React.Component {
                 onChange={(e) => { this.handleChange(e, 'username'); }}
               />
             </CellBody>
-            {
-              this.state.usernameWarn &&
-                <CellFooter>
-                  <Icon value="warn" />
-                </CellFooter>
+            {this.state.usernameWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
             }
           </FormCell>
           <FormCell warn={this.state.passwordWarn}>
@@ -130,11 +128,10 @@ class RegisterForm extends React.Component {
                 onChange={(e) => { this.handleChange(e, 'password'); }}
               />
             </CellBody>
-            {
-              this.state.passwordWarn &&
-                <CellFooter>
-                  <Icon value="warn" />
-                </CellFooter>
+            {this.state.passwordWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
             }
           </FormCell>
           <FormCell warn={this.state.confirmPasswordWarn}>
@@ -149,35 +146,32 @@ class RegisterForm extends React.Component {
                 onChange={(e) => { this.handleChange(e, 'confirmPassword'); }}
               />
             </CellBody>
-            {
-              this.state.confirmPasswordWarn &&
-                <CellFooter>
-                  <Icon value="warn" />
-                </CellFooter>
+            {this.state.confirmPasswordWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
             }
           </FormCell>
-          {
-            this.props.protocol ?
-              <FormCell checkbox warn={this.state.protocolWarn}>
-                <CellHeader>
-                  <Checkbox
-                    defaultChecked
-                    value="protocolChecked"
-                    onChange={this.handleChange}
-                  />
-                </CellHeader>
-                <CellBody>
-                  {this.props.protocolPrefix}
-                  <Link to={this.props.protocolLink}>{this.props.protocol}</Link>
-                  {this.props.protocolSuffix}
-                </CellBody>
-                {
-                  this.state.protocolWarn &&
-                    <CellFooter>
-                      <Icon value="warn" />
-                    </CellFooter>
-                }
-              </FormCell> : null
+          {this.props.protocol ?
+            <FormCell checkbox warn={this.state.protocolWarn}>
+              <CellHeader>
+                <Checkbox
+                  defaultChecked
+                  value="protocolChecked"
+                  onChange={this.handleChange}
+                />
+              </CellHeader>
+              <CellBody>
+                {this.props.protocolPrefix}
+                <Link to={this.props.protocolLink}>{this.props.protocol}</Link>
+                {this.props.protocolSuffix}
+              </CellBody>
+              {this.state.protocolWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
+              }
+            </FormCell> : null
           }
         </Form>
         <ButtonArea direction="horizontal">

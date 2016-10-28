@@ -111,7 +111,7 @@ export const Application = {
     this.reservations = null;
   },
 
-  ViewReservationsByStudent(succCallback, errCallback) {
+  viewReservationsByStudent(succCallback, errCallback) {
     const succ = (data) => {
       if (data.status === 'OK') {
         this.reservations = data.payload.reservations;

@@ -53,9 +53,8 @@ class LoginForm extends React.Component {
   render() {
     return (
       <div>
-        {
-          this.props.titleTip && this.props.titleTip !== '' &&
-            <CellsTitle>{this.props.titleTip}</CellsTitle>
+        {this.props.titleTip && this.props.titleTip !== '' &&
+          <CellsTitle>{this.props.titleTip}</CellsTitle>
         }
         <Form>
           <FormCell warn={this.state.usernameWarn}>
@@ -70,11 +69,10 @@ class LoginForm extends React.Component {
                 onChange={(e) => { this.handleChange(e, 'username'); }}
               />
             </CellBody>
-            {
-              this.state.usernameWarn &&
-                <CellFooter>
-                  <Icon value="warn" />
-                </CellFooter>
+            {this.state.usernameWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
             }
           </FormCell>
           <FormCell warn={this.state.passwordWarn}>
@@ -89,11 +87,10 @@ class LoginForm extends React.Component {
                 onChange={(e) => { this.handleChange(e, 'password'); }}
               />
             </CellBody>
-            {
-              this.state.passwordWarn &&
-                <CellFooter>
-                  <Icon value="warn" />
-                </CellFooter>
+            {this.state.passwordWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
             }
           </FormCell>
         </Form>
@@ -102,7 +99,7 @@ class LoginForm extends React.Component {
           <Button type="default" onClick={this.props.handleCancel}>{this.props.cancelText}</Button>
         </ButtonArea>
       </div>
-        );
+    );
   }
 }
 

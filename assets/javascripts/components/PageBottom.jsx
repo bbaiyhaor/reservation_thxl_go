@@ -23,9 +23,7 @@ function PageBottom({ contents, styles, height }) {
     <div>
       <div style={{ height }} />
       <div style={{ ...bottomStyle, ...styles }}>
-        {
-          contents.map((content, index) => <p key={`content-${index}`}>{content}</p>)
-        }
+        {contents.map((content, index) => <p key={`content-${index}`}>{content}</p>)}
       </div>
     </div>
   );

@@ -24,7 +24,9 @@
 		<button onclick="logout();">退出登录</button>
 		<div style="padding-top:10px">
 			<input type="text" id="query_date" style="width:80px"/>
-			<button onclick="queryReservations();">查询</button>
+			<button onclick="queryReservations();">按时间查询</button>
+			<input type="text" id="query_teacher_username" style="width:80px"/>
+			<button onclick="queryReservationsByTeacher();">按工号查询</button>
 			<button style="margin-left:50px" onclick="exportTodayReservations();">导出当天时间表</button>
 			<input type="text" id="monthly_report_date" style="width:80px;margin-left:50px">
 			<button onclick="exportReportMonthly();">导出月报</button>

@@ -214,3 +214,65 @@ func (w *Workflow) GetReservationsDailyByAdmin(fromDate string, userId string, u
 	sort.Sort(model.ReservationSlice(reservations))
 	return reservations, nil
 }
+
+// 管理员通过咨询师工号查询咨询
+func (w *Workflow) GetReservationsWithTeacherUsernameByAdmin(teacherUsername string, userId string, userType model.UserType) ([]*model.Reservation, error) {
+	if userId == "" {
+		return nil, errors.New("请先登录")
+	} else if userType != model.ADMIN {
+		return nil, errors.New("权限不足")
+	} else if teacherUsername == "" {
+		return nil, errors.New("咨询师工号为空")
+	}
+	admin, err := w.model.GetAdminById(userId)
+	if err != nil || admin.UserType != model.ADMIN {
+		return nil, errors.New("管理员账户出错,请联系技术支持")
+	}
+	teacher, err := w.model.GetTeacherByUsername(teacherUsername)
+	if err != nil {
+		return nil, errors.New("咨询师不存在")
+	}
+	from := time.Now().AddDate(0, 0, -7)
+	reservations, err := w.model.GetReservationsAfterTime(from)
+	if err != nil {
+		return nil, errors.New("获取数据失败")
+	}
+	var result []*model.Reservation
+	for _, r := range reservations {
+		if r.Status == model.AVAILABLE && r.StartTime.Before(time.Now()) {
+			continue
+		}
+		if r.TeacherId != teacher.Id.Hex() {
+			continue
+		}
+		result = append(result, r)
+	}
+	if timedReservations, err := w.model.GetTimedReservationsByTeacherId(teacher.Id.Hex()); err == nil {
+		today := util.BeginOfDay(time.Now())
+		for _, tr := range timedReservations {
+			if tr.Status != model.AVAILABLE {
+				continue
+			}
+			minusWeekday := int(tr.Weekday - today.Weekday())
+			if minusWeekday < 0 {
+				minusWeekday += 7
+			}
+			date := today.AddDate(0, 0, minusWeekday)
+			if util.ConcatTime(date, tr.StartTime).Before(time.Now()) {
+				date = today.AddDate(0, 0, 7)
+			}
+			if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
+				result = append(result, tr.ToReservation(date))
+			}
+			for i := 1; i <= 3; i++ {
+				// 改变i的上阈值可以改变预设咨询的查看范围
+				date = date.AddDate(0, 0, 7)
+				if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
+					result = append(result, tr.ToReservation(date))
+				}
+			}
+		}
+	}
+	sort.Sort(model.ReservationSlice(result))
+	return result, nil
+}

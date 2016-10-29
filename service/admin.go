@@ -97,6 +97,53 @@ func (s *Service) ViewDailyReservationsByAdmin(w http.ResponseWriter, r *http.Re
 	return result
 }
 
+func (s *Service) ViewReservationsWithTeacherUsernameByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
+	queryForm, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil || len(queryForm["teacher_username"]) == 0 {
+		s.ErrorHandler(w, r, errors.New("参数错误"))
+		return nil
+	}
+	teacherUsername := queryForm["teacher_username"][0]
+
+	var result = map[string]interface{}{"state": "SUCCESS"}
+
+	reservations, err := s.w.GetReservationsWithTeacherUsernameByAdmin(teacherUsername, userId, userType)
+	if err != nil {
+		s.ErrorHandler(w, r, err)
+		return nil
+	}
+	var array = make([]interface{}, 0)
+	for _, res := range reservations {
+		resJson := make(map[string]interface{})
+		resJson["reservation_id"] = res.Id
+		resJson["start_time"] = res.StartTime.Format("2006-01-02 15:04")
+		resJson["end_time"] = res.EndTime.Format("2006-01-02 15:04")
+		resJson["source"] = res.Source.String()
+		resJson["source_id"] = res.SourceId
+		resJson["student_id"] = res.StudentId
+		if student, err := s.w.GetStudentById(res.StudentId); err == nil {
+			resJson["student_crisis_level"] = student.CrisisLevel
+		}
+		resJson["teacher_id"] = res.TeacherId
+		if teacher, err := s.w.GetTeacherById(res.TeacherId); err == nil {
+			resJson["teacher_username"] = teacher.Username
+			resJson["teacher_fullname"] = teacher.Fullname
+			resJson["teacher_mobile"] = teacher.Mobile
+		}
+		if res.Status == model.AVAILABLE {
+			resJson["status"] = model.AVAILABLE.String()
+		} else if res.Status == model.RESERVATED && res.StartTime.Before(time.Now()) {
+			resJson["status"] = model.FEEDBACK.String()
+		} else {
+			resJson["status"] = model.RESERVATED.String()
+		}
+		array = append(array, resJson)
+	}
+	result["reservations"] = array
+
+	return result
+}
+
 func (s *Service) ExportTodayReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType model.UserType) interface{} {
 	var result = map[string]interface{}{"state": "SUCCESS"}
 

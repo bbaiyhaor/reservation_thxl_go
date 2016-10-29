@@ -37,6 +37,21 @@ function queryReservations() {
   });
 }
 
+function queryReservationsByTeacher() {
+  $.getJSON('/admin/reservation/view/teacher', {
+    teacher_username: $('#query_teacher_username').val()
+  }, function(json, textStatus) {
+    if (json.state === 'SUCCESS') {
+      console.log(json);
+      reservations = json.reservations;
+      refreshDataTable(reservations);
+      optimize();
+    } else {
+      alert(json.message);
+    }
+  });
+}
+
 function exportTodayReservations() {
   $.getJSON('/admin/reservation/export/today', function(json, textStatus) {
     if (json.state === 'SUCCESS') {

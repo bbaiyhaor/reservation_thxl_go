@@ -495,7 +495,7 @@ export default class MakeReservationForm extends React.Component {
             </CellBody>
           </FormCell>
           <CellsTitle>
-            你现在需要接受帮助的主要问题是什么？
+            你现在需要接受帮助的主要问题是什么？<span style={{ color: 'red' }}>*</span>
           </CellsTitle>
           <FormCell warn={this.state.problemWarn}>
             <CellBody>

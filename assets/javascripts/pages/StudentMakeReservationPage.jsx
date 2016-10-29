@@ -18,7 +18,7 @@ export default class StudentMakeReservationPage extends React.Component {
             student: null,
             reservation: null,
         };
-        this.onCancel = this.onCancel.bind(this);
+        this.handleCancel = this.handleCancel.bind(this);
     }
 
     componentWillMount() {
@@ -26,7 +26,7 @@ export default class StudentMakeReservationPage extends React.Component {
         if (reservationId === '') {
             hashHistory.push('reservation');
         }
-        Application.ViewReservationsByStudent(() => {
+        Application.viewReservationsByStudent(() => {
             if (!User.student || !Application.reservations || Application.reservations.length === 0) {
                 hashHistory.push('reservation');
             }
@@ -48,7 +48,7 @@ export default class StudentMakeReservationPage extends React.Component {
         });
     }
 
-    onCancel() {
+    handleCancel() {
         hashHistory.goBack();
     }
 
@@ -59,11 +59,11 @@ export default class StudentMakeReservationPage extends React.Component {
                     <PanelHeader style={{fontSize: "18px"}}>学生信息登记表</PanelHeader>
                     <MakeReservationForm student={this.state.student}
                                          reservation={this.state.reservation}
-                                         onCancel={this.onCancel}/>
+                                         handleCancel={this.handleCancel}/>
                 </Panel>
                 <LoadingHud ref="loading"/>
                 <AlertDialog ref="alert"/>
-                <PageBottom style={{color: "#999999", textAlign: "center", backgroundColor: "white", fontSize: "14px"}}
+                <PageBottom styles={{color: "#999999", textAlign: "center", backgroundColor: "white", fontSize: "14px"}}
                             contents={["清华大学学生心理发展指导中心", "联系方式：010-62782007"]}
                             height="55px"/>
             </div>

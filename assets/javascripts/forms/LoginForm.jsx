@@ -41,6 +41,7 @@ class LoginForm extends React.Component {
     });
     if (this.state.username === '') {
       this.setState({ usernameWarn: true });
+      this.usernameInput.focus();
       return;
     }
     if (this.state.password === '') {
@@ -63,6 +64,7 @@ class LoginForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
+                ref={(usernameInput) => { this.usernameInput = usernameInput; }}
                 type="tel"
                 placeholder={this.props.usernamePlaceholder}
                 value={this.state.username}

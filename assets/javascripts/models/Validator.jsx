@@ -1,4 +1,4 @@
-/* eslint max-len: ["off", { "ignoreStrings": true }] */
+/* eslint max-len: ["off"] */
 /**
  * Created by shudi on 2016/10/22.
  */

@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { Link } from 'react-router';
-import { CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, ButtonArea, Button, Checkbox } from 'react-weui';
+import { CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, ButtonArea, Button, Checkbox } from '#react-weui';
 import 'weui';
 
 const propTypes = {

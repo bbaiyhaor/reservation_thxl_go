@@ -2,7 +2,7 @@
  * Created by shudi on 2016/10/23.
  */
 import React from 'react';
-import { Dialog, Toast } from 'react-weui';
+import { Dialog, Toast } from '#react-weui';
 import 'weui';
 
 const { Alert, Confirm } = Dialog;

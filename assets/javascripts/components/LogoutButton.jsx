@@ -2,7 +2,7 @@
  * Created by shudi on 2016/10/22.
  */
 import React from 'react';
-import { Button } from 'react-weui';
+import { Button } from '#react-weui';
 import 'weui';
 
 import { User } from '#models/Models';

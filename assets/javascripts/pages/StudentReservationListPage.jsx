@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { hashHistory } from 'react-router';
-import { Panel, PanelHeader, PanelBody, CellsTitle, MediaBox, Button, Cells, Cell, CellBody } from 'react-weui';
+import { Panel, PanelHeader, PanelBody, CellsTitle, MediaBox, Button, Cells, Cell, CellBody } from '#react-weui';
 import 'weui';
 
 import UserLogoutButton from '#coms/LogoutButton';

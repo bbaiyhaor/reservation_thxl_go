@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import {hashHistory} from 'react-router';
-import {Panel, PanelHeader} from 'react-weui';
+import {Panel, PanelHeader} from '#react-weui';
 import 'weui';
 
 import MakeReservationForm from '#forms/MakeReservationForm';

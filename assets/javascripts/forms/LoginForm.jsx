@@ -2,7 +2,7 @@
  * Created by shudi on 2016/10/22.
  */
 import React from 'react';
-import { CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, ButtonArea, Button } from 'react-weui';
+import { CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, ButtonArea, Button } from '#react-weui';
 import 'weui';
 
 const propTypes = {

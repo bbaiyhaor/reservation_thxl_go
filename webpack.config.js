@@ -82,6 +82,7 @@ var config = {
         root: path.resolve(__dirname),
         extensions: ['', '.js', '.jsx', '.css', '.png'],
         alias: {
+            '#react-weui': 'assets/javascripts/react-weui/src',
             '#imgs': 'assets/images',
             '#coms': 'assets/javascripts/components',
             '#forms': 'assets/javascripts/forms',
@@ -109,6 +110,7 @@ var config = {
                 loader: "babel",
                 query: {
                     presets: ['es2015', 'react', 'stage-0'],
+                    plugins: ['add-module-exports'],
                 },
                 include: path.join(__dirname, 'assets'),
                 exclude: /(node_modules|bower_components)/,

@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { hashHistory } from 'react-router';
-import { Panel, PanelHeader, PanelBody } from 'react-weui';
+import { Panel, PanelHeader, PanelBody } from '#react-weui';
 import 'weui';
 
 import LoginForm from '#forms/LoginForm';

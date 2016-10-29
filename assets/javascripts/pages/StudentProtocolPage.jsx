@@ -2,7 +2,7 @@
  * Created by shudi on 2016/10/22.
  */
 import React from 'react';
-import { Article } from 'react-weui';
+import { Article } from '#react-weui';
 import 'weui';
 
 import PageBottom from '#coms/PageBottom';

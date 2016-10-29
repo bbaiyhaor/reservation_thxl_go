@@ -1,18 +1,19 @@
 /**
  * Created by shudi on 2016/10/22.
  */
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { Button } from '#react-weui';
 import 'weui';
 
+import { AlertDialog } from '#coms/Huds';
 import { User } from '#models/Models';
 
 const propTypes = {
-  children: React.PropTypes.node,
-  alert: React.PropTypes.func,
+  children: PropTypes.node,
+  alert: PropTypes.func,
 };
 
-class UserLogoutButton extends React.Component {
+export default class LogoutButton extends React.Component {
   constructor(props) {
     super(props);
     this.logout = this.logout.bind(this);
@@ -24,7 +25,7 @@ class UserLogoutButton extends React.Component {
         window.location.href = payload.redirect_url;
       }
     }, (status) => {
-      this.props.alert('登出失败', status, '好的');
+      this.alert.show('登出失败', status, '好的');
     });
   }
 
@@ -32,13 +33,14 @@ class UserLogoutButton extends React.Component {
     const { children, ...others } = this.props;
 
     return (
-      <Button {...others} onClick={this.logout}>
-        {children}
-      </Button>
+      <div>
+        <Button {...others} onClick={this.logout}>
+          {children}
+        </Button>
+        <AlertDialog ref={(alert) => { this.alert = alert; }} />
+      </div>
     );
   }
 }
 
-UserLogoutButton.propTypes = propTypes;
-
-export default UserLogoutButton;
+LogoutButton.propTypes = propTypes;

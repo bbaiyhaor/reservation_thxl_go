@@ -7,7 +7,7 @@ import 'weui';
 
 const { Alert, Confirm } = Dialog;
 
-class AlertDialog extends React.Component {
+export class AlertDialog extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -64,7 +64,7 @@ class AlertDialog extends React.Component {
   }
 }
 
-class ConfirmDialog extends React.Component {
+export class ConfirmDialog extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -143,7 +143,7 @@ class ConfirmDialog extends React.Component {
   }
 }
 
-class LoadingHud extends React.Component {
+export class LoadingHud extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -181,5 +181,3 @@ class LoadingHud extends React.Component {
     );
   }
 }
-
-export { AlertDialog, ConfirmDialog, LoadingHud };

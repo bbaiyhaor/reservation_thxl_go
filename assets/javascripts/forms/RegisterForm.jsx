@@ -1,31 +1,31 @@
 /**
  * Created by shudi on 2016/10/22.
  */
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
 import { CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, ButtonArea, Button, Checkbox } from '#react-weui';
 import 'weui';
 
 const propTypes = {
-  titleTip: React.PropTypes.string,
-  usernameLabel: React.PropTypes.string.isRequired,
-  usernamePlaceholder: React.PropTypes.string,
-  passwordLabel: React.PropTypes.string.isRequired,
-  passwordPlaceholder: React.PropTypes.string,
-  confirmPasswordLabel: React.PropTypes.string.isRequired,
-  confirmPasswordPlaceholder: React.PropTypes.string,
-  protocol: React.PropTypes.string,
-  protocolPrefix: React.PropTypes.string,
-  protocolSuffix: React.PropTypes.string,
-  protocolLink: React.PropTypes.string,
-  submitText: React.PropTypes.string.isRequired,
-  cancelText: React.PropTypes.string.isRequired,
-  handleSubmit: React.PropTypes.func.isRequired,
-  handleCancel: React.PropTypes.func.isRequired,
-  showAlert: React.PropTypes.func,
+  titleTip: PropTypes.string,
+  usernameLabel: PropTypes.string.isRequired,
+  usernamePlaceholder: PropTypes.string,
+  passwordLabel: PropTypes.string.isRequired,
+  passwordPlaceholder: PropTypes.string,
+  confirmPasswordLabel: PropTypes.string.isRequired,
+  confirmPasswordPlaceholder: PropTypes.string,
+  protocol: PropTypes.string,
+  protocolPrefix: PropTypes.string,
+  protocolSuffix: PropTypes.string,
+  protocolLink: PropTypes.string,
+  submitText: PropTypes.string.isRequired,
+  cancelText: PropTypes.string.isRequired,
+  handleSubmit: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func.isRequired,
+  showAlert: PropTypes.func,
 };
 
-class RegisterForm extends React.Component {
+export default class RegisterForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -62,14 +62,17 @@ class RegisterForm extends React.Component {
     });
     if (this.state.username === '') {
       this.setState({ usernameWarn: true });
+      this.usernameInput.focus();
       return;
     }
     if (this.state.password === '') {
       this.setState({ passwordWarn: true });
+      this.passwordInput.focus();
       return;
     }
     if (this.state.confirmPassword === '') {
       this.setState({ confirmPasswordWarn: true });
+      this.confirmPasswordInput.focus();
       return;
     }
     if (!this.state.protocolChecked) {
@@ -104,6 +107,7 @@ class RegisterForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
+                ref={(usernameInput) => { this.usernameInput = usernameInput; }}
                 type="tel"
                 placeholder={this.props.usernamePlaceholder}
                 value={this.state.username}
@@ -122,6 +126,7 @@ class RegisterForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
+                ref={(passwordInput) => { this.passwordInput = passwordInput; }}
                 type="password"
                 placeholder={this.props.passwordPlaceholder}
                 value={this.state.password}
@@ -140,6 +145,7 @@ class RegisterForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
+                ref={(confirmPasswordInput) => { this.confirmPasswordInput = confirmPasswordInput; }}
                 type="password"
                 placeholder={this.props.confirmPasswordPlaceholder}
                 value={this.state.confirmPassword}
@@ -184,5 +190,3 @@ class RegisterForm extends React.Component {
 }
 
 RegisterForm.propTypes = propTypes;
-
-export default RegisterForm;

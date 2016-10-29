@@ -2,24 +2,23 @@
 /**
  * Created by shudi on 2016/10/23.
  */
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { hashHistory } from 'react-router';
-import { Panel, PanelHeader, PanelBody, CellsTitle, MediaBox, Button, Cells, Cell, CellBody } from '#react-weui';
+import { Panel, PanelHeader, PanelBody, CellsTitle, MediaBox, Button, Cells, Cell, CellBody, SearchBar } from '#react-weui';
 import 'weui';
 
-import UserLogoutButton from '#coms/LogoutButton';
+import LogoutButton from '#coms/LogoutButton';
 import PageBottom from '#coms/PageBottom';
 import { AlertDialog, ConfirmDialog, LoadingHud } from '#coms/Huds';
 import { User, Application } from '#models/Models';
 
-class StudentReservationListPage extends React.Component {
+export default class StudentReservationListPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       student: null,
       reservations: null,
     };
-    this.showAlert = this.showAlert.bind(this);
   }
 
   componentDidMount() {
@@ -33,16 +32,12 @@ class StudentReservationListPage extends React.Component {
           this.loading.hide();
         });
       }, 500);
-    }, (status) => {
+    }, (error) => {
       this.loading.hide();
-      this.alert.show('', status, '好的', () => {
+      this.alert.show('', error, '好的', () => {
         hashHistory.push('login');
       });
     });
-  }
-
-  showAlert(title, msg, label) {
-    this.alert.show(title, msg, label);
   }
 
   render() {
@@ -52,13 +47,12 @@ class StudentReservationListPage extends React.Component {
           <PanelHeader style={{ fontSize: '18px' }}>
             {User.student && User.student.fullname ? `${User.student.fullname}，` : ''}欢迎使用咨询预约系统
             <div style={{ height: '20px' }}>
-              <UserLogoutButton
+              <LogoutButton
                 size="small"
                 style={{ float: 'right' }}
-                alert={this.showAlert}
               >
                 退出登录
-              </UserLogoutButton>
+              </LogoutButton>
             </div>
             <CellsTitle>请根据您的需要选择相应咨询师和时间段进行预约</CellsTitle>
           </PanelHeader>
@@ -79,14 +73,46 @@ class StudentReservationListPage extends React.Component {
 }
 
 const propTypes = {
-  reservations: React.PropTypes.arrayOf(React.PropTypes.object),
+  reservations: PropTypes.arrayOf(React.PropTypes.object),
 };
 
 class StudentReservationList extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      reservations: this.props.reservations,
+      reservationsBak: this.props.reservations,
+    };
+    this.handleChange = this.handleChange.bind(this);
     this.makeReservation = this.makeReservation.bind(this);
     this.feedback = this.feedback.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    nextProps.reservations && this.setState({
+      reservations: nextProps.reservations,
+      reservationsBak: nextProps.reservations,
+    });
+  }
+
+  handleChange(text) {
+    const keyword = [text];
+    if (keyword === '') {
+      this.setState(prevState => ({
+        reservations: prevState.reservationsBak,
+      }));
+    }
+    const result = this.state.reservationsBak.filter((reservation) => {
+      if (reservation.teacher_fullname.indexOf(keyword) !== -1) {
+        return true;
+      } else if (reservation.start_time.indexOf(keyword) !== -1) {
+        return true;
+      } else if (reservation.end_time.indexOf(keyword) !== -1) {
+        return true;
+      }
+      return false;
+    });
+    this.setState({ reservations: result });
   }
 
   makeReservation(reservation) {
@@ -134,9 +160,12 @@ class StudentReservationList extends React.Component {
   render() {
     return (
       <div>
+        <SearchBar
+          onChange={this.handleChange}
+        />
         <MediaBox type="small_appmsg">
           <Cells access>
-            {this.props.reservations && this.props.reservations.map(reservation =>
+            {this.state.reservations && this.state.reservations.map(reservation =>
               <Cell key={`reservation-cell-${reservation.id}`}>
                 <CellBody>
                   <p style={{ fontSize: '14px' }}>
@@ -155,5 +184,3 @@ class StudentReservationList extends React.Component {
 }
 
 StudentReservationList.propTypes = propTypes;
-
-export default StudentReservationListPage;

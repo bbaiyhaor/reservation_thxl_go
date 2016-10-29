@@ -1,15 +1,15 @@
 /**
  * Created by shudi on 2016/10/21.
  */
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 const propTypes = {
-  contents: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
-  styles: React.PropTypes.object,
-  height: React.PropTypes.string,
+  contents: PropTypes.arrayOf(PropTypes.string).isRequired,
+  styles: PropTypes.object,
+  height: PropTypes.string,
 };
 
-function PageBottom({ contents, styles, height }) {
+export default function PageBottom({ contents, styles, height }) {
   const bottomStyle = {
     position: 'fixed',
     bottom: '0px',
@@ -30,5 +30,3 @@ function PageBottom({ contents, styles, height }) {
 }
 
 PageBottom.propTypes = propTypes;
-
-export default PageBottom;

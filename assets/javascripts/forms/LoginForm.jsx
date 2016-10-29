@@ -1,23 +1,23 @@
 /**
  * Created by shudi on 2016/10/22.
  */
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, ButtonArea, Button } from '#react-weui';
 import 'weui';
 
 const propTypes = {
-  titleTip: React.PropTypes.string,
-  usernameLabel: React.PropTypes.string.isRequired,
-  usernamePlaceholder: React.PropTypes.string,
-  passwordLabel: React.PropTypes.string.isRequired,
-  passwordPlaceholder: React.PropTypes.string,
-  submitText: React.PropTypes.string.isRequired,
-  cancelText: React.PropTypes.string.isRequired,
-  handleSubmit: React.PropTypes.func.isRequired,
-  handleCancel: React.PropTypes.func.isRequired,
+  titleTip: PropTypes.string,
+  usernameLabel: PropTypes.string.isRequired,
+  usernamePlaceholder: PropTypes.string,
+  passwordLabel: PropTypes.string.isRequired,
+  passwordPlaceholder: PropTypes.string,
+  submitText: PropTypes.string.isRequired,
+  cancelText: PropTypes.string.isRequired,
+  handleSubmit: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func.isRequired,
 };
 
-class LoginForm extends React.Component {
+export default class LoginForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -46,6 +46,7 @@ class LoginForm extends React.Component {
     }
     if (this.state.password === '') {
       this.setState({ passwordWarn: true });
+      this.passwordInput.focus();
       return;
     }
     this.props.handleSubmit(this.state.username, this.state.password);
@@ -83,6 +84,7 @@ class LoginForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
+                ref={(passwordInput) => { this.passwordInput = passwordInput; }}
                 type="password"
                 placeholder={this.props.passwordPlaceholder}
                 value={this.state.password}
@@ -106,5 +108,3 @@ class LoginForm extends React.Component {
 }
 
 LoginForm.propTypes = propTypes;
-
-export default LoginForm;

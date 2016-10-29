@@ -2,17 +2,17 @@
 /**
  * Created by shudi on 2016/10/24.
  */
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { Form, FormCell, CellHeader, CellBody, CellFooter, CellsTitle, Label, Input, Icon, Select, TextArea, ButtonArea, Button } from '#react-weui';
 import 'weui';
 
 const propTypes = {
-  student: React.PropTypes.object,
-  handleSubmit: React.PropTypes.func.isRequired,
-  handleCancel: React.PropTypes.func.isRequired,
+  student: PropTypes.object,
+  handleSubmit: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func.isRequired,
 };
 
-class ReservationMakeForm extends React.Component {
+export default class MakeReservationForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -116,42 +116,52 @@ class ReservationMakeForm extends React.Component {
     });
     if (this.state.fullname === '') {
       this.setState({ fullnameWarn: true });
+      this.fullnameInput.focus();
       return;
     }
     if (this.state.gender === '') {
       this.setState({ genderWarn: true });
+      this.gradeInput.focus();
       return;
     }
     if (this.state.birthday === '') {
       this.setState({ birthdayWarn: true });
+      this.birthdayInput.focus();
       return;
     }
     if (this.state.school === '') {
       this.setState({ schoolWarn: true });
+      this.schoolInput.focus();
       return;
     }
     if (this.state.grade === '') {
       this.setState({ gradeWarn: true });
+      this.gradeInput.focus();
       return;
     }
     if (this.state.currentAddress === '') {
       this.setState({ currentAddressWarn: true });
+      this.currentAddressInput.focus();
       return;
     }
     if (this.state.familyAddress === '') {
       this.setState({ familyAddressWarn: true });
+      this.familyAddressInput.focus();
       return;
     }
     if (this.state.mobile === '') {
       this.setState({ mobileWarn: true });
+      this.mobileInput.focus();
       return;
     }
     if (this.state.email === '') {
       this.setState({ emailWarn: true });
+      this.emailInput.focus();
       return;
     }
     if (this.state.problem === '') {
       this.setState({ problemWarn: true });
+      this.problemInput.focus();
       return;
     }
     this.props.handleSubmit();
@@ -211,6 +221,7 @@ class ReservationMakeForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
+                ref={(birthdayInput) => { this.birthdayInput = birthdayInput; }}
                 type="input"
                 placeholder="请输入出生日期"
                 value={this.state.birthday}
@@ -229,6 +240,7 @@ class ReservationMakeForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
+                ref={(schoolInput) => { this.schoolInput = schoolInput; }}
                 type="input"
                 placeholder="请输入院系"
                 value={this.state.school}
@@ -247,6 +259,7 @@ class ReservationMakeForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
+                ref={(gradeInput) => { this.gradeInput = gradeInput; }}
                 type="input"
                 placeholder="请输入年级"
                 value={this.state.grade}
@@ -265,6 +278,7 @@ class ReservationMakeForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
+                ref={(currentAddressInput) => { this.currentAddressInput = currentAddressInput; }}
                 type="input"
                 placeholder="请输入现在住址"
                 value={this.state.currentAddress}
@@ -283,6 +297,7 @@ class ReservationMakeForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
+                ref={(familyAddressInput) => { this.familyAddressInput = familyAddressInput; }}
                 type="input"
                 placeholder="请输入家庭住址"
                 value={this.state.familyAddress}
@@ -301,6 +316,7 @@ class ReservationMakeForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
+                ref={(mobileInput) => { this.mobileInput = mobileInput; }}
                 type="tel"
                 placeholder="请输入联系电话"
                 value={this.state.mobile}
@@ -319,6 +335,7 @@ class ReservationMakeForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
+                ref={(emailInput) => { this.emailInput = emailInput; }}
                 type="input"
                 placeholder="请输入邮箱"
                 value={this.state.email}
@@ -487,6 +504,7 @@ class ReservationMakeForm extends React.Component {
           <FormCell warn={this.state.problemWarn}>
             <CellBody>
               <TextArea
+                ref={(problemInput) => { this.problemInput = problemInput; }}
                 placeholder="请输入"
                 rows="3"
                 maxlength="300"
@@ -507,10 +525,8 @@ class ReservationMakeForm extends React.Component {
         </ButtonArea>
         <div style={{ height: '10px' }} />
       </div>
-);
+    );
   }
 }
 
-ReservationMakeForm.propTypes = propTypes;
-
-export default ReservationMakeForm;
+MakeReservationForm.propTypes = propTypes;

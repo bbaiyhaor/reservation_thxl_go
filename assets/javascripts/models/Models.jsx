@@ -97,7 +97,7 @@ export const User = {
         Application.clearApplication();
         succCallback && succCallback(data.payload);
       } else {
-        errCallback && errCallback(data.status, data.payload);
+        errCallback && errCallback(data.err_msg, data.payload);
       }
     };
     fetch(apiLogout, 'GET', {}, succ, errCallback);
@@ -122,7 +122,7 @@ export const Application = {
         User.student = data.payload.student;
         succCallback && succCallback(data.payload);
       } else {
-        errCallback && errCallback(data.status, data.payload);
+        errCallback && errCallback(data.err_msg, data.payload);
       }
     };
     fetch(apiViewReservationsByStudent, 'GET', {}, succ, errCallback);

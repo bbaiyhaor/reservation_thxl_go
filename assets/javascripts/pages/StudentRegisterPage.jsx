@@ -11,7 +11,7 @@ import PageBottom from '#coms/PageBottom';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { User } from '#models/Models';
 
-class StudentRegisterPage extends React.Component {
+export default class StudentRegisterPage extends React.Component {
   static toLogin() {
     hashHistory.push('login');
   }
@@ -78,5 +78,3 @@ class StudentRegisterPage extends React.Component {
         );
   }
 }
-
-export default StudentRegisterPage;

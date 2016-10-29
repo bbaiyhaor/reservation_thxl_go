@@ -1,7 +1,7 @@
 /**
  * Created by shudi on 2016/10/20.
  */
-import React from 'react';
+import React, { PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import { Panel, PanelHeader, PanelBody, MediaBox, MediaBoxHeader, MediaBoxBody, MediaBoxTitle, MediaBoxDescription } from '#react-weui';
 import 'weui';
@@ -11,8 +11,8 @@ import StudentEntryIcon from '#imgs/mobile/student.png';
 import TeacherEntryIcon from '#imgs/mobile/teacher.png';
 
 const propTypes = {
-  studentEntryIcon: React.PropTypes.string.isRequired,
-  teacherEntryIcon: React.PropTypes.string.isRequired,
+  studentEntryIcon: PropTypes.string.isRequired,
+  teacherEntryIcon: PropTypes.string.isRequired,
 };
 
 function EntryApp({ studentEntryIcon, teacherEntryIcon }) {

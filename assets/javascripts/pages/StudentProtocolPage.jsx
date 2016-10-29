@@ -7,7 +7,7 @@ import 'weui';
 
 import PageBottom from '#coms/PageBottom';
 
-function StudentProtocolPage() {
+export default function StudentProtocolPage() {
   const styles = {
     h1: {
       textAlign: 'center',
@@ -80,5 +80,3 @@ function StudentProtocolPage() {
     </div>
     );
 }
-
-export default StudentProtocolPage;

@@ -83,11 +83,11 @@ var config = {
         extensions: ['', '.js', '.jsx', '.css', '.png'],
         alias: {
             '#react-weui': 'assets/javascripts/react-weui/src',
-            '#imgs': 'assets/images',
-            '#coms': 'assets/javascripts/components',
-            '#forms': 'assets/javascripts/forms',
             '#pages': 'assets/javascripts/pages',
+            '#forms': 'assets/javascripts/forms',
+            '#coms': 'assets/javascripts/components',
             '#models': 'assets/javascripts/models',
+            '#imgs': 'assets/images',
         },
     },
 
@@ -96,7 +96,8 @@ var config = {
         //     {
         //         test: /\.jsx?$/,
         //         loader: "eslint-loader",
-        //         exclude: /(node_modules|bower_components)/,
+        //         include: path.join(__dirname, 'assets'),
+        //         exclude: /(node_modules|bower_components|assets\/javascripts\/react-weui)/,
         //     },
         // ],
         loaders: [
@@ -110,9 +111,18 @@ var config = {
                 loader: "babel",
                 query: {
                     presets: ['es2015', 'react', 'stage-0'],
-                    plugins: ['add-module-exports'],
                 },
                 include: path.join(__dirname, 'assets'),
+                exclude: /(node_modules|bower_components|assets\/javascripts\/react-weui)/,
+            },
+            {
+                test: /\.jsx?$/,
+                loader: "babel",
+                query: {
+                    presets: ['es2015', 'react', 'stage-0'],
+                    plugins: ['add-module-exports'],
+                },
+                include: path.join(__dirname, 'assets/javascripts/react-weui'),
                 exclude: /(node_modules|bower_components)/,
             },
         ],

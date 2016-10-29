@@ -8,6 +8,7 @@ import 'weui';
 
 const propTypes = {
   student: PropTypes.object,
+  reservation: PropTypes.object,
   handleSubmit: PropTypes.func.isRequired,
   handleCancel: PropTypes.func.isRequired,
 };
@@ -16,7 +17,7 @@ export default class MakeReservationForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      reservation: null,
+      reservation: this.props.reservation,
       fullname: '',
       gender: '',
       birthday: '',
@@ -55,11 +56,6 @@ export default class MakeReservationForm extends React.Component {
 
   componentDidMount() {
     this.props.student && this.setInputValue(this.props.student);
-  }
-
-  componentWillReceiveProps(nextProps) {
-    nextProps.student && this.setInputValue(nextProps.student);
-    nextProps.reservation && this.setState({ reservation: nextProps.reservation });
   }
 
   setInputValue(student) {
@@ -164,7 +160,7 @@ export default class MakeReservationForm extends React.Component {
       this.problemInput.focus();
       return;
     }
-    this.props.handleSubmit();
+    this.props.handleSubmit(this.state.reservation, this.state.fullname, this.state.gender, this.state.birthday, this.state.school, this.state.grade, this.state.currentAddress, this.state.familyAddress, this.state.mobile, this.state.email, this.state.experienceTime, this.state.experienceLocation, this.state.experienceTeacher, this.state.fatherAge, this.state.fatherJob, this.state.fatherEdu, this.state.motherAge, this.state.motherJob, this.state.motherEdu, this.state.parentMarriage, this.state.significant, this.state.problem);
   }
 
   render() {

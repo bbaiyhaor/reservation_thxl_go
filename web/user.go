@@ -27,6 +27,7 @@ func (uc *UserController) MuxHandlers(m JsonMuxer) {
 	m.PostJson(kUserApiBaseUrl+"/teacher/login", "TeacherLogin", uc.teacherLogin)
 	m.PostJson(kUserApiBaseUrl+"/admin/login", "AdminLogin", uc.adminLogin)
 	m.GetJson(kUserApiBaseUrl+"/logout", "Logout", RoleCookieInjection(uc.logout))
+	m.GetJson(kUserApiBaseUrl+"/session", "UpdateSession", RoleCookieInjection(uc.updateSession))
 }
 
 func (uc *UserController) GetTemplates() []*render.TemplateSet {
@@ -243,5 +244,13 @@ func (uc *UserController) logout(w http.ResponseWriter, r *http.Request, userId 
 		MaxAge: -1,
 	})
 
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (uc *UserController) updateSession(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	result, err := service.Workflow().UpdateSession(userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err.Error())
+	}
 	return http.StatusOK, wrapJsonOk(result)
 }

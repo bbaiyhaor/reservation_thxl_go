@@ -109,6 +109,46 @@ func (w *Workflow) StudentRegister(username string, password string) (*model.Stu
 	return newStudent, nil
 }
 
+// 更新session
+func (w *Workflow) UpdateSession(userId string, userType int) (map[string]interface{}, error) {
+	if userId == "" {
+		return nil, errors.New("请先登录")
+	}
+	result := make(map[string]interface{})
+	switch userType {
+	case model.USER_TYPE_ADMIN:
+		admin, err := w.model.GetAdminById(userId)
+		if err != nil || admin.UserType != userType {
+			return nil, errors.New("请重新登录")
+		}
+		result["user_id"] = admin.Id.Hex()
+		result["username"] = admin.Username
+		result["user_type"] = admin.UserType
+		result["fullname"] = admin.Fullname
+	case model.USER_TYPE_TEACHER:
+		teacher, err := w.model.GetTeacherById(userId)
+		if err != nil || teacher.UserType != userType {
+			return nil, errors.New("请重新登录")
+		}
+		result["user_id"] = teacher.Id.Hex()
+		result["username"] = teacher.Username
+		result["user_type"] = teacher.UserType
+		result["fullname"] = teacher.Fullname
+	case model.USER_TYPE_STUDENT:
+		student, err := w.model.GetStudentById(userId)
+		if err != nil || student.UserType != userType {
+			return nil, errors.New("请重新登录")
+		}
+		result["user_id"] = student.Id.Hex()
+		result["username"] = student.Username
+		result["user_type"] = student.UserType
+		result["fullname"] = student.Fullname
+	default:
+		return nil, errors.New("请重新登录")
+	}
+	return result, nil
+}
+
 // 获取学生
 func (w *Workflow) GetStudentById(userId string) (*model.Student, error) {
 	if userId == "" {

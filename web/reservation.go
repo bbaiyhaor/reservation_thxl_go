@@ -93,6 +93,9 @@ func (rc *ReservationController) ViewReservationsByStudent(w http.ResponseWriter
 	var array = make([]interface{}, 0)
 	for _, res := range reservations {
 		resJson := service.Workflow().WrapSimpleReservation(res)
+		if res.StudentId == student.Id.Hex() {
+			resJson["student_id"] = res.StudentId
+		}
 		if res.Status == model.RESERVATION_STATUS_AVAILABLE {
 			resJson["status"] = model.RESERVATION_STATUS_AVAILABLE
 		} else if res.Status == model.RESERVATION_STATUS_RESERVATED && res.StartTime.Before(time.Now()) && res.StudentId == student.Id.Hex() {

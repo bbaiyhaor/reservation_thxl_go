@@ -1,7 +1,7 @@
 /**
  * Created by shudi on 2016/10/22.
  */
-/* eslint no-use-before-define: "off" */
+/* eslint no-use-before-define: "off", no-console: "off" */
 import $ from 'jquery';
 
 let apiServer = '/api';
@@ -9,12 +9,14 @@ if (process.env.NODE_ENV === 'development') {
   apiServer = 'http://localhost:9000/api';
 }
 
+const apiUpdateSession = `${apiServer}/user/session`;
 const apiStudentLogin = `${apiServer}/user/student/login`;
 const apiStudentRegister = `${apiServer}/user/student/register`;
 // const apiTeacherLogin = `${apiServer}/user/teacher/login`;
 // const apiAdminLogin = `${apiServer}/user/admin/login`;
 const apiLogout = `${apiServer}/user/logout`;
 const apiViewReservationsByStudent = `${apiServer}/student/reservation/view`;
+const apiMakeReservationByStudent = `${apiServer}/student/reservation/make`;
 
 function fetch(url, method, payload, succCallback, errCallback) {
   $.ajax({
@@ -50,6 +52,21 @@ export const User = {
     this.userType = -1;
     this.fullname = '';
     this.student = null;
+  },
+
+  updateSession(succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        this.userId = data.payload.user_id;
+        this.username = data.payload.username;
+        this.userType = data.payload.user_type;
+        this.fullname = data.payload.fullname;
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    fetch(apiUpdateSession, 'GET', {}, succ, errCallback);
   },
 
   studentLogin(username, password, succCallback, errCallback) {
@@ -126,5 +143,16 @@ export const Application = {
       }
     };
     fetch(apiViewReservationsByStudent, 'GET', {}, succ, errCallback);
+  },
+
+  makeReservationByStudent(payload, succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    fetch(apiMakeReservationByStudent, 'POST', payload, succ, errCallback);
   },
 };

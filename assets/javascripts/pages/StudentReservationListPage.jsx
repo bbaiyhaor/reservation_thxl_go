@@ -23,20 +23,24 @@ export default class StudentReservationListPage extends React.Component {
 
   componentDidMount() {
     this.loading.show('正在加载中');
-    Application.viewReservationsByStudent(() => {
-      setTimeout(() => {
-        this.setState({
-          student: User.student,
-          reservations: Application.reservations,
-        }, () => {
-          this.loading.hide();
+    User.updateSession(() => {
+      Application.viewReservationsByStudent(() => {
+        setTimeout(() => {
+          this.setState({
+            student: User.student,
+            reservations: Application.reservations,
+          }, () => {
+            this.loading.hide();
+          });
+        }, 500);
+      }, (error) => {
+        this.loading.hide();
+        this.alert.show('', error, '好的', () => {
+          hashHistory.push('login');
         });
-      }, 500);
-    }, (error) => {
-      this.loading.hide();
-      this.alert.show('', error, '好的', () => {
-        hashHistory.push('login');
       });
+    }, () => {
+      hashHistory.push('login');
     });
   }
 
@@ -45,7 +49,7 @@ export default class StudentReservationListPage extends React.Component {
       <div>
         <Panel access>
           <PanelHeader style={{ fontSize: '18px' }}>
-            {User.student && User.student.fullname ? `${User.student.fullname}，` : ''}欢迎使用咨询预约系统
+            {User.fullname !== '' ? `${User.fullname}，` : ''}欢迎使用咨询预约系统
             <div style={{ height: '20px' }}>
               <LogoutButton
                 size="small"
@@ -158,6 +162,13 @@ class StudentReservationList extends React.Component {
   }
 
   render() {
+    const normalStyle = {
+      fontSize: '14px',
+    };
+    const hightlightStyle = {
+      color: '#EF4F4F',
+      ...normalStyle,
+    };
     return (
       <div>
         <SearchBar
@@ -168,9 +179,13 @@ class StudentReservationList extends React.Component {
             {this.state.reservations && this.state.reservations.map(reservation =>
               <Cell key={`reservation-cell-${reservation.id}`}>
                 <CellBody>
-                  <p style={{ fontSize: '14px' }}>
-                    {reservation.start_time} - {reservation.end_time.slice(-5)}　{reservation.teacher_fullname}
-                  </p>
+                  {reservation.student_id && reservation.student_id === User.userId ?
+                    <p style={{ ...hightlightStyle }}>
+                      {reservation.start_time} - {reservation.end_time.slice(-5)}　{reservation.teacher_fullname}
+                    </p> : <p style={{ ...normalStyle }}>
+                      {reservation.start_time} - {reservation.end_time.slice(-5)}　{reservation.teacher_fullname}
+                    </p>
+                  }
                 </CellBody>
                 {this.renderButton(reservation)}
               </Cell>)

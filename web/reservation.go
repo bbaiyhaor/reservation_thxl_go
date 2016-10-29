@@ -42,6 +42,7 @@ func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	m.PostJson(kAdminApiBaseUrl+"/timetable/close", "CloseTimedReservationsByAdmin", RoleCookieInjection(rc.CloseTimedReservationsByAdmin))
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view", "ViewReservationsByAdmin", RoleCookieInjection(rc.ViewReservationsByAdmin))
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view/daily", "ViewDailyReservationsByAdmin", RoleCookieInjection(rc.ViewDailyReservationsByAdmin))
+	m.GetJson(kAdminApiBaseUrl+"/reservation/view/teacher/username", "ViewReservationsWithTeacherUsernameByAdmin", RoleCookieInjection(rc.ViewReservationsWithTeacherUsernameByAdmin))
 	m.GetJson(kAdminApiBaseUrl+"/reservation/export/today", "ExportTodayReservationsByAdmin", RoleCookieInjection(rc.ExportTodayReservationsByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report", "ExportReportFormByAdmin", RoleCookieInjection(rc.ExportReportFormByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report/monthly", "ExportReportMonthlyByAdmin", RoleCookieInjection(rc.ExportReportMonthlyByAdmin))
@@ -358,6 +359,32 @@ func (rc *ReservationController) ViewDailyReservationsByAdmin(w http.ResponseWri
 	var result = make(map[string]interface{})
 
 	reservations, err := service.Workflow().GetReservationsDailyByAdmin(fromDate, userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err.Error())
+	}
+	var array = make([]interface{}, 0)
+	for _, res := range reservations {
+		resJson := service.Workflow().WrapReservation(res)
+		if res.Status == model.RESERVATION_STATUS_AVAILABLE {
+			resJson["status"] = model.RESERVATION_STATUS_AVAILABLE
+		} else if res.Status == model.RESERVATION_STATUS_RESERVATED && res.StartTime.Before(time.Now()) {
+			resJson["status"] = model.RESERVATION_STATUS_FEEDBACK
+		} else {
+			resJson["status"] = model.RESERVATION_STATUS_RESERVATED
+		}
+		array = append(array, resJson)
+	}
+	result["reservations"] = array
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (rc *ReservationController) ViewReservationsWithTeacherUsernameByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	teacherUsername := r.FormValue("teacher_username")
+
+	var result = make(map[string]interface{})
+
+	reservations, err := service.Workflow().GetReservationsWithTeacherUsernameByAdmin(teacherUsername, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err.Error())
 	}

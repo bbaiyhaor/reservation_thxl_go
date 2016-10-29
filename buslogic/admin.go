@@ -63,6 +63,36 @@ func (w *Workflow) AddReservationByAdmin(startTime string, endTime string, teach
 			return nil, errors.New("获取数据失败")
 		}
 	}
+	// 检查时间是否有冲突
+	theDay := util.BeginOfDay(start)
+	nextDay := util.BeginOfTomorrow(start)
+	theDayReservations, err := w.model.GetReservationsBetweenTime(theDay, nextDay)
+	if err != nil {
+		return nil, errors.New("获取数据失败")
+	}
+	for _, r := range theDayReservations {
+		if r.TeacherId == teacher.Id.Hex() {
+			if (start.After(r.StartTime) && start.Before(r.EndTime) ||
+				(end.After(r.StartTime) && end.Before(r.EndTime)) ||
+				(!start.After(r.StartTime) && !end.Before(r.EndTime))) {
+				return nil, errors.New("咨询师时间有冲突")
+			}
+		}
+	}
+	theDayTimedReservations, err := w.model.GetTimedReservationsByWeekday(start.Weekday())
+	if err != nil {
+		return nil, errors.New("获取数据失败")
+	}
+	for _, tr := range theDayTimedReservations {
+		if tr.TeacherId == teacher.Id.Hex() {
+			r := tr.ToReservation(start)
+			if (start.After(r.StartTime) && start.Before(r.EndTime) ||
+				(end.After(r.StartTime) && end.Before(r.EndTime)) ||
+				(!start.After(r.StartTime) && !end.Before(r.EndTime))) {
+				return nil, errors.New("咨询师时间有冲突")
+			}
+		}
+	}
 	reservation, err := w.model.AddReservation(start, end, model.ADMIN_ADD, "", teacher.Id.Hex())
 	if err != nil {
 		return nil, errors.New("获取数据失败")
@@ -133,6 +163,36 @@ func (w *Workflow) EditReservationByAdmin(reservationId string, sourceId string,
 		teacher.Mobile = teacherMobile
 		if w.model.UpsertTeacher(teacher) != nil {
 			return nil, errors.New("获取数据失败")
+		}
+	}
+	// 检查时间是否有冲突
+	theDay := util.BeginOfDay(start)
+	nextDay := util.BeginOfTomorrow(start)
+	theDayReservations, err := w.model.GetReservationsBetweenTime(theDay, nextDay)
+	if err != nil {
+		return nil, errors.New("获取数据失败")
+	}
+	for _, r := range theDayReservations {
+		if r.TeacherId == teacher.Id.Hex() {
+			if (start.After(r.StartTime) && start.Before(r.EndTime) ||
+				(end.After(r.StartTime) && end.Before(r.EndTime)) ||
+				(!start.After(r.StartTime) && !end.Before(r.EndTime))) {
+				return nil, errors.New("咨询师时间有冲突")
+			}
+		}
+	}
+	theDayTimedReservations, err := w.model.GetTimedReservationsByWeekday(start.Weekday())
+	if err != nil {
+		return nil, errors.New("获取数据失败")
+	}
+	for _, tr := range theDayTimedReservations {
+		if tr.TeacherId == teacher.Id.Hex() {
+			r := tr.ToReservation(start)
+			if (start.After(r.StartTime) && start.Before(r.EndTime) ||
+				(end.After(r.StartTime) && end.Before(r.EndTime)) ||
+				(!start.After(r.StartTime) && !end.Before(r.EndTime))) {
+				return nil, errors.New("咨询师时间有冲突")
+			}
 		}
 	}
 	reservation.StartTime = start

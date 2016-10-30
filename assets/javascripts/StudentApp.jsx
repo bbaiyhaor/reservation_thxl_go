@@ -5,11 +5,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Router, Route, IndexRoute, hashHistory } from 'react-router';
 
-import StudentLoginPage from '#pages/StudentLoginPage';
-import StudentRegisterPage from '#pages/StudentRegisterPage';
-import StudentProtocolPage from '#pages/StudentProtocolPage';
-import StudentReservationListPage from '#pages/StudentReservationListPage';
-import StudentMakeReservationPage from '#pages/StudentMakeReservationPage';
+import StudentLoginPage from '#pages/student/StudentLoginPage';
+import StudentRegisterPage from '#pages/student/StudentRegisterPage';
+import StudentProtocolPage from '#pages/student/StudentProtocolPage';
+import StudentReservationListPage from '#pages/student/StudentReservationListPage';
+import StudentMakeReservationPage from '#pages/student/StudentMakeReservationPage';
 
 const routes = (
   <Route path="/">

@@ -17,6 +17,8 @@ const apiStudentRegister = `${apiServer}/user/student/register`;
 const apiLogout = `${apiServer}/user/logout`;
 const apiViewReservationsByStudent = `${apiServer}/student/reservation/view`;
 const apiMakeReservationByStudent = `${apiServer}/student/reservation/make`;
+const apiGetFeedbackByStudent = `${apiServer}/student/reservation/feedback/get`;
+const apiSubmitFeedbackByStudent = `${apiServer}/student/reservation/feedback/submit`;
 
 function fetch(url, method, payload, succCallback, errCallback) {
   $.ajax({
@@ -24,6 +26,7 @@ function fetch(url, method, payload, succCallback, errCallback) {
     type: method,
     dataType: 'json',
     data: payload,
+    traditional: true,
   }).done((data) => {
     if (process.env.NODE_ENV === 'development') {
       console.log(`"${method}" ${url}`);
@@ -154,5 +157,36 @@ export const Application = {
       }
     };
     fetch(apiMakeReservationByStudent, 'POST', payload, succ, errCallback);
+  },
+
+  getFeedbackByStudent(reservationId, sourceId, succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    const payload = {
+      reservation_id: reservationId,
+      source_id: sourceId,
+    };
+    fetch(apiGetFeedbackByStudent, 'POST', payload, succ, errCallback);
+  },
+
+  submitFeedbackByStudent(reservationId, sourceId, scores, succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    const payload = {
+      reservation_id: reservationId,
+      source_id: sourceId,
+      scores,
+    };
+    fetch(apiSubmitFeedbackByStudent, 'POST', payload, succ, errCallback);
   },
 };

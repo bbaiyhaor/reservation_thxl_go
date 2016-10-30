@@ -18,27 +18,28 @@ export default class MakeReservationForm extends React.Component {
     super(props);
     this.state = {
       reservation: this.props.reservation,
-      fullname: '',
-      gender: '',
-      birthday: '',
-      school: '',
-      grade: '',
-      currentAddress: '',
-      familyAddress: '',
-      mobile: '',
-      email: '',
-      experienceTime: '',
-      experienceLocation: '',
-      experienceTeacher: '',
-      fatherAge: '',
-      fatherJob: '',
-      fatherEdu: '',
-      motherAge: '',
-      motherJob: '',
-      motherEdu: '',
-      parentMarriage: '',
-      significant: '',
-      problem: '',
+      student: this.props.student,
+      fullname: this.props.student.fullname,
+      gender: this.props.student.gender,
+      birthday: this.props.student.birthday,
+      school: this.props.student.school,
+      grade: this.props.student.grade,
+      currentAddress: this.props.student.current_address,
+      familyAddress: this.props.student.family_address,
+      mobile: this.props.student.mobile,
+      email: this.props.student.email,
+      experienceTime: this.props.student.experience_time,
+      experienceLocation: this.props.student.experience_location,
+      experienceTeacher: this.props.student.experience_teacher,
+      fatherAge: this.props.student.father_age,
+      fatherJob: this.props.student.father_job,
+      fatherEdu: this.props.student.father_edu,
+      motherAge: this.props.student.mother_age,
+      motherJob: this.props.student.mother_job,
+      motherEdu: this.props.student.mother_edu,
+      parentMarriage: this.props.student.parent_marriage,
+      significant: this.props.student.significant,
+      problem: this.props.student.problem,
       fullnameWarn: false,
       genderWarn: false,
       birthdayWarn: false,
@@ -52,38 +53,6 @@ export default class MakeReservationForm extends React.Component {
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  componentDidMount() {
-    this.props.student && this.setInputValue(this.props.student);
-  }
-
-  setInputValue(student) {
-    if (student) {
-      this.setState({
-        fullname: student.fullname,
-        gender: student.gender,
-        birthday: student.birthday,
-        school: student.school,
-        grade: student.grade,
-        currentAddress: student.current_address,
-        familyAddress: student.family_address,
-        mobile: student.mobile,
-        email: student.email,
-        experienceTime: student.experience_time,
-        experienceLocation: student.experience_location,
-        experienceTeacher: student.experience_teacher,
-        fatherAge: student.father_age,
-        fatherJob: student.father_job,
-        fatherEdu: student.father_edu,
-        motherAge: student.mother_age,
-        motherJob: student.mother_job,
-        motherEdu: student.mother_edu,
-        parentMarriage: student.parent_marriage,
-        significant: student.significant,
-        problem: student.problem,
-      });
-    }
   }
 
   handleChange(e, name) {

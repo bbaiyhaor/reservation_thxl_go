@@ -81,6 +81,10 @@ const propTypes = {
 };
 
 class StudentReservationList extends React.Component {
+  static feedback(reservation) {
+    hashHistory.push(`reservation/feedback?reservation_id=${reservation.id}`);
+  }
+
   constructor(props) {
     super(props);
     this.state = {
@@ -89,7 +93,6 @@ class StudentReservationList extends React.Component {
     };
     this.handleChange = this.handleChange.bind(this);
     this.makeReservation = this.makeReservation.bind(this);
-    this.feedback = this.feedback.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -123,12 +126,8 @@ class StudentReservationList extends React.Component {
     this.confirm.show('',
       '确定预约后请准确填写个人信息，方便心理咨询中心老师与你取得联系。',
       '暂不预约', '立即预约', null,
-      () => hashHistory.push(`/reservation/make?reservation_id=${reservation.id}`)
+      () => hashHistory.push(`reservation/make?reservation_id=${reservation.id}`)
     );
-  }
-
-  feedback(reservation) {
-    console.log(reservation);
   }
 
   renderButton(reservation) {
@@ -153,7 +152,7 @@ class StudentReservationList extends React.Component {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            this.feedback(reservation);
+            StudentReservationList.feedback(reservation);
           }}
         >反馈</Button>
       );

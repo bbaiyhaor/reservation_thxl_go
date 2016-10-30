@@ -10,6 +10,7 @@ import StudentRegisterPage from '#pages/student/StudentRegisterPage';
 import StudentProtocolPage from '#pages/student/StudentProtocolPage';
 import StudentReservationListPage from '#pages/student/StudentReservationListPage';
 import StudentMakeReservationPage from '#pages/student/StudentMakeReservationPage';
+import StudentFeedbackPage from '#pages/student/StudentFeedbackPage';
 
 const routes = (
   <Route path="/">
@@ -19,6 +20,7 @@ const routes = (
     <Route path="protocol" component={StudentProtocolPage} />
     <Route path="reservation" component={StudentReservationListPage} />
     <Route path="reservation/make" component={StudentMakeReservationPage} />
+    <Route path="reservation/feedback" component={StudentFeedbackPage} />
   </Route>
 );
 

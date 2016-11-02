@@ -70,6 +70,7 @@ var config = {
     entry: {
         entry: path.join(__dirname, 'assets/javascripts/EntryApp.jsx'),
         student: path.join(__dirname, 'assets/javascripts/StudentApp.jsx'),
+        teacher: path.join(__dirname, 'assets/javascripts/TeacherApp.jsx'),
     },
     output: {
         path: 'public/bundles',

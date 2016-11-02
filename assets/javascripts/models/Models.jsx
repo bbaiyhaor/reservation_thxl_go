@@ -9,16 +9,22 @@ if (process.env.NODE_ENV === 'development') {
   apiServer = 'http://localhost:9000/api';
 }
 
+// User API
 const apiUpdateSession = `${apiServer}/user/session`;
 const apiStudentLogin = `${apiServer}/user/student/login`;
 const apiStudentRegister = `${apiServer}/user/student/register`;
-// const apiTeacherLogin = `${apiServer}/user/teacher/login`;
+const apiTeacherLogin = `${apiServer}/user/teacher/login`;
 // const apiAdminLogin = `${apiServer}/user/admin/login`;
 const apiLogout = `${apiServer}/user/logout`;
+
+// Student API
 const apiViewReservationsByStudent = `${apiServer}/student/reservation/view`;
 const apiMakeReservationByStudent = `${apiServer}/student/reservation/make`;
 const apiGetFeedbackByStudent = `${apiServer}/student/reservation/feedback/get`;
 const apiSubmitFeedbackByStudent = `${apiServer}/student/reservation/feedback/submit`;
+
+// Teacher API
+const apiViewReservationsByTeacher = `${apiServer}/teacher/reservation/view`;
 
 function fetch(url, method, payload, succCallback, errCallback) {
   $.ajax({
@@ -48,6 +54,7 @@ export const User = {
   userType: -1,
   fullname: '',
   student: null,
+  teacher: null,
 
   clearUser() {
     this.userId = '';
@@ -108,6 +115,25 @@ export const User = {
       password,
     };
     fetch(apiStudentRegister, 'POST', payload, succ, errCallback);
+  },
+
+  teacherLogin(username, password, succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        this.userId = data.payload.user_id;
+        this.username = data.payload.username;
+        this.userType = data.payload.user_type;
+        this.fullname = data.payload.fullname;
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    const payload = {
+      username,
+      password,
+    };
+    fetch(apiTeacherLogin, 'POST', payload, succ, errCallback);
   },
 
   logout(succCallback, errCallback) {
@@ -188,5 +214,22 @@ export const Application = {
       scores,
     };
     fetch(apiSubmitFeedbackByStudent, 'POST', payload, succ, errCallback);
+  },
+
+  viewReservationsByTeacher(succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        this.reservations = data.payload.reservations;
+        // for (let i = 0; i < 10; i += 1) {
+        //   this.reservations.push(this.reservations[0]);
+        // }
+        // this.reservations.push(this.reservations[1]);
+        User.teacher = data.payload.teacher;
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    fetch(apiViewReservationsByTeacher, 'GET', {}, succ, errCallback);
   },
 };

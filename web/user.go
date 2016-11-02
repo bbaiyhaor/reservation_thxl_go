@@ -21,6 +21,7 @@ const (
 func (uc *UserController) MuxHandlers(m JsonMuxer) {
 	m.Get("/m", "EntryPage", uc.getEntryPage)
 	m.Get("/m/student", "StudentPage", uc.getStudentPage)
+	m.Get("/m/teacher", "TeacherPage", uc.getTeacherPage)
 
 	m.PostJson(kUserApiBaseUrl+"/student/login", "StudentLogin", uc.studentLogin)
 	m.PostJson(kUserApiBaseUrl+"/student/register", "StudentRegister", uc.studentRegister)
@@ -34,6 +35,7 @@ func (uc *UserController) GetTemplates() []*render.TemplateSet {
 	return []*render.TemplateSet{
 		render.NewTemplateSet("entry", "desktop.html", "reservation/entry.html", "layout/desktop.html"),
 		render.NewTemplateSet("student", "desktop.html", "reservation/student.html", "layout/desktop.html"),
+		render.NewTemplateSet("teacher", "desktop.html", "reservation/teacher.html", "layout/desktop.html"),
 	}
 }
 
@@ -46,6 +48,12 @@ func (uc *UserController) getEntryPage(ctx context.Context, w http.ResponseWrite
 func (uc *UserController) getStudentPage(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	params := map[string]interface{}{}
 	uc.RenderHtmlOr500(w, http.StatusOK, "student", params)
+	return ctx
+}
+
+func (uc *UserController) getTeacherPage(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+	params := map[string]interface{}{}
+	uc.RenderHtmlOr500(w, http.StatusOK, "teacher", params)
 	return ctx
 }
 
@@ -170,6 +178,7 @@ func (uc *UserController) teacherLogin(ctx context.Context, w http.ResponseWrite
 	result["user_id"] = teacher.Id.Hex()
 	result["username"] = teacher.Username
 	result["user_type"] = teacher.UserType
+	result["fullname"] = teacher.Fullname
 
 	return http.StatusOK, wrapJsonOk(result)
 }

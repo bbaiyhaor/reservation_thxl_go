@@ -332,6 +332,8 @@ func (w *Workflow) WrapReservation(reservation *model.Reservation) map[string]in
 	}
 	result["student_id"] = reservation.StudentId
 	if student, err := w.model.GetStudentById(reservation.StudentId); err == nil {
+		result["student_username"] = student.Username
+		result["student_fullname"] = student.Fullname
 		result["student_crisis_level"] = student.CrisisLevel
 	}
 	result["student_feedback"] = reservation.StudentFeedback.ToStringJson()

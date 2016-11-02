@@ -136,7 +136,6 @@ class StudentReservationList extends React.Component {
         <Button
           size="small"
           onClick={(e) => {
-            e.preventDefault();
             e.stopPropagation();
             this.makeReservation(reservation);
           }}
@@ -150,7 +149,6 @@ class StudentReservationList extends React.Component {
           size="small"
           type="warn"
           onClick={(e) => {
-            e.preventDefault();
             e.stopPropagation();
             StudentReservationList.feedback(reservation);
           }}
@@ -174,7 +172,7 @@ class StudentReservationList extends React.Component {
           onChange={this.handleChange}
         />
         <MediaBox type="small_appmsg">
-          <Cells access>
+          <Cells>
             {this.state.reservations && this.state.reservations.map(reservation =>
               <Cell key={`reservation-cell-${reservation.id}`}>
                 <CellBody>

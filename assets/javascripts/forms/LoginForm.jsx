@@ -12,9 +12,9 @@ const propTypes = {
   passwordLabel: PropTypes.string.isRequired,
   passwordPlaceholder: PropTypes.string,
   submitText: PropTypes.string.isRequired,
-  cancelText: PropTypes.string.isRequired,
+  cancelText: PropTypes.string,
   handleSubmit: PropTypes.func.isRequired,
-  handleCancel: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func,
 };
 
 export default class LoginForm extends React.Component {
@@ -100,7 +100,7 @@ export default class LoginForm extends React.Component {
         </Form>
         <ButtonArea direction="horizontal">
           <Button onClick={this.handleSubmit}>{this.props.submitText}</Button>
-          <Button type="default" onClick={this.props.handleCancel}>{this.props.cancelText}</Button>
+          {this.props.cancelText && <Button type="default" onClick={this.props.handleCancel}>{this.props.cancelText}</Button>}
         </ButtonArea>
       </div>
     );

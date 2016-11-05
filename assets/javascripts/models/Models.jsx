@@ -17,6 +17,9 @@ const apiTeacherLogin = `${apiServer}/user/teacher/login`;
 // const apiAdminLogin = `${apiServer}/user/admin/login`;
 const apiLogout = `${apiServer}/user/logout`;
 
+// Category API
+const apiGetFeedbackCategories = `${apiServer}/category/feedback`;
+
 // Student API
 const apiViewReservationsByStudent = `${apiServer}/student/reservation/view`;
 const apiMakeReservationByStudent = `${apiServer}/student/reservation/make`;
@@ -25,6 +28,8 @@ const apiSubmitFeedbackByStudent = `${apiServer}/student/reservation/feedback/su
 
 // Teacher API
 const apiViewReservationsByTeacher = `${apiServer}/teacher/reservation/view`;
+const apiGetFeedbackByTeacher = `${apiServer}/teacher/reservation/feedback/get`;
+const apiSubmitFeedbackByTeacher = `${apiServer}/teacher/reservation/feedback/submit`;
 
 function fetch(url, method, payload, succCallback, errCallback) {
   $.ajax({
@@ -157,6 +162,17 @@ export const Application = {
     this.reservations = null;
   },
 
+  getFeedbackCategories(succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    fetch(apiGetFeedbackCategories, 'GET', {}, succ, errCallback);
+  },
+
   viewReservationsByStudent(succCallback, errCallback) {
     const succ = (data) => {
       if (data.status === 'OK') {
@@ -231,5 +247,31 @@ export const Application = {
       }
     };
     fetch(apiViewReservationsByTeacher, 'GET', {}, succ, errCallback);
+  },
+
+  getFeedbackByTeacher(reservationId, sourceId, succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    const payload = {
+      reservation_id: reservationId,
+      source_id: sourceId,
+    };
+    fetch(apiGetFeedbackByTeacher, 'POST', payload, succ, errCallback);
+  },
+
+  submitFeedbackByTeacher(payload, succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    fetch(apiSubmitFeedbackByTeacher, 'POST', payload, succ, errCallback);
   },
 };

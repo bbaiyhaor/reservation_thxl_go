@@ -30,6 +30,8 @@ const apiSubmitFeedbackByStudent = `${apiServer}/student/reservation/feedback/su
 const apiViewReservationsByTeacher = `${apiServer}/teacher/reservation/view`;
 const apiGetFeedbackByTeacher = `${apiServer}/teacher/reservation/feedback/get`;
 const apiSubmitFeedbackByTeacher = `${apiServer}/teacher/reservation/feedback/submit`;
+const apiGetStudentInfoByTeacher = `${apiServer}/teacher/student/get`;
+const apiQueryStudentInfoByTeacher = `${apiServer}/teacher/student/query`;
 
 function fetch(url, method, payload, succCallback, errCallback) {
   $.ajax({
@@ -273,5 +275,33 @@ export const Application = {
       }
     };
     fetch(apiSubmitFeedbackByTeacher, 'POST', payload, succ, errCallback);
+  },
+
+  getStudentInfoByTeacher(studentId, succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    const payload = {
+      student_id: studentId,
+    };
+    fetch(apiGetStudentInfoByTeacher, 'POST', payload, succ, errCallback);
+  },
+
+  queryStudentInfoByTeacher(studentUsername, succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    const payload = {
+      student_username: studentUsername,
+    };
+    fetch(apiQueryStudentInfoByTeacher, 'POST', payload, succ, errCallback);
   },
 };

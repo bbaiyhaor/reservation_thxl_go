@@ -132,9 +132,9 @@ class TeacherReservationList extends React.Component {
     };
     if (reservation.status === 2 || reservation.status === 3) {
       if (reservation.student_crisis_level > 0) {
-        return <Link to={`reservation/student?student_id=${reservation.student_id}`} style={{ color: '#EF4F4F', ...style }}>学生：{reservation.student_fullname}</Link>;
+        return <Link to={`student?student_id=${reservation.student_id}`} style={{ color: '#EF4F4F', ...style }}>学生：{reservation.student_fullname}</Link>;
       }
-      return <Link to={`reservation/student?student_id=${reservation.student_id}`} style={{ color: '#999999', ...style }}>学生：{reservation.student_fullname}</Link>;
+      return <Link to={`student?student_id=${reservation.student_id}`} style={{ color: '#999999', ...style }}>学生：{reservation.student_fullname}</Link>;
     }
     return null;
   }

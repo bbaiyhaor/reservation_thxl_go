@@ -279,10 +279,6 @@ class StudentInfoPanel extends React.Component {
             <CellBody>绑定咨询师</CellBody>
             <CellFooter>{this.state.student ? `${this.state.student.binded_teacher_username} ${this.state.student.binded_teacher_fullname}` : ''}</CellFooter>
           </Cell>
-          <Cell>
-            <CellBody>档案分类</CellBody>
-            <CellFooter>{this.state.student ? this.state.student.archive_category : ''}</CellFooter>
-          </Cell>
         </Cells>
         {this.renderStudentReservations()}
         <div style={{ height: '10px' }} />

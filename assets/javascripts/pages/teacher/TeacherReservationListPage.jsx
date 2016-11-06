@@ -4,7 +4,7 @@
  */
 import React, { PropTypes } from 'react';
 import { Link, hashHistory } from 'react-router';
-import { Panel, PanelHeader, PanelBody, CellsTitle, MediaBox, MediaBoxTitle, MediaBoxBody, MediaBoxDescription, Button, SearchBar } from '#react-weui';
+import { Panel, PanelHeader, PanelBody, CellsTitle, FormCell, CellBody, CellFooter, Input, Icon, MediaBox, MediaBoxTitle, MediaBoxBody, MediaBoxDescription, Button, SearchBar } from '#react-weui';
 import 'weui';
 
 import LogoutButton from '#coms/LogoutButton';
@@ -18,7 +18,11 @@ export default class TeacherReservationListPage extends React.Component {
     this.state = {
       teacher: null,
       reservations: null,
+      studentUsername: '',
+      studentUsernameWarn: false,
     };
+    this.handleChange = this.handleChange.bind(this);
+    this.toStudentInfo = this.toStudentInfo.bind(this);
   }
 
   componentDidMount() {
@@ -44,6 +48,28 @@ export default class TeacherReservationListPage extends React.Component {
     });
   }
 
+  handleChange(e, name) {
+    const value = e.target.value;
+    this.setState({ [name]: value });
+  }
+
+  toStudentInfo() {
+    this.setState({ studentUsernameWarn: false });
+    if (this.state.studentUsername === '') {
+      this.setState({ studentUsernameWarn: true });
+      this.studentUsernameInput.focus();
+      return;
+    }
+    Application.queryStudentInfoByTeacher(this.state.studentUsername, () => {
+      hashHistory.push(`student?student_username=${this.state.studentUsername}`);
+    }, (error) => {
+      this.alert.show('查询失败', error, '好的', () => {
+        this.alert.hide();
+        this.studentUsernameInput.focus();
+      });
+    });
+  }
+
   render() {
     return (
       <div>
@@ -59,6 +85,24 @@ export default class TeacherReservationListPage extends React.Component {
               </LogoutButton>
             </div>
             <CellsTitle>点击预约学生姓名可查看学生信息，红色咨询为危机个案</CellsTitle>
+            <CellsTitle>输入学生学号查询学生信息</CellsTitle>
+            <FormCell warn style={{ padding: '10px 0px 0px 15px' }}>
+              <CellBody>
+                <Input
+                  ref={(studentUsernameInput) => { this.studentUsernameInput = studentUsernameInput; }}
+                  type="input"
+                  placeholder="请输入学生学号"
+                  value={this.state.studentUsername}
+                  onChange={(e) => { this.handleChange(e, 'studentUsername'); }}
+                />
+              </CellBody>
+              <CellFooter>
+                {this.state.studentUsernameWarn &&
+                  <Icon value="warn" style={{ marginRight: '5px' }} />
+                }
+                <Button size="small" onClick={this.toStudentInfo}>查询</Button>
+              </CellFooter>
+            </FormCell>
           </PanelHeader>
           <PanelBody>
             <TeacherReservationList reservations={this.state.reservations} />

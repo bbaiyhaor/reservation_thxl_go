@@ -13,6 +13,10 @@ import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { User, Application } from '#models/Models';
 
 export default class TeacherReservationListPage extends React.Component {
+  static toChangePassword() {
+    hashHistory.push('password/change');
+  }
+
   constructor(props) {
     super(props);
     this.state = {
@@ -83,6 +87,13 @@ export default class TeacherReservationListPage extends React.Component {
               >
                 退出登录
               </LogoutButton>
+              <Button
+                size="small"
+                style={{ float: 'right', marginRight: '15px' }}
+                onClick={TeacherReservationListPage.toChangePassword}
+              >
+                更改密码
+              </Button>
             </div>
             <CellsTitle>点击预约学生姓名可查看学生信息，红色咨询为危机个案</CellsTitle>
             <CellsTitle>输入学生学号查询学生信息</CellsTitle>

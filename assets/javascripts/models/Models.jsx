@@ -14,6 +14,7 @@ const apiUpdateSession = `${apiServer}/user/session`;
 const apiStudentLogin = `${apiServer}/user/student/login`;
 const apiStudentRegister = `${apiServer}/user/student/register`;
 const apiTeacherLogin = `${apiServer}/user/teacher/login`;
+const apiTeacherPasswordChange = `${apiServer}/user/teacher/password/change`;
 // const apiAdminLogin = `${apiServer}/user/admin/login`;
 const apiLogout = `${apiServer}/user/logout`;
 
@@ -141,6 +142,22 @@ export const User = {
       password,
     };
     fetch(apiTeacherLogin, 'POST', payload, succ, errCallback);
+  },
+
+  teacherPasswordChange(username, oldPassword, newPassword, succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    const payload = {
+      username,
+      old_password: oldPassword,
+      new_password: newPassword,
+    };
+    fetch(apiTeacherPasswordChange, 'POST', payload, succ, errCallback);
   },
 
   logout(succCallback, errCallback) {

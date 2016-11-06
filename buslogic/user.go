@@ -59,6 +59,45 @@ func (w *Workflow) TeacherLogin(username string, password string) (*model.Teache
 	return nil, errors.New("用户名或密码不正确")
 }
 
+// 咨询师更改密码
+func (w *Workflow) TeacherChangePassword(username, oldPassword, newPassword string, userId string, userType int) (*model.Teacher, error) {
+	if userId == "" {
+		return nil, errors.New("请先登录")
+	} else if userType != model.USER_TYPE_TEACHER {
+		return nil, errors.New("权限不足")
+	} else if username == "" {
+		return nil, errors.New("用户名为空")
+	} else if oldPassword == "" {
+		return nil, errors.New("旧密码为空")
+	} else if newPassword == "" {
+		return nil, errors.New("新密码为空")
+	}
+	teacher, err := w.model.GetTeacherById(userId)
+	if err != nil {
+		return nil, errors.New("咨询师账户失效")
+	} else if teacher.UserType != model.USER_TYPE_TEACHER {
+		return nil, errors.New("权限不足")
+	} else if username != teacher.Username {
+		return nil, errors.New("权限不足")
+	}
+	if (teacher.EncryptedPassword != "" && !utils.ValidatePassword(oldPassword, teacher.EncryptedPassword)) ||
+		(teacher.EncryptedPassword == "" && oldPassword != teacher.Password) {
+		return nil, errors.New("旧密码不正确")
+	}
+	if (oldPassword == newPassword) {
+		return nil, errors.New("新密码不能与原有密码一样")
+	}
+	encryptedPassword, err := utils.EncryptPassword(newPassword)
+	if err != nil {
+		return nil, errors.New("新密码不符合要求")
+	}
+	teacher.EncryptedPassword = encryptedPassword
+	if err = w.model.UpsertTeacher(teacher); err != nil {
+		return nil, errors.New("更改密码失败")
+	}
+	return teacher, nil
+}
+
 // 管理员登录
 func (w *Workflow) AdminLogin(username string, password string) (*model.Admin, error) {
 	if username == "" {

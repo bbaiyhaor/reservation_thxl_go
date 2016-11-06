@@ -20,12 +20,12 @@ export default class LogoutButton extends React.Component {
   }
 
   logout() {
-    User.logout((payload) => {
-      if (payload.redirect_url) {
-        window.location.href = payload.redirect_url;
+    User.logout((data) => {
+      if (data.redirect_url) {
+        window.location.href = data.redirect_url;
       }
-    }, (status) => {
-      this.alert.show('登出失败', status, '好的');
+    }, (error) => {
+      this.alert.show('登出失败', error, '好的');
     });
   }
 

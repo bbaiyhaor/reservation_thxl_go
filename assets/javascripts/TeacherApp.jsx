@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 import { Router, Route, IndexRoute, hashHistory } from 'react-router';
 
 import TeacherLoginPage from '#pages/teacher/TeacherLoginPage';
+import TeacherChangePasswordPage from '#pages/teacher/TeacherChangePasswordPage';
 import TeacherReservationListPage from '#pages/teacher/TeacherReservationListPage';
 import TeacherFeedbackPage from '#pages/teacher/TeacherFeedbackPage';
 import TeacherViewStudentInfoPage from '#pages/teacher/TeacherViewStudentInfoPage';
@@ -14,6 +15,7 @@ const routes = (
   <Route path="/">
     <IndexRoute component={TeacherReservationListPage} />
     <Route path="login" component={TeacherLoginPage} />
+    <Route path="password/change" component={TeacherChangePasswordPage} />
     <Route path="reservation" component={TeacherReservationListPage} />
     <Route path="reservation/feedback" component={TeacherFeedbackPage} />
     <Route path="student" component={TeacherViewStudentInfoPage} />

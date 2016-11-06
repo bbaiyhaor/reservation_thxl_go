@@ -6,14 +6,14 @@ import { hashHistory } from 'react-router';
 import { Panel, PanelHeader, PanelBody } from '#react-weui';
 import 'weui';
 
-import ChangePasswordForm from '#forms/ChangePasswordForm';
+import ResetPasswordForm from '#forms/ResetPasswordForm';
 import PageBottom from '#coms/PageBottom';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { User } from '#models/Models';
 
-export default class TeacherChangePasswordPage extends React.Component {
-  static handleCancel() {
-    hashHistory.goBack();
+export default class TeacherResetPasswordPage extends React.Component {
+  static toLogin() {
+    hashHistory.push('login');
   }
 
   constructor(props) {
@@ -22,27 +22,19 @@ export default class TeacherChangePasswordPage extends React.Component {
     this.showAlert = this.showAlert.bind(this);
   }
 
-  handleSubmit(oldPassword, newPassword) {
+  handleSubmit(username, newPassword, verifyCode) {
     this.loading.show('正在加载中');
-    User.updateSession(() => {
-      setTimeout(() => {
-        User.teacherPasswordChange(User.username, oldPassword, newPassword, () => {
-          this.loading.hide();
-          this.alert.show('更改成功', '您已成功更改密码，请重新登录', '好的', () => {
-            User.logout((data) => {
-              if (data.redirect_url) {
-                window.location.href = data.redirect_url;
-              }
-            });
-          });
-        }, (error) => {
-          this.loading.hide();
-          this.alert.show('更改失败', error, '好的');
+    setTimeout(() => {
+      User.teacherPasswordResetVerify(username, newPassword, verifyCode, () => {
+        this.loading.hide();
+        this.alert.show('重置成功', '您已成功重置密码，请重新登录', '好的', () => {
+          hashHistory.push('login');
         });
-      }, 500);
-    }, () => {
-      hashHistory.push('login');
-    });
+      }, (error) => {
+        this.loading.hide();
+        this.alert.show('重置失败', error, '好的');
+      });
+    }, 500);
   }
 
   showAlert(title, msg, label) {
@@ -55,18 +47,21 @@ export default class TeacherChangePasswordPage extends React.Component {
         <Panel>
           <PanelHeader style={{ fontSize: '18px' }}>咨询师更改密码</PanelHeader>
           <PanelBody>
-            <ChangePasswordForm
-              titleTip="请输入原密码和新密码"
-              oldPasswordLabel="原密码"
-              oldPasswordPlaceholder="请输入原密码"
+            <ResetPasswordForm
+              usernameLabel="工号"
+              usernamePlaceholder="请输入工号"
+              mobileLabel="手机号"
+              mobilePlaceholder="请输入手机号"
+              verifyCodeLabel="验证码"
+              verifyCodePlaceholder="请输入验证码"
               newPasswordLabel="新密码"
               newPasswordPlaceholder="请输入新密码"
               newPasswordConfirmLabel="确认密码"
               newPasswordConfirmPlaceholder="请确认新密码"
-              submitText="确认更改"
-              cancelText="取消"
+              submitText="重置密码"
+              cancelText="返回登录"
               handleSubmit={this.handleSubmit}
-              handleCancel={TeacherChangePasswordPage.handleCancel}
+              handleCancel={TeacherResetPasswordPage.toLogin}
               showAlert={this.showAlert}
             />
             <div style={{ color: '#999999', padding: '10px 20px', textAlign: 'center', fontSize: '13px' }}>

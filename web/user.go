@@ -27,6 +27,8 @@ func (uc *UserController) MuxHandlers(m JsonMuxer) {
 	m.PostJson(kUserApiBaseUrl+"/student/register", "StudentRegister", uc.studentRegister)
 	m.PostJson(kUserApiBaseUrl+"/teacher/login", "TeacherLogin", uc.teacherLogin)
 	m.PostJson(kUserApiBaseUrl+"/teacher/password/change", "TeacherChangePassword", RoleCookieInjection(uc.teacherChangePassword))
+	m.PostJson(kUserApiBaseUrl+"/teacher/password/reset/sms", "TeacherResetPasswordSms", uc.teacherResetPasswordSms)
+	m.PostJson(kUserApiBaseUrl+"/teacher/password/reset/verify", "TeacherResetPasswordVerify", uc.teacherResetPasswordVerify)
 	m.PostJson(kUserApiBaseUrl+"/admin/login", "AdminLogin", uc.adminLogin)
 	m.GetJson(kUserApiBaseUrl+"/logout", "Logout", RoleCookieInjection(uc.logout))
 	m.GetJson(kUserApiBaseUrl+"/session", "UpdateSession", RoleCookieInjection(uc.updateSession))
@@ -196,6 +198,35 @@ func (uc *UserController) teacherChangePassword(w http.ResponseWriter, r *http.R
 		return http.StatusOK, wrapJsonError(err.Error())
 	}
 	result["teacher"] = service.Workflow().WrapTeacher(teacher)
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (uc *UserController) teacherResetPasswordSms(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
+	username := r.FormValue("username")
+	mobile := r.FormValue("mobile")
+
+	var result = make(map[string]interface{})
+
+	err := service.Workflow().TeacherResetPasswordSms(username, mobile)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err.Error())
+	}
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (uc *UserController) teacherResetPasswordVerify(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
+	username := r.FormValue("username")
+	newPassword := r.FormValue("new_password")
+	verifyCode := r.FormValue("verify_code")
+
+	var result = make(map[string]interface{})
+
+	err := service.Workflow().TeacherRestPasswordVerify(username, newPassword, verifyCode)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err.Error())
+	}
 
 	return http.StatusOK, wrapJsonOk(result)
 }

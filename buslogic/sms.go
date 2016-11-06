@@ -22,6 +22,8 @@ const (
 	SMS_REMINDER_STUDENT = "温馨提示：%s你好，你已成功预约明天%s-%s咨询，地点：紫荆C楼409室。电话：62782007。"
 	SMS_REMINDER_TEACHER = "温馨提示：%s您好，%s已预约您明天%s-%s咨询，地点：紫荆C楼409室。电话：62782007。"
 	SMS_FEEDBACK_STUDENT = "温馨提示：%s你好，感谢使用我们的一对一咨询服务，请再次登录预约界面，为咨询师反馈评分，帮助我们成长。"
+
+	SMS_TEACHER_RESET_PASSWORD = "%s您好，您正在申请重置咨询中心登录密码，验证码：%s，请在10分钟内输入。"
 )
 
 var (
@@ -120,6 +122,14 @@ func (w *Workflow) SendFeedbackSMS(reservation *model.Reservation) error {
 	}
 	studentSMS := fmt.Sprintf(SMS_FEEDBACK_STUDENT, student.Fullname)
 	if err := w.sendSMS(student.Mobile, studentSMS); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (w *Workflow) SendResetPasswordSMS(teacher *model.Teacher, verifyCode string) error {
+	verifySMS := fmt.Sprintf(SMS_TEACHER_RESET_PASSWORD, teacher.Fullname, verifyCode)
+	if err := w.sendSMS(teacher.Mobile, verifySMS); err != nil {
 		return err
 	}
 	return nil

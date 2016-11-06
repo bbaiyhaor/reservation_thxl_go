@@ -3,7 +3,9 @@ package service
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	"github.com/mijia/sweb/log"
+	"gopkg.in/redis.v5"
 )
 
 var wf *buslogic.Workflow
@@ -20,4 +22,12 @@ func InitService(confPath string, isSmock bool) {
 
 func Workflow() *buslogic.Workflow {
 	return wf
+}
+
+func Model() *model.Model {
+	return wf.Model()
+}
+
+func RedisClient() *redis.Client {
+	return wf.RedisClient()
 }

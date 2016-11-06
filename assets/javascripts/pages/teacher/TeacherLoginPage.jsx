@@ -12,6 +12,10 @@ import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { User } from '#models/Models';
 
 export default class TeacherLoginPage extends React.Component {
+  static toReset() {
+    hashHistory.push('password/reset');
+  }
+
   constructor(props) {
     super(props);
     this.onLogin = this.onLogin.bind(this);
@@ -43,7 +47,9 @@ export default class TeacherLoginPage extends React.Component {
               passwordLabel="密码"
               passwordPlaceholder="请输入密码"
               submitText="登录"
+              cancelText="忘记密码"
               handleSubmit={this.onLogin}
+              handleCancel={TeacherLoginPage.toReset}
             />
             <div style={{ color: '#999999', padding: '10px 20px', textAlign: 'center', fontSize: '13px' }}>
               账号密码遇到任何问题，请与管理员联络。

@@ -1,0 +1,30 @@
+package model
+
+import (
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
+	"gopkg.in/redis.v5"
+	"log"
+)
+
+const (
+	REDIS_KEY_TEACHER_RESET_PASSWORD_VERIFY_CODE = "thxlfzzx#teacher_reset_password_verify_code_%s"
+)
+
+func NewRedisClient() *redis.Client {
+	var client *redis.Client
+	if config.Instance().IsSmockServer() {
+		client = redis.NewClient(&redis.Options{
+			Addr:     "localhost:6379",
+			Password: "",
+			DB:       0,
+		})
+	} else {
+		// TODO: production config
+	}
+	pong, err := client.Ping().Result()
+	if err != nil {
+		log.Fatalf("连接Redis失败：%v", err)
+	}
+	log.Printf("连接Redis成功：%s", pong)
+	return client
+}

@@ -15,6 +15,8 @@ const apiStudentLogin = `${apiServer}/user/student/login`;
 const apiStudentRegister = `${apiServer}/user/student/register`;
 const apiTeacherLogin = `${apiServer}/user/teacher/login`;
 const apiTeacherPasswordChange = `${apiServer}/user/teacher/password/change`;
+const apiTeacherPasswordResetSms = `${apiServer}/user/teacher/password/reset/sms`;
+const apiTeacherPasswordResetVerify = `${apiServer}/user/teacher/password/reset/verify`;
 // const apiAdminLogin = `${apiServer}/user/admin/login`;
 const apiLogout = `${apiServer}/user/logout`;
 
@@ -158,6 +160,37 @@ export const User = {
       new_password: newPassword,
     };
     fetch(apiTeacherPasswordChange, 'POST', payload, succ, errCallback);
+  },
+
+  teacherPasswordResetSms(username, mobile, succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    const payload = {
+      username,
+      mobile,
+    };
+    fetch(apiTeacherPasswordResetSms, 'POST', payload, succ, errCallback);
+  },
+
+  teacherPasswordResetVerify(username, newPassword, verifyCode, succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    const payload = {
+      username,
+      new_password: newPassword,
+      verify_code: verifyCode,
+    };
+    fetch(apiTeacherPasswordResetVerify, 'POST', payload, succ, errCallback);
   },
 
   logout(succCallback, errCallback) {

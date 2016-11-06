@@ -4,6 +4,9 @@ import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"errors"
+	"fmt"
+	"gopkg.in/redis.v3"
+	"time"
 )
 
 const (
@@ -84,7 +87,7 @@ func (w *Workflow) TeacherChangePassword(username, oldPassword, newPassword stri
 		(teacher.EncryptedPassword == "" && oldPassword != teacher.Password) {
 		return nil, errors.New("旧密码不正确")
 	}
-	if (oldPassword == newPassword) {
+	if oldPassword == newPassword {
 		return nil, errors.New("新密码不能与原有密码一样")
 	}
 	encryptedPassword, err := utils.EncryptPassword(newPassword)
@@ -96,6 +99,58 @@ func (w *Workflow) TeacherChangePassword(username, oldPassword, newPassword stri
 		return nil, errors.New("更改密码失败")
 	}
 	return teacher, nil
+}
+
+func (w *Workflow) TeacherResetPasswordSms(username, mobile string) error {
+	if username == "" {
+		return errors.New("用户名为空")
+	} else if mobile == "" {
+		return errors.New("手机号为空")
+	}
+	teacher, err := w.model.GetTeacherByUsername(username)
+	if err != nil || teacher.Mobile != mobile {
+		return errors.New("用户名与手机号不匹配")
+	}
+	verifyCode, err := utils.GenerateVerifyCode(6)
+	if err != nil {
+		return errors.New("发送短信失败，请稍后重试")
+	}
+	err = w.redisClient.Set(fmt.Sprintf(model.REDIS_KEY_TEACHER_RESET_PASSWORD_VERIFY_CODE, teacher.Id.Hex()), verifyCode, 10*time.Minute).Err()
+	if err != nil {
+		return errors.New("发送短信失败，请稍后重试")
+	}
+	if err = w.SendResetPasswordSMS(teacher, verifyCode); err != nil {
+		return errors.New("发送短信失败，请稍后重试")
+	}
+	return nil
+}
+
+func (w *Workflow) TeacherRestPasswordVerify(username, newPassword, verifyCode string) error {
+	if username == "" {
+		return errors.New("用户名为空")
+	} else if newPassword == "" {
+		return errors.New("新密码为空")
+	} else if verifyCode == "" {
+		return errors.New("验证码为空")
+	}
+	teacher, err := w.model.GetTeacherByUsername(username)
+	if err != nil {
+		return errors.New("咨询师不存在")
+	}
+	val, err := w.redisClient.Get(fmt.Sprintf(model.REDIS_KEY_TEACHER_RESET_PASSWORD_VERIFY_CODE, teacher.Id.Hex())).Result()
+	if err != nil || err == redis.Nil || val != verifyCode {
+		return errors.New("验证码错误或已过期")
+	}
+	w.redisClient.Del(fmt.Sprintf(model.REDIS_KEY_TEACHER_RESET_PASSWORD_VERIFY_CODE, teacher.Id.Hex()))
+	encryptedPassword, err := utils.EncryptPassword(newPassword)
+	if err != nil {
+		return errors.New("新密码不符合要求")
+	}
+	teacher.EncryptedPassword = encryptedPassword
+	if err = w.model.UpsertTeacher(teacher); err != nil {
+		return errors.New("更改密码失败")
+	}
+	return nil
 }
 
 // 管理员登录

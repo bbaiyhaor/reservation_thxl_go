@@ -20,6 +20,9 @@ type Config struct {
 	MongoDatabase     string   `json:"mongo_database"`
 	MongoUser         string   `json:"mongo_user"`
 	MongoPassword     string   `json:"mongo_password"`
+	RedisAddress      string   `json:"redis_address"`
+	RedisPassword     string   `json:"redis_password"`
+	RedisDatabase     int      `json:"redis_database"`
 }
 
 var conf *Config

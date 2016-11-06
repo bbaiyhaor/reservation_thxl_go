@@ -19,7 +19,11 @@ func NewRedisClient() *redis.Client {
 			DB:       0,
 		})
 	} else {
-		// TODO: production config
+		client = redis.NewClient(&redis.Options{
+			Addr:     config.Instance().RedisAddress,
+			Password: config.Instance().RedisPassword,
+			DB:       config.Instance().RedisDatabase,
+		})
 	}
 	pong, err := client.Ping().Result()
 	if err != nil {

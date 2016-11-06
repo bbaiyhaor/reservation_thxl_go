@@ -18,10 +18,6 @@
 			"Rev": "d8ff598a019f2c7bad0980917a588193cf26666e"
 		},
 		{
-			"ImportPath": "github.com/kusora/raven-go",
-			"Rev": "105282e4fe0a3fccf063763308eb1450cac2e362"
-		},
-		{
 			"ImportPath": "github.com/mijia/sweb/log",
 			"Rev": "169a3affd5ea43b3aaaa81744a0b86ff89e2b3f3"
 		},
@@ -84,6 +80,10 @@
 			"Rev": "87ad79f47ac96edbf2568691d123d113fd7ac535"
 		},
 		{
+			"ImportPath": "gopkg.in/bsm/ratelimit.v1",
+			"Rev": "db14e161995a5177acef654cb0dd785e8ee8bc22"
+		},
+		{
 			"ImportPath": "gopkg.in/mgo.v2",
 			"Comment": "r2015.10.05-1-g4d04138",
 			"Rev": "4d04138ffef2791c479c0c8bbffc30b34081b8d9"
@@ -102,6 +102,36 @@
 			"ImportPath": "gopkg.in/mgo.v2/internal/scram",
 			"Comment": "r2015.10.05-1-g4d04138",
 			"Rev": "4d04138ffef2791c479c0c8bbffc30b34081b8d9"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v5",
+			"Comment": "v5.0.1",
+			"Rev": "80cf5d1652d5590c35edc6c2dc1aa354790e3010"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v5/internal",
+			"Comment": "v5.0.1",
+			"Rev": "80cf5d1652d5590c35edc6c2dc1aa354790e3010"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v5/internal/consistenthash",
+			"Comment": "v5.0.1",
+			"Rev": "80cf5d1652d5590c35edc6c2dc1aa354790e3010"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v5/internal/hashtag",
+			"Comment": "v5.0.1",
+			"Rev": "80cf5d1652d5590c35edc6c2dc1aa354790e3010"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v5/internal/pool",
+			"Comment": "v5.0.1",
+			"Rev": "80cf5d1652d5590c35edc6c2dc1aa354790e3010"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v5/internal/proto",
+			"Comment": "v5.0.1",
+			"Rev": "80cf5d1652d5590c35edc6c2dc1aa354790e3010"
 		}
 	]
 }

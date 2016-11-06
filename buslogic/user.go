@@ -5,7 +5,7 @@ import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"errors"
 	"fmt"
-	"gopkg.in/redis.v3"
+	"gopkg.in/redis.v5"
 	"time"
 )
 

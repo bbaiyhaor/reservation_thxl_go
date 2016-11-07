@@ -10,17 +10,16 @@ import (
 	"path/filepath"
 )
 
+var EXPORT_FOLDER = filepath.Join("static", "export")
+
 const (
-	DefaultStudentExportExcelFilename   = "student_export_template.xlsx"
-	DefaultTimetableExportExcelFilename = "timetable_export_template.xlsx"
-	ExportFolder                        = "../assets/export/"
-	ExcelSuffix                         = ".xlsx"
-	CsvSuffix                           = ".csv"
+	EXCEL_FILE_SUFFIX = ".xlsx"
+	CSV_FILE_SUFFIX   = ".csv"
 )
 
-func WriteToCSV(data [][]string, filename string) error {
+func WriteToCSV(data [][]string, path string) error {
 	// 写入文件
-	fout, err := os.Create(filepath.FromSlash(ExportFolder + filename))
+	fout, err := os.Create(path)
 	if err != nil {
 		return errors.New(fmt.Sprintf("建立文件失败：%v", err))
 	}
@@ -34,8 +33,8 @@ func WriteToCSV(data [][]string, filename string) error {
 	return nil
 }
 
-func ReadFromCSV(filename string) ([][]string, error) {
-	fin, err := os.Open(filepath.FromSlash(filename))
+func ReadFromCSV(path string) ([][]string, error) {
+	fin, err := os.Open(path)
 	if err != nil || fin == nil {
 		return nil, errors.New(fmt.Sprintf("打开文件失败: %v", err))
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/scorredoira/email"
 	"log"
 	"net/mail"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -246,7 +247,7 @@ func (w *Workflow) CloseTimetablesByAdmin(timedReservationIds []string, userId s
 	return closed, nil
 }
 
-func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.Reservation, filename string) error {
+func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.Reservation, path string) error {
 	data := make([][]string, 0)
 	today := utils.BeginOfDay(time.Now())
 	data = append(data, []string{today.Format("2006-01-02")})
@@ -264,7 +265,7 @@ func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.R
 				teacher.Fullname, "", ""})
 		}
 	}
-	if err := utils.WriteToCSV(data, filename); err != nil {
+	if err := utils.WriteToCSV(data, path); err != nil {
 		return err
 	}
 	return nil
@@ -288,8 +289,8 @@ func (w *Workflow) SendTodayTimetableMail(mailTo string) {
 		}
 	}
 	sort.Sort(ByStartTimeOfReservation(reservations))
-	filename := "timetable_" + todayDate + utils.CsvSuffix
-	if err = w.ExportTodayReservationTimetableToFile(reservations, filename); err != nil {
+	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("timetable_%s%s", todayDate, utils.CSV_FILE_SUFFIX))
+	if err = w.ExportTodayReservationTimetableToFile(reservations, path); err != nil {
 		log.Printf("%v", err)
 		return
 	}
@@ -298,7 +299,7 @@ func (w *Workflow) SendTodayTimetableMail(mailTo string) {
 	m := email.NewMessage(title, title)
 	m.From = mail.Address{Name: "", Address: config.Instance().SMTPUser}
 	m.To = strings.Split(mailTo, ",")
-	m.Attach(fmt.Sprintf("%s%s", utils.ExportFolder, filename))
+	m.Attach(path)
 	if err := utils.SendEmail(m); err != nil {
 		log.Printf("发送邮件失败：%v", err)
 		return

@@ -212,7 +212,7 @@ func (w *Workflow) SubmitFeedbackByStudent(reservationId string, sourceId string
 }
 
 //
-func (w *Workflow) ExportStudentInfoToFile(student *model.Student, filename string) error {
+func (w *Workflow) ExportStudentInfoToFile(student *model.Student, path string) error {
 	data := make([][]string, 0)
 	data = append(data, []string{"档案分类", student.ArchiveCategory, "档案编号", student.ArchiveNumber})
 	// 学生基本信息
@@ -312,7 +312,7 @@ func (w *Workflow) ExportStudentInfoToFile(student *model.Student, filename stri
 		}
 		data = append(data, []string{""})
 	}
-	if err := utils.WriteToCSV(data, filename); err != nil {
+	if err := utils.WriteToCSV(data, path); err != nil {
 		return err
 	}
 	return nil

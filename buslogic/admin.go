@@ -5,6 +5,7 @@ import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"time"
@@ -71,9 +72,9 @@ func (w *Workflow) AddReservationByAdmin(startTime string, endTime string, teach
 	}
 	for _, r := range theDayReservations {
 		if r.TeacherId == teacher.Id.Hex() {
-			if (start.After(r.StartTime) && start.Before(r.EndTime) ||
+			if start.After(r.StartTime) && start.Before(r.EndTime) ||
 				(end.After(r.StartTime) && end.Before(r.EndTime)) ||
-				(!start.After(r.StartTime) && !end.Before(r.EndTime))) {
+				(!start.After(r.StartTime) && !end.Before(r.EndTime)) {
 				return nil, errors.New("咨询师时间有冲突")
 			}
 		}
@@ -85,9 +86,9 @@ func (w *Workflow) AddReservationByAdmin(startTime string, endTime string, teach
 	for _, tr := range theDayTimedReservations {
 		if tr.TeacherId == teacher.Id.Hex() {
 			r := tr.ToReservation(start)
-			if (start.After(r.StartTime) && start.Before(r.EndTime) ||
+			if start.After(r.StartTime) && start.Before(r.EndTime) ||
 				(end.After(r.StartTime) && end.Before(r.EndTime)) ||
-				(!start.After(r.StartTime) && !end.Before(r.EndTime))) {
+				(!start.After(r.StartTime) && !end.Before(r.EndTime)) {
 				return nil, errors.New("咨询师时间有冲突")
 			}
 		}
@@ -173,9 +174,9 @@ func (w *Workflow) EditReservationByAdmin(reservationId string, sourceId string,
 	}
 	for _, r := range theDayReservations {
 		if r.TeacherId == teacher.Id.Hex() {
-			if (start.After(r.StartTime) && start.Before(r.EndTime) ||
+			if start.After(r.StartTime) && start.Before(r.EndTime) ||
 				(end.After(r.StartTime) && end.Before(r.EndTime)) ||
-				(!start.After(r.StartTime) && !end.Before(r.EndTime))) {
+				(!start.After(r.StartTime) && !end.Before(r.EndTime)) {
 				return nil, errors.New("咨询师时间有冲突")
 			}
 		}
@@ -187,9 +188,9 @@ func (w *Workflow) EditReservationByAdmin(reservationId string, sourceId string,
 	for _, tr := range theDayTimedReservations {
 		if tr.TeacherId == teacher.Id.Hex() {
 			r := tr.ToReservation(start)
-			if (start.After(r.StartTime) && start.Before(r.EndTime) ||
+			if start.After(r.StartTime) && start.Before(r.EndTime) ||
 				(end.After(r.StartTime) && end.Before(r.EndTime)) ||
-				(!start.After(r.StartTime) && !end.Before(r.EndTime))) {
+				(!start.After(r.StartTime) && !end.Before(r.EndTime)) {
 				return nil, errors.New("咨询师时间有冲突")
 			}
 		}
@@ -703,12 +704,11 @@ func (w *Workflow) ExportStudentByAdmin(studentId string, userId string, userTyp
 	if student.ArchiveNumber == "" {
 		return "", errors.New("请先分配档案号")
 	}
-	filename := "student_" + student.ArchiveNumber + "_" + student.Username + "_" +
-		time.Now().Format("2006-01-02") + utils.CsvSuffix
-	if err = w.ExportStudentInfoToFile(student, filename); err != nil {
+	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("student_%s_%s_%s%s", student.ArchiveNumber, student.Username, time.Now().Format("2006-01-02"), utils.CSV_FILE_SUFFIX))
+	if err = w.ExportStudentInfoToFile(student, path); err != nil {
 		return "", err
 	}
-	return "/" + utils.ExportFolder + filename, nil
+	return path, nil
 }
 
 // 管理员解绑学生的匹配咨询师
@@ -815,14 +815,14 @@ func (w *Workflow) ExportTodayReservationTimetableByAdmin(userId string, userTyp
 		}
 	}
 	sort.Sort(ByStartTimeOfReservation(reservations))
-	filename := "timetable_" + todayDate + utils.CsvSuffix
 	if len(reservations) == 0 {
 		return "", errors.New("今日无咨询")
 	}
-	if err = w.ExportTodayReservationTimetableToFile(reservations, filename); err != nil {
+	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("timetable_%s%s", todayDate, utils.CSV_FILE_SUFFIX))
+	if err = w.ExportTodayReservationTimetableToFile(reservations, path); err != nil {
 		return "", err
 	}
-	return "/" + utils.ExportFolder + filename, nil
+	return path, nil
 }
 
 // 查找咨询师
@@ -947,14 +947,14 @@ func (w *Workflow) ExportReportFormByAdmin(fromDate string, toDate string, userI
 	if err != nil {
 		return "", errors.New("获取数据失败")
 	}
-	filename := fmt.Sprintf("monthly_report_%s_%s%s", fromDate, toDate, utils.CsvSuffix)
 	if len(reservations) == 0 {
 		return "", nil
 	}
-	if err = w.ExportReportFormToFile(reservations, filename); err != nil {
+	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_report_%s_%s%s", fromDate, toDate, utils.CSV_FILE_SUFFIX))
+	if err = w.ExportReportFormToFile(reservations, path); err != nil {
 		return "", err
 	}
-	return "/" + utils.ExportFolder + filename, nil
+	return path, nil
 }
 
 // 管理员导出报表
@@ -980,16 +980,16 @@ func (w *Workflow) ExportReportMonthlyByAdmin(monthlyDate string, userId string,
 	if err != nil {
 		return "", "", errors.New("获取数据失败")
 	}
-	reportFilename := fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), utils.CsvSuffix)
-	keyCaseFilename := fmt.Sprintf("monthly_key_case_%d_%d%s", date.Year(), date.Month(), utils.CsvSuffix)
 	if len(reservations) == 0 {
 		return "", "", nil
 	}
-	if err = w.ExportReportFormToFile(reservations, reportFilename); err != nil {
+	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), utils.CSV_FILE_SUFFIX))
+	keyCasePath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_key_case_%d_%d%s", date.Year(), date.Month(), utils.CSV_FILE_SUFFIX))
+	if err = w.ExportReportFormToFile(reservations, reportPath); err != nil {
 		return "", "", err
 	}
-	//if err = workflow.ExportKeyCaseReport(reservations, keyCaseFilename); err != nil {
+	//if err = workflow.ExportKeyCaseReport(reservations, keyCasePath); err != nil {
 	//	return "", "", err
 	//}
-	return "/" + utils.ExportFolder + reportFilename, "/" + utils.ExportFolder + keyCaseFilename, nil
+	return reportPath, keyCasePath, nil
 }

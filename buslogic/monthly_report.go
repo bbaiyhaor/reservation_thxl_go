@@ -22,7 +22,7 @@ type MonthlyReport struct {
 	Amount        int
 }
 
-func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, filename string) error {
+func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, path string) error {
 	report := make(map[string]*MonthlyReport)
 	for index, category := range model.FeedbackAllCategory {
 		report[index] = &MonthlyReport{
@@ -201,7 +201,7 @@ func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, fil
 	amountLine = append(amountLine, strconv.Itoa(amount.Amount))
 	data = append(data, amountLine)
 	data = append(data, percentLine)
-	if err := utils.WriteToCSV(data, filename); err != nil {
+	if err := utils.WriteToCSV(data, path); err != nil {
 		return err
 	}
 	return nil

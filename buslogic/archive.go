@@ -2,12 +2,13 @@ package buslogic
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
+	"path/filepath"
 )
 
-const ArchiveFile = "./assets/import/archive.csv"
+var IMPORT_ARCHIVE_FILE = filepath.Join("static", "import", "archive.csv")
 
 func (w *Workflow) ImportArchiveFromCSVFile() error {
-	data, err := utils.ReadFromCSV(ArchiveFile)
+	data, err := utils.ReadFromCSV(IMPORT_ARCHIVE_FILE)
 	if err != nil {
 		return err
 	}

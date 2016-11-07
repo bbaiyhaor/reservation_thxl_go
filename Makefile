@@ -39,4 +39,4 @@ restart: kill $(TARGET)
 
 dist: clean $(TARGET)
 	@NODE_ENV=production $(NODE_BIN)/webpack --progress --colors
-	@zip -r -v $(APP_NAME)-$(APP_VERSION).zip $(TARGET) webpack-assets.json public templates
+	@zip -r -v $(APP_NAME)-$(APP_VERSION).zip $(TARGET) deploy/thxl.conf webpack-assets.json public templates static

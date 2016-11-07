@@ -6,6 +6,7 @@ thxl/thxl
 external/external
 reservation_thxl_go
 reservation_thxl_go-*
+reservation_thxl_go_external-*
 reservation_thxl_go.iml
 node_modules
 node_modules/

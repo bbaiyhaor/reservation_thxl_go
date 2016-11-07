@@ -15,7 +15,7 @@ func main() {
 	var isDebug, isSmock bool
 	flag.StringVar(&webAddress, "web", ":9000", "Web address server listening on")
 	flag.StringVar(&debugAssetsPort, "devWeb", "", "Web address server listening on (like :9010)")
-	flag.StringVar(&confPath, "conf", "./deploy/thxl.conf", "Configuration file path for service")
+	flag.StringVar(&confPath, "conf", "deploy/thxl.conf", "Configuration file path for service")
 	flag.BoolVar(&isDebug, "debug", false, "Debug mode")
 	flag.BoolVar(&isSmock, "smock", true, "Smock server")
 	flag.Parse()

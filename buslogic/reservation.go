@@ -207,7 +207,7 @@ func (w *Workflow) GetReservationsDailyByAdmin(fromDate string, userId string, u
 	}
 	if timedReservations, err := w.model.GetTimedReservationsByWeekday(from.Weekday()); err == nil {
 		for _, tr := range timedReservations {
-			if !tr.Exceptions[fromDate] && !tr.Timed[fromDate] {
+			if tr.Status == model.AVAILABLE && !tr.Exceptions[fromDate] && !tr.Timed[fromDate] {
 				reservations = append(reservations, tr.ToReservation(from))
 			}
 		}

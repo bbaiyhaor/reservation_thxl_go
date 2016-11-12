@@ -171,7 +171,6 @@ func (rc *ReservationController) GetFeedbackByStudent(w http.ResponseWriter, r *
 func (rc *ReservationController) SubmitFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := r.FormValue("reservation_id")
 	sourceId := r.FormValue("source_id")
-	r.ParseForm()
 	scores := []string(r.Form["scores"])
 	scoresInt := []int{}
 	for _, p := range scores {
@@ -242,7 +241,6 @@ func (rc *ReservationController) SubmitFeedbackByTeacher(w http.ResponseWriter, 
 	reservationId := r.FormValue("reservation_id")
 	sourceId := r.FormValue("source_id")
 	category := r.FormValue("category")
-	r.ParseForm()
 	participants := []string(r.Form["participants"])
 	participantsInt := make([]int, 0)
 	for _, p := range participants {
@@ -412,7 +410,7 @@ func (rc *ReservationController) ExportTodayReservationsByAdmin(w http.ResponseW
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err.Error())
 	}
-	result["url"] = url
+	result["url"] = "/" + url
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -423,15 +421,15 @@ func (rc *ReservationController) AddReservationByAdmin(w http.ResponseWriter, r 
 	teacherUsername := r.FormValue("teacher_username")
 	teacherFullname := r.FormValue("teacher_fullname")
 	teacherMobile := r.FormValue("teacher_mobile")
-	force, err := strconv.ParseBool(r.FormValue("force"))
-	if err != nil {
-		return http.StatusOK, wrapJsonError("参数错误，请联系管理员")
+	var forceBool bool
+	if force := r.FormValue("force"); force != "" {
+		forceBool, _ = strconv.ParseBool(r.FormValue("force"))
 	}
 
 	var result = make(map[string]interface{})
 
 	reservation, err := service.Workflow().AddReservationByAdmin(startTime, endTime, teacherUsername, teacherFullname,
-		teacherMobile, force, userId, userType)
+		teacherMobile, forceBool, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err.Error())
 	}
@@ -449,15 +447,15 @@ func (rc *ReservationController) EditReservationByAdmin(w http.ResponseWriter, r
 	teacherUsername := r.FormValue("teacher_username")
 	teacherFullname := r.FormValue("teacher_fullname")
 	teacherMobile := r.FormValue("teacher_mobile")
-	force, err := strconv.ParseBool(r.FormValue("force"))
-	if err != nil {
-		return http.StatusOK, wrapJsonError("参数错误，请联系管理员")
+	var forceBool bool
+	if force := r.FormValue("force"); force != "" {
+		forceBool, _ = strconv.ParseBool(r.FormValue("force"))
 	}
 
 	var result = make(map[string]interface{})
 
 	reservation, err := service.Workflow().EditReservationByAdmin(reservationId, sourceId, originalStartTime,
-		startTime, endTime, teacherUsername, teacherFullname, teacherMobile, force, userId, userType)
+		startTime, endTime, teacherUsername, teacherFullname, teacherMobile, forceBool, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err.Error())
 	}
@@ -467,7 +465,6 @@ func (rc *ReservationController) EditReservationByAdmin(w http.ResponseWriter, r
 }
 
 func (rc *ReservationController) RemoveReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
-	r.ParseForm()
 	reservationIds := []string(r.Form["reservation_ids"])
 	sourceIds := []string(r.Form["source_ids"])
 	startTimes := []string(r.Form["start_times"])
@@ -484,7 +481,6 @@ func (rc *ReservationController) RemoveReservationsByAdmin(w http.ResponseWriter
 }
 
 func (rc *ReservationController) CancelReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
-	r.ParseForm()
 	reservationIds := []string(r.Form["reservation_ids"])
 	sourceIds := []string(r.Form["source_ids"])
 
@@ -520,7 +516,6 @@ func (rc *ReservationController) SubmitFeedbackByAdmin(w http.ResponseWriter, r 
 	reservationId := r.FormValue("reservation_id")
 	sourceId := r.FormValue("source_id")
 	category := r.FormValue("category")
-	r.ParseForm()
 	participants := []string(r.Form["participants"])
 	participantsInt := make([]int, 0)
 	for _, p := range participants {
@@ -709,7 +704,7 @@ func (rc *ReservationController) ExportStudentByAdmin(w http.ResponseWriter, r *
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err.Error())
 	}
-	result["url"] = url
+	result["url"] = "/" + url
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -806,7 +801,7 @@ func (rc *ReservationController) ExportReportFormByAdmin(w http.ResponseWriter, 
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err.Error())
 	}
-	result["url"] = url
+	result["url"] = "/" + url
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -820,8 +815,8 @@ func (rc *ReservationController) ExportReportMonthlyByAdmin(w http.ResponseWrite
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err.Error())
 	}
-	result["report_url"] = reportUrl
-	result["key_case_url"] = keyCaseUrl
+	result["report_url"] = "/" + reportUrl
+	result["key_case_url"] = "/" + keyCaseUrl
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -855,15 +850,15 @@ func (rc *ReservationController) AddTimedReservationByAdmin(w http.ResponseWrite
 	teacherUsername := r.FormValue("teacher_username")
 	teacherFullname := r.FormValue("teacher_fullname")
 	teacherMobile := r.FormValue("teacher_mobile")
-	force, err := strconv.ParseBool(r.FormValue("force"))
-	if err != nil {
-		return http.StatusOK, wrapJsonError("参数错误，请联系管理员")
+	var forceBool bool
+	if force := r.FormValue("force"); force != "" {
+		forceBool, _ = strconv.ParseBool(r.FormValue("force"))
 	}
 
 	var result = make(map[string]interface{})
 
 	timedReservation, err := service.Workflow().AddTimetableByAdmin(weekday, startTime, endTime, teacherUsername, teacherFullname,
-		teacherMobile, force, userId, userType)
+		teacherMobile, forceBool, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err.Error())
 	}
@@ -880,15 +875,15 @@ func (rc *ReservationController) EditTimedReservationByAdmin(w http.ResponseWrit
 	teacherUsername := r.FormValue("teacher_username")
 	teacherFullname := r.FormValue("teacher_fullname")
 	teacherMobile := r.FormValue("teacher_mobile")
-	force, err := strconv.ParseBool(r.FormValue("force"))
-	if err != nil {
-		return http.StatusOK, wrapJsonError("参数错误，请联系管理员")
+	var forceBool bool
+	if force := r.FormValue("force"); force != "" {
+		forceBool, _ = strconv.ParseBool(r.FormValue("force"))
 	}
 
 	var result = make(map[string]interface{})
 
 	timedReservation, err := service.Workflow().EditTimetableByAdmin(timedReservationId, weekday, startTime, endTime, teacherUsername,
-		teacherFullname, teacherMobile, force, userId, userType)
+		teacherFullname, teacherMobile, forceBool, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err.Error())
 	}
@@ -898,7 +893,6 @@ func (rc *ReservationController) EditTimedReservationByAdmin(w http.ResponseWrit
 }
 
 func (rc *ReservationController) RemoveTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
-	r.ParseForm()
 	timedReservationIds := []string(r.Form["timed_reservation_ids"])
 
 	var result = make(map[string]interface{})
@@ -913,7 +907,6 @@ func (rc *ReservationController) RemoveTimedReservationsByAdmin(w http.ResponseW
 }
 
 func (rc *ReservationController) OpenTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
-	r.ParseForm()
 	timedReservationIds := []string(r.Form["timed_reservation_ids"])
 
 	var result = make(map[string]interface{})
@@ -928,7 +921,6 @@ func (rc *ReservationController) OpenTimedReservationsByAdmin(w http.ResponseWri
 }
 
 func (rc *ReservationController) CloseTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
-	r.ParseForm()
 	timedReservationIds := []string(r.Form["timed_reservation_ids"])
 
 	var result = make(map[string]interface{})

@@ -22,6 +22,10 @@ func (uc *UserController) MuxHandlers(m JsonMuxer) {
 	m.Get("/m", "EntryPage", uc.getEntryPage)
 	m.Get("/m/student", "StudentPage", uc.getStudentPage)
 	m.Get("/m/teacher", "TeacherPage", uc.getTeacherPage)
+	// legacy
+	m.Get("/reservation/admin/login", "AdminLoginPage", uc.getAdminLoginPageLegacy)
+	m.Get("/reservation/admin", "AdminPage", LegacyAdminPageInjection(uc.getAdminPageLegacy))
+	m.Get("/reservation/admin/timetable", "AdminTimetablePage", LegacyAdminPageInjection(uc.getAdminTimetablePageLegacy))
 
 	m.PostJson(kUserApiBaseUrl+"/student/login", "StudentLogin", uc.studentLogin)
 	m.PostJson(kUserApiBaseUrl+"/student/register", "StudentRegister", uc.studentRegister)
@@ -39,6 +43,9 @@ func (uc *UserController) GetTemplates() []*render.TemplateSet {
 		render.NewTemplateSet("entry", "desktop.html", "reservation/entry.html", "layout/desktop.html"),
 		render.NewTemplateSet("student", "desktop.html", "reservation/student.html", "layout/desktop.html"),
 		render.NewTemplateSet("teacher", "desktop.html", "reservation/teacher.html", "layout/desktop.html"),
+		render.NewTemplateSet("admin_login", "desktop.html", "legacy/admin_login.html", "layout/desktop.html"),
+		render.NewTemplateSet("admin", "desktop.html", "legacy/admin.html", "layout/desktop.html"),
+		render.NewTemplateSet("admin_timetable", "desktop.html", "legacy/admin_timetable.html", "layout/desktop.html"),
 	}
 }
 
@@ -57,6 +64,38 @@ func (uc *UserController) getStudentPage(ctx context.Context, w http.ResponseWri
 func (uc *UserController) getTeacherPage(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	params := map[string]interface{}{}
 	uc.RenderHtmlOr500(w, http.StatusOK, "teacher", params)
+	return ctx
+}
+
+func (uc *UserController) getAdminLoginPageLegacy(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+	params := map[string]interface{}{}
+	uc.RenderHtmlOr500(w, http.StatusOK, "admin_login", params)
+	return ctx
+}
+
+func (uc *UserController) getAdminPageLegacy(ctx context.Context, w http.ResponseWriter, r *http.Request, userId string, userType int) context.Context {
+	if userType != model.USER_TYPE_ADMIN {
+		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
+		return ctx
+	} else if _, err := service.Model().GetAdminById(userId); err != nil {
+		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
+		return ctx
+	}
+	params := map[string]interface{}{}
+	uc.RenderHtmlOr500(w, http.StatusOK, "admin", params)
+	return ctx
+}
+
+func (uc *UserController) getAdminTimetablePageLegacy(ctx context.Context, w http.ResponseWriter, r *http.Request, userId string, userType int) context.Context {
+	if userType != model.USER_TYPE_ADMIN {
+		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
+		return ctx
+	} else if _, err := service.Model().GetAdminById(userId); err != nil {
+		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
+		return ctx
+	}
+	params := map[string]interface{}{}
+	uc.RenderHtmlOr500(w, http.StatusOK, "admin_timetable", params)
 	return ctx
 }
 
@@ -268,6 +307,7 @@ func (uc *UserController) adminLogin(ctx context.Context, w http.ResponseWriter,
 	result["user_id"] = admin.Id.Hex()
 	result["username"] = admin.Username
 	result["user_type"] = admin.UserType
+	result["redirect_url"] = "/reservation/admin"
 
 	return http.StatusOK, wrapJsonOk(result)
 }

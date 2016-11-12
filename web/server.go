@@ -16,6 +16,7 @@ import (
 	"runtime"
 	"sync"
 	"time"
+	"strings"
 )
 
 type Server struct {
@@ -53,7 +54,10 @@ func (s *Server) ListenAndServe(addr string) error {
 	//}
 
 	s.Get("/debug/vars", "RuntimeStat", s.getRuntimeStat)
+	// 导出文件的下载地址
 	s.Files("/static/export/*filepath", http.Dir("static/export"))
+	// 兼容旧版本的admin页面
+	s.Files("/legacy/assets/*filepath", http.Dir("static/legacy/assets"))
 	s.Files("/assets/*filepath", http.Dir("public"))
 	for _, mc := range s.muxControllers {
 		mc.SetResponseRenderer(s)
@@ -238,20 +242,20 @@ func (s *Server) makeJsonHandler(handle JsonHandler) server.Handler {
 		switch r.Method {
 		case http.MethodGet:
 			if r.URL.RawQuery != "" {
-				log.Infof("%s %s?%s", r.Method, r.URL.Path, r.URL.RawQuery)
+				log.Infof("%s %s?%s", strings.ToUpper(r.Method), r.URL.Path, r.URL.RawQuery)
 			} else {
-				log.Infof("%s %s", r.Method, r.URL.Path)
+				log.Infof("%s %s", strings.ToUpper(r.Method), r.URL.Path)
 			}
 		case http.MethodPost:
 			r.ParseForm()
-			log.Infof("%s %s %+v", r.Method, r.URL.Path, r.PostForm)
+			log.Infof("%s %s %+v", strings.ToUpper(r.Method), r.URL.Path, r.PostForm)
 		}
 
 		statusCode, data := handle(ctx, w, r)
 
 		// response log
 		if r.Method != http.MethodGet {
-			log.Infof("response %d: %s %+v", statusCode, r.URL.Path, data)
+			log.Infof("RESPONSE %d: %s %+v", statusCode, r.URL.Path, data)
 		}
 
 		s.renderJsonOr500(w, statusCode, data)

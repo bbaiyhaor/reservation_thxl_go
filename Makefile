@@ -38,7 +38,7 @@ kill:
 dev: clean $(BUNDLE) restart
 	@DEV_HOT=true NODE_ENV=development $(NODE_BIN)/webpack-dev-server --config webpack.config.js &
 	@printf "\n\nWaiting for the file change\n\n"
-	@fswatch --event=Updated $(GO_FILES) | xargs -n1 -I{} make restart || make kill
+	@fswatch --one-per-batch $(GO_FILES) | xargs -n1 -I{} make restart || make kill
 
 restart: kill $(TARGET)
 	@printf "\n\nrestart the app .........\n\n"

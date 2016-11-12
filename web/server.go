@@ -14,9 +14,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
-	"strings"
 )
 
 type Server struct {

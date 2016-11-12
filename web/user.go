@@ -6,8 +6,6 @@ import (
 	"github.com/mijia/sweb/render"
 	"golang.org/x/net/context"
 	"net/http"
-	"strconv"
-	"time"
 )
 
 type UserController struct {
@@ -109,30 +107,9 @@ func (uc *UserController) studentRegister(ctx context.Context, w http.ResponseWr
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err.Error())
 	}
-	http.SetCookie(w, &http.Cookie{
-		Name:     "user_id",
-		Value:    student.Id.Hex(),
-		Path:     "/",
-		Expires:  time.Now().Local().AddDate(1, 0, 0),
-		MaxAge:   365 * 24 * 60 * 60,
-		HttpOnly: true,
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:     "username",
-		Value:    student.Username,
-		Path:     "/",
-		Expires:  time.Now().Local().AddDate(1, 0, 0),
-		MaxAge:   365 * 24 * 60 * 60,
-		HttpOnly: true,
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:     "user_type",
-		Value:    strconv.Itoa(student.UserType),
-		Path:     "/",
-		Expires:  time.Now().Local().AddDate(1, 0, 0),
-		MaxAge:   365 * 24 * 60 * 60,
-		HttpOnly: true,
-	})
+	if err = setUserCookie(w, student.Id.Hex(), student.Username, student.UserType); err != nil {
+		return http.StatusOK, wrapJsonError("未知错误")
+	}
 	result["user_id"] = student.Id.Hex()
 	result["username"] = student.Username
 	result["user_type"] = student.UserType
@@ -151,30 +128,9 @@ func (uc *UserController) studentLogin(ctx context.Context, w http.ResponseWrite
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err.Error())
 	}
-	http.SetCookie(w, &http.Cookie{
-		Name:     "user_id",
-		Value:    student.Id.Hex(),
-		Path:     "/",
-		Expires:  time.Now().Local().AddDate(1, 0, 0),
-		MaxAge:   365 * 24 * 60 * 60,
-		HttpOnly: true,
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:     "username",
-		Value:    student.Username,
-		Path:     "/",
-		Expires:  time.Now().Local().AddDate(1, 0, 0),
-		MaxAge:   365 * 24 * 60 * 60,
-		HttpOnly: true,
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:     "user_type",
-		Value:    strconv.Itoa(student.UserType),
-		Path:     "/",
-		Expires:  time.Now().Local().AddDate(1, 0, 0),
-		MaxAge:   365 * 24 * 60 * 60,
-		HttpOnly: true,
-	})
+	if err = setUserCookie(w, student.Id.Hex(), student.Username, student.UserType); err != nil {
+		return http.StatusOK, wrapJsonError("未知错误")
+	}
 	result["user_id"] = student.Id.Hex()
 	result["username"] = student.Username
 	result["user_type"] = student.UserType
@@ -193,30 +149,9 @@ func (uc *UserController) teacherLogin(ctx context.Context, w http.ResponseWrite
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err.Error())
 	}
-	http.SetCookie(w, &http.Cookie{
-		Name:     "user_id",
-		Value:    teacher.Id.Hex(),
-		Path:     "/",
-		Expires:  time.Now().Local().AddDate(1, 0, 0),
-		MaxAge:   365 * 24 * 60 * 60,
-		HttpOnly: true,
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:     "username",
-		Value:    teacher.Username,
-		Path:     "/",
-		Expires:  time.Now().Local().AddDate(1, 0, 0),
-		MaxAge:   365 * 24 * 60 * 60,
-		HttpOnly: true,
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:     "user_type",
-		Value:    strconv.Itoa(teacher.UserType),
-		Path:     "/",
-		Expires:  time.Now().Local().AddDate(1, 0, 0),
-		MaxAge:   365 * 24 * 60 * 60,
-		HttpOnly: true,
-	})
+	if err = setUserCookie(w, teacher.Id.Hex(), teacher.Username, teacher.UserType); err != nil {
+		return http.StatusOK, wrapJsonError("未知错误")
+	}
 	result["user_id"] = teacher.Id.Hex()
 	result["username"] = teacher.Username
 	result["user_type"] = teacher.UserType
@@ -280,30 +215,9 @@ func (uc *UserController) adminLogin(ctx context.Context, w http.ResponseWriter,
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err.Error())
 	}
-	http.SetCookie(w, &http.Cookie{
-		Name:     "user_id",
-		Value:    admin.Id.Hex(),
-		Path:     "/",
-		Expires:  time.Now().Local().AddDate(1, 0, 0),
-		MaxAge:   365 * 24 * 60 * 60,
-		HttpOnly: true,
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:     "username",
-		Value:    admin.Username,
-		Path:     "/",
-		Expires:  time.Now().Local().AddDate(1, 0, 0),
-		MaxAge:   365 * 24 * 60 * 60,
-		HttpOnly: true,
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:     "user_type",
-		Value:    strconv.Itoa(admin.UserType),
-		Path:     "/",
-		Expires:  time.Now().Local().AddDate(1, 0, 0),
-		MaxAge:   365 * 24 * 60 * 60,
-		HttpOnly: true,
-	})
+	if err = setUserCookie(w, admin.Id.Hex(), admin.Username, admin.UserType); err != nil {
+		return http.StatusOK, wrapJsonError("未知错误")
+	}
 	result["user_id"] = admin.Id.Hex()
 	result["username"] = admin.Username
 	result["user_type"] = admin.UserType
@@ -325,21 +239,7 @@ func (uc *UserController) logout(w http.ResponseWriter, r *http.Request, userId 
 	default:
 		result["redirect_url"] = "/m"
 	}
-	http.SetCookie(w, &http.Cookie{
-		Name:   "user_id",
-		Path:   "/",
-		MaxAge: -1,
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:   "username",
-		Path:   "/",
-		MaxAge: -1,
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:   "user_type",
-		Path:   "/",
-		MaxAge: -1,
-	})
+	clearUserCookie(w)
 
 	return http.StatusOK, wrapJsonOk(result)
 }

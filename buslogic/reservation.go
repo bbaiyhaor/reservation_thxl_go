@@ -23,7 +23,7 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType model.UserTy
 		return nil, errors.New("请重新登录")
 	}
 	from := time.Now().AddDate(0, 0, -7)
-	to := time.Now().AddDate(0, 0, 7)
+	to := time.Now().AddDate(0, 0, 7).Add(-90 * time.Minute)
 	reservations, err := w.model.GetReservationsBetweenTime(from, to)
 	if err != nil {
 		return nil, errors.New("获取数据失败")

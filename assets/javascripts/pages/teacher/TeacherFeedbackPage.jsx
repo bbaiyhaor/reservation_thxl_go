@@ -61,7 +61,6 @@ export default class TeacherFeedbackPage extends React.Component {
       this.alert.show('', error, '好的', () => {
         hashHistory.push('reservation');
       });
-      return;
     });
     setTimeout(() => {
       Application.getFeedbackByTeacher(reservation.id, reservation.source_id, (data) => {

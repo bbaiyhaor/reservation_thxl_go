@@ -162,7 +162,7 @@ export const User = {
     fetch(apiTeacherPasswordChange, 'POST', payload, succ, errCallback);
   },
 
-  teacherPasswordResetSms(username, mobile, succCallback, errCallback) {
+  teacherPasswordResetSms(username, fullname, mobile, succCallback, errCallback) {
     const succ = (data) => {
       if (data.status === 'OK') {
         succCallback && succCallback(data.payload);
@@ -172,6 +172,7 @@ export const User = {
     };
     const payload = {
       username,
+      fullname,
       mobile,
     };
     fetch(apiTeacherPasswordResetSms, 'POST', payload, succ, errCallback);

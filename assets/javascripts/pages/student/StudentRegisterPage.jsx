@@ -75,6 +75,6 @@ export default class StudentRegisterPage extends React.Component {
           height="55  px"
         />
       </div>
-        );
+    );
   }
 }

@@ -50,6 +50,8 @@ export default class TeacherResetPasswordPage extends React.Component {
             <ResetPasswordForm
               usernameLabel="工号"
               usernamePlaceholder="请输入工号"
+              fullnameLabel="姓名"
+              fullnamePlaceholder="请输入姓名"
               mobileLabel="手机号"
               mobilePlaceholder="请输入手机号"
               verifyCodeLabel="验证码"

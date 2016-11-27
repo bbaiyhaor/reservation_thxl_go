@@ -78,5 +78,5 @@ export default function StudentProtocolPage() {
         height="55px"
       />
     </div>
-    );
+  );
 }

@@ -13,6 +13,8 @@ const propTypes = {
   titleTip: PropTypes.string,
   usernameLabel: PropTypes.string.isRequired,
   usernamePlaceholder: PropTypes.string.isRequired,
+  fullnameLabel: PropTypes.string.isRequired,
+  fullnamePlaceholder: PropTypes.string.isRequired,
   mobileLabel: PropTypes.string.isRequired,
   mobilePlaceholder: PropTypes.string.isRequired,
   verifyCodeLabel: PropTypes.string.isRequired,
@@ -33,10 +35,12 @@ export default class ResetPasswordForm extends React.Component {
     super(props);
     this.state = {
       username: '',
+      fullname: '',
       mobile: '',
       newPassword: '',
       newPasswordConfirm: '',
       usernameWarn: false,
+      fullnameWarn: false,
       mobileWarn: false,
       newPasswordWarn: false,
       newPasswordConfirmWarn: false,
@@ -53,6 +57,7 @@ export default class ResetPasswordForm extends React.Component {
   sendSms() {
     this.setState({
       usernameWarn: false,
+      fullnameWarn: false,
       mobileWarn: false,
     });
     if (this.state.username === '') {
@@ -60,22 +65,27 @@ export default class ResetPasswordForm extends React.Component {
       this.usernameInput.focus();
       return;
     }
+    if (this.state.fullname === '') {
+      this.setState({ fullnameWarn: true });
+      this.fullnameInput.focus();
+      return;
+    }
     if (this.state.mobile === '') {
       this.setState({ mobileWarn: true });
       this.mobileInput.focus();
       return;
     }
-    User.teacherPasswordResetSms(this.state.username, this.state.mobile, () => {
+    User.teacherPasswordResetSms(this.state.username, this.state.fullname, this.state.mobile, () => {
       this.verifyCodeInput.restart();
     }, (error) => {
       this.props.showAlert('发送失败', error, '好的');
-      return;
     });
   }
 
   handleSubmit() {
     this.setState({
       usernameWarn: false,
+      fullnameWarn: false,
       mobileWarn: false,
       newPasswordWarn: false,
       newPasswordConfirmWarn: false,
@@ -137,6 +147,25 @@ export default class ResetPasswordForm extends React.Component {
               />
             </CellBody>
             {this.state.usernameWarn &&
+            <CellFooter>
+              <Icon value="warn" />
+            </CellFooter>
+            }
+          </FormCell>
+          <FormCell warn={this.state.fullnameWarn}>
+            <CellHeader>
+              <Label>{this.props.fullnameLabel}</Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                ref={(fullnameInput) => { this.fullnameInput = fullnameInput; }}
+                type="input"
+                placeholder={this.props.fullnamePlaceholder}
+                value={this.state.fullname}
+                onChange={(e) => { this.handleChange(e, 'fullname'); }}
+              />
+            </CellBody>
+            {this.state.fullnameWarn &&
             <CellFooter>
               <Icon value="warn" />
             </CellFooter>

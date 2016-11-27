@@ -56,5 +56,5 @@ ReactDOM.render(
     studentEntryIcon={StudentEntryIcon}
     teacherEntryIcon={TeacherEntryIcon}
   />,
-  document.getElementById('content')
+  document.getElementById('content'),
 );

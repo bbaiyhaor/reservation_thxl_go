@@ -179,11 +179,12 @@ func (uc *UserController) teacherChangePassword(w http.ResponseWriter, r *http.R
 
 func (uc *UserController) teacherResetPasswordSms(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
 	username := form.ParamString(r, "username", "")
+	fullname := form.ParamString(r, "fullname", "")
 	mobile := form.ParamString(r, "mobile", "")
 
 	var result = make(map[string]interface{})
 
-	err := service.Workflow().TeacherResetPasswordSms(username, mobile)
+	err := service.Workflow().TeacherResetPasswordSms(username, fullname, mobile)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}

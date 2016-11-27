@@ -72,7 +72,7 @@ export default class StudentReservationListPage extends React.Component {
           height="55px"
         />
       </div>
-        );
+    );
   }
 }
 
@@ -126,7 +126,7 @@ class StudentReservationList extends React.Component {
     this.confirm.show('',
       '确定预约后请准确填写个人信息，方便心理咨询中心老师与你取得联系。',
       '暂不预约', '立即预约', null,
-      () => hashHistory.push(`reservation/make?reservation_id=${reservation.id}`)
+      () => hashHistory.push(`reservation/make?reservation_id=${reservation.id}`),
     );
   }
 

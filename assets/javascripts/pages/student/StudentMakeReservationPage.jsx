@@ -47,7 +47,6 @@ export default class StudentMakeReservationPage extends React.Component {
     }
     if (i === Application.reservations.length) {
       hashHistory.push('reservation');
-      return;
     }
   }
 

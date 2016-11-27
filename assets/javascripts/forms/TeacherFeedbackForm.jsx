@@ -185,7 +185,7 @@ export default class TeacherFeedbackForm extends React.Component {
               value={name}
             >
               {this.state.secondCategories[this.state.firstCategory][name]}
-            </option>
+            </option>,
           )
         }
       </Select>
@@ -538,7 +538,7 @@ export default class TeacherFeedbackForm extends React.Component {
                     value={name}
                   >
                     {this.state.firstCategories[name]}
-                  </option>
+                  </option>,
                 )}
               </Select>
             </CellBody>

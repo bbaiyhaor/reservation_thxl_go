@@ -76,7 +76,7 @@ func (w *Workflow) TeacherChangePassword(username, oldPassword, newPassword stri
 	if err != nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 	} else if username != teacher.Username {
-		return nil, re.NewRErrorCode("username not match", nil, re.ERROR_LOGIN_PWDCHANGE_USERNAME_MISMATCH)
+		return nil, re.NewRErrorCode("username not match", nil, re.ERROR_LOGIN_PWDCHANGE_INFO_MISMATCH)
 	}
 	if teacher.Password != model.EncodePassword(teacher.Salt, oldPassword) {
 		return nil, re.NewRErrorCode("old password mismatch", nil, re.ERROR_LOGIN_PWDCHANGE_OLDPWD_MISMATCH)
@@ -93,17 +93,19 @@ func (w *Workflow) TeacherChangePassword(username, oldPassword, newPassword stri
 }
 
 // 咨询师重置密码发送短信
-func (w *Workflow) TeacherResetPasswordSms(username, mobile string) error {
+func (w *Workflow) TeacherResetPasswordSms(username, fullname, mobile string) error {
 	if username == "" {
 		return re.NewRErrorCodeContext("username is empty", nil, re.ERROR_MISSING_PARAM, "username")
+	} else if fullname == "" {
+		return re.NewRErrorCodeContext("fullname is empty", nil, re.ERROR_MISSING_PARAM, "fullname")
 	} else if mobile == "" {
 		return re.NewRErrorCodeContext("mobile is empty", nil, re.ERROR_MISSING_PARAM, "mobile")
 	}
 	teacher, err := w.mongoClient.GetTeacherByUsername(username)
 	if err != nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		return re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
-	} else if mobile != teacher.Mobile {
-		return re.NewRErrorCode("mobile not match", nil, re.ERROR_LOGIN_PWDCHANGE_MOBILE_MISMATCh)
+	} else if fullname != teacher.Fullname || mobile != teacher.Mobile {
+		return re.NewRErrorCode("fullname or mobile not match", nil, re.ERROR_LOGIN_PWDCHANGE_INFO_MISMATCH)
 	}
 	verifyCode, err := GenerateVerifyCode(6)
 	if err != nil {

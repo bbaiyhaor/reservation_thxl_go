@@ -127,7 +127,7 @@ export default class TeacherReservationListPage extends React.Component {
           height="55px"
         />
       </div>
-        );
+    );
   }
 }
 

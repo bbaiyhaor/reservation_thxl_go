@@ -28,5 +28,5 @@ ReactDOM.render(
   <Router history={hashHistory}>
     {routes}
   </Router>,
-  document.getElementById('content')
+  document.getElementById('content'),
 );

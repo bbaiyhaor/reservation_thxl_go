@@ -22,8 +22,7 @@ const (
 	ERROR_NO_USER                             = 105
 	ERROR_EXIST_USERNAME                      = 106
 	ERROR_LOGIN_PWDCHANGE_OLDPWD_EQUAL_NEWPED = 107
-	ERROR_LOGIN_PWDCHANGE_USERNAME_MISMATCH   = 108
-	ERROR_LOGIN_PWDCHANGE_MOBILE_MISMATCh     = 109
+	ERROR_LOGIN_PWDCHANGE_INFO_MISMATCH       = 108
 	ERROR_LOGIN_PWDCHANGE_VERIFY_CODE_WRONG   = 110
 	ERROR_NO_STUDENT                          = 111
 	// 通用逻辑类错误
@@ -84,10 +83,8 @@ func ReturnMessage(code int, args ...interface{}) string {
 		return "新密码不能与原有密码一样"
 	case ERROR_LOGIN_PWDCHANGE_VERIFY_CODE_WRONG:
 		return "验证码错误或已过期"
-	case ERROR_LOGIN_PWDCHANGE_USERNAME_MISMATCH:
-		return "用户名不匹配"
-	case ERROR_LOGIN_PWDCHANGE_MOBILE_MISMATCh:
-		return "手机号不匹配"
+	case ERROR_LOGIN_PWDCHANGE_INFO_MISMATCH:
+		return "信息不匹配"
 	case ERROR_NO_STUDENT:
 		return "学生未注册"
 	case ERROR_FORMAT_MOBILE:

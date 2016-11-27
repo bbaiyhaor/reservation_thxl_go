@@ -233,3 +233,35 @@ func (w *Workflow) UpdateSession(userId string, userType int) (map[string]interf
 	}
 	return result, nil
 }
+
+// external: 重置账户密码
+func (w *Workflow) ResetUserPassword(username string, userType int, password string) error {
+	switch userType {
+	case model.USER_TYPE_STUDENT:
+		student, err := w.mongoClient.GetStudentByUsername(username)
+		if err != nil || student.UserType != userType {
+			return re.NewRError("fail to get student", err)
+		}
+		student.Password = password
+		student.PreInsert()
+		return w.mongoClient.UpdateStudent(student)
+	case model.USER_TYPE_TEACHER:
+		teacher, err := w.mongoClient.GetTeacherByUsername(username)
+		if err != nil || teacher.UserType != userType {
+			return re.NewRError("fail to get teacher", err)
+		}
+		teacher.Password = password
+		teacher.PreInsert()
+		return w.mongoClient.UpdateTeacher(teacher)
+	case model.USER_TYPE_ADMIN:
+		admin, err := w.mongoClient.GetAdminByUsername(username)
+		if err != nil || admin.UserType != userType {
+			return re.NewRError("fail to get student", err)
+		}
+		admin.Password = password
+		admin.PreInsert()
+		return w.mongoClient.UpdateAdmin(admin)
+	default:
+		return re.NewRError(fmt.Sprintf("unknown user_type: %d", userType), nil)
+	}
+}

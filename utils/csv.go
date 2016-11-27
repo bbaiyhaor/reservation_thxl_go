@@ -1,9 +1,8 @@
 package utils
 
 import (
+	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
 	"encoding/csv"
-	"errors"
-	"fmt"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 	"os"
@@ -21,13 +20,13 @@ func WriteToCSV(data [][]string, path string) error {
 	// 写入文件
 	fout, err := os.Create(path)
 	if err != nil {
-		return errors.New(fmt.Sprintf("建立文件失败：%v", err))
+		return re.NewRError("建立文件失败", err)
 	}
 	defer fout.Close()
 	w := csv.NewWriter(transform.NewWriter(fout, simplifiedchinese.GB18030.NewEncoder()))
 	w.UseCRLF = true
 	if err = w.WriteAll(data); err != nil {
-		return errors.New(fmt.Sprintf("写入表数据失败：%v", err))
+		return re.NewRError("写入表数据失败", err)
 	}
 	w.Flush()
 	return nil
@@ -36,13 +35,13 @@ func WriteToCSV(data [][]string, path string) error {
 func ReadFromCSV(path string) ([][]string, error) {
 	fin, err := os.Open(path)
 	if err != nil || fin == nil {
-		return nil, errors.New(fmt.Sprintf("打开文件失败: %v", err))
+		return nil, re.NewRError("打开文件失败: %v", err)
 	}
 	defer fin.Close()
 	w := csv.NewReader(transform.NewReader(fin, simplifiedchinese.GB18030.NewDecoder()))
 	data, err := w.ReadAll()
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("读取文件失败：%v", err))
+		return nil, re.NewRError("读取文件失败: %v", err)
 	}
 	return data, nil
 }

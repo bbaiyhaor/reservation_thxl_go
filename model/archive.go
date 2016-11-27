@@ -1,54 +1,45 @@
 package model
 
 import (
-	"errors"
 	"gopkg.in/mgo.v2/bson"
+	"time"
 )
 
+// UniqueIndex: student_username
+// UniqueIndex: archive_number
 type Archive struct {
 	Id              bson.ObjectId `bson:"_id"`
-	StudentUsername string        `bson:"student_username"` // Indexed
+	StudentUsername string        `bson:"student_username"`
 	ArchiveCategory string        `bson:"archive_category"`
 	ArchiveNumber   string        `bson:"archive_number"`
+	CreatedAt       time.Time     `bson:"created_at"`
+	UpdatedAt       time.Time     `bson:"updated_at"`
 }
 
-func (m *Model) AddArchive(studentUsername string, archiveCategory string, archiveNumber string) (*Archive, error) {
-	if studentUsername == "" || archiveCategory == "" || archiveNumber == "" {
-		return nil, errors.New("字段不合法")
-	}
-	collection := m.mongo.C("archive")
-	newArchive := &Archive{
-		Id:              bson.NewObjectId(),
-		StudentUsername: studentUsername,
-		ArchiveCategory: archiveCategory,
-		ArchiveNumber:   archiveNumber,
-	}
-	if err := collection.Insert(newArchive); err != nil {
-		return nil, err
-	}
-	return newArchive, nil
+func (m *MongoClient) InsertArchive(archive *Archive) error {
+	now := time.Now()
+	archive.CreatedAt = now
+	archive.UpdatedAt = now
+	return dbArchive.Insert(archive)
 }
 
-func (m *Model) GetArchiveByStudentUsername(studentUsername string) (*Archive, error) {
-	if studentUsername == "" {
-		return nil, errors.New("字段不合法")
-	}
-	collection := m.mongo.C("archive")
+func (m *MongoClient) UpdateArchive(archive *Archive) error {
+	archive.UpdatedAt = time.Now()
+	return dbArchive.UpdateId(archive.Id, archive)
+}
+
+func (m *MongoClient) CountByStudentUsername(studentUsername string) (int, error) {
+	return dbArchive.Find(bson.M{"student_username": studentUsername}).Count()
+}
+
+func (m *MongoClient) GetArchiveByStudentUsername(studentUsername string) (*Archive, error) {
 	var archive Archive
-	if err := collection.Find(bson.M{"student_username": studentUsername}).One(&archive); err != nil {
-		return nil, err
-	}
-	return &archive, nil
+	err := dbArchive.Find(bson.M{"student_username": studentUsername}).One(&archive)
+	return &archive, err
 }
 
-func (m *Model) GetArchiveByArchiveNumber(archiveNumber string) (*Archive, error) {
-	if archiveNumber == "" {
-		return nil, errors.New("字段不合法")
-	}
-	collection := m.mongo.C("archive")
+func (m *MongoClient) GetArchiveByArchiveNumber(archiveNumber string) (*Archive, error) {
 	var archive Archive
-	if err := collection.Find(bson.M{"archive_number": archiveNumber}).One(&archive); err != nil {
-		return nil, err
-	}
-	return &archive, nil
+	err := dbArchive.Find(bson.M{"archive_number": archiveNumber}).One(&archive)
+	return &archive, err
 }

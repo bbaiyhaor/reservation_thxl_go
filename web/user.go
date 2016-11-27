@@ -3,6 +3,7 @@ package web
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/service"
+	"github.com/mijia/sweb/form"
 	"github.com/mijia/sweb/render"
 	"golang.org/x/net/context"
 	"net/http"
@@ -75,7 +76,7 @@ func (uc *UserController) getAdminPageLegacy(ctx context.Context, w http.Respons
 	if userType != model.USER_TYPE_ADMIN {
 		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
 		return ctx
-	} else if _, err := service.Model().GetAdminById(userId); err != nil {
+	} else if _, err := service.MongoClient().GetAdminById(userId); err != nil {
 		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
 		return ctx
 	}
@@ -88,7 +89,7 @@ func (uc *UserController) getAdminTimetablePageLegacy(ctx context.Context, w htt
 	if userType != model.USER_TYPE_ADMIN {
 		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
 		return ctx
-	} else if _, err := service.Model().GetAdminById(userId); err != nil {
+	} else if _, err := service.MongoClient().GetAdminById(userId); err != nil {
 		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
 		return ctx
 	}
@@ -98,17 +99,17 @@ func (uc *UserController) getAdminTimetablePageLegacy(ctx context.Context, w htt
 }
 
 func (uc *UserController) studentRegister(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
-	username := r.FormValue("username")
-	password := r.FormValue("password")
+	username := form.ParamString(r, "username", "")
+	password := form.ParamString(r, "password", "")
 
 	var result = make(map[string]interface{})
 
 	student, err := service.Workflow().StudentRegister(username, password)
 	if err != nil {
-		return http.StatusOK, wrapJsonError(err.Error())
+		return http.StatusOK, wrapJsonError(err)
 	}
 	if err = setUserCookie(w, student.Id.Hex(), student.Username, student.UserType); err != nil {
-		return http.StatusOK, wrapJsonError("未知错误")
+		return http.StatusOK, wrapJsonError(err)
 	}
 	result["user_id"] = student.Id.Hex()
 	result["username"] = student.Username
@@ -119,17 +120,17 @@ func (uc *UserController) studentRegister(ctx context.Context, w http.ResponseWr
 }
 
 func (uc *UserController) studentLogin(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
-	username := r.FormValue("username")
-	password := r.FormValue("password")
+	username := form.ParamString(r, "username", "")
+	password := form.ParamString(r, "password", "")
 
 	var result = make(map[string]interface{})
 
 	student, err := service.Workflow().StudentLogin(username, password)
 	if err != nil {
-		return http.StatusOK, wrapJsonError(err.Error())
+		return http.StatusOK, wrapJsonError(err)
 	}
 	if err = setUserCookie(w, student.Id.Hex(), student.Username, student.UserType); err != nil {
-		return http.StatusOK, wrapJsonError("未知错误")
+		return http.StatusOK, wrapJsonError(err)
 	}
 	result["user_id"] = student.Id.Hex()
 	result["username"] = student.Username
@@ -140,17 +141,17 @@ func (uc *UserController) studentLogin(ctx context.Context, w http.ResponseWrite
 }
 
 func (uc *UserController) teacherLogin(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
-	username := r.FormValue("username")
-	password := r.FormValue("password")
+	username := form.ParamString(r, "username", "")
+	password := form.ParamString(r, "password", "")
 
 	var result = make(map[string]interface{})
 
 	teacher, err := service.Workflow().TeacherLogin(username, password)
 	if err != nil {
-		return http.StatusOK, wrapJsonError(err.Error())
+		return http.StatusOK, wrapJsonError(err)
 	}
 	if err = setUserCookie(w, teacher.Id.Hex(), teacher.Username, teacher.UserType); err != nil {
-		return http.StatusOK, wrapJsonError("未知错误")
+		return http.StatusOK, wrapJsonError(err)
 	}
 	result["user_id"] = teacher.Id.Hex()
 	result["username"] = teacher.Username
@@ -161,15 +162,15 @@ func (uc *UserController) teacherLogin(ctx context.Context, w http.ResponseWrite
 }
 
 func (uc *UserController) teacherChangePassword(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
-	username := r.FormValue("username")
-	oldPassword := r.FormValue("old_password")
-	newPassword := r.FormValue("new_password")
+	username := form.ParamString(r, "username", "")
+	oldPassword := form.ParamString(r, "old_password", "")
+	newPassword := form.ParamString(r, "new_password", "")
 
 	var result = make(map[string]interface{})
 
 	teacher, err := service.Workflow().TeacherChangePassword(username, oldPassword, newPassword, userId, userType)
 	if err != nil {
-		return http.StatusOK, wrapJsonError(err.Error())
+		return http.StatusOK, wrapJsonError(err)
 	}
 	result["teacher"] = service.Workflow().WrapTeacher(teacher)
 
@@ -177,46 +178,46 @@ func (uc *UserController) teacherChangePassword(w http.ResponseWriter, r *http.R
 }
 
 func (uc *UserController) teacherResetPasswordSms(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
-	username := r.FormValue("username")
-	mobile := r.FormValue("mobile")
+	username := form.ParamString(r, "username", "")
+	mobile := form.ParamString(r, "mobile", "")
 
 	var result = make(map[string]interface{})
 
 	err := service.Workflow().TeacherResetPasswordSms(username, mobile)
 	if err != nil {
-		return http.StatusOK, wrapJsonError(err.Error())
+		return http.StatusOK, wrapJsonError(err)
 	}
 
 	return http.StatusOK, wrapJsonOk(result)
 }
 
 func (uc *UserController) teacherResetPasswordVerify(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
-	username := r.FormValue("username")
-	newPassword := r.FormValue("new_password")
-	verifyCode := r.FormValue("verify_code")
+	username := form.ParamString(r, "username", "")
+	newPassword := form.ParamString(r, "new_password", "")
+	verifyCode := form.ParamString(r, "verify_code", "")
 
 	var result = make(map[string]interface{})
 
 	err := service.Workflow().TeacherRestPasswordVerify(username, newPassword, verifyCode)
 	if err != nil {
-		return http.StatusOK, wrapJsonError(err.Error())
+		return http.StatusOK, wrapJsonError(err)
 	}
 
 	return http.StatusOK, wrapJsonOk(result)
 }
 
 func (uc *UserController) adminLogin(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
-	username := r.FormValue("username")
-	password := r.FormValue("password")
+	username := form.ParamString(r, "username", "")
+	password := form.ParamString(r, "password", "")
 
 	var result = make(map[string]interface{})
 
 	admin, err := service.Workflow().AdminLogin(username, password)
 	if err != nil {
-		return http.StatusOK, wrapJsonError(err.Error())
+		return http.StatusOK, wrapJsonError(err)
 	}
 	if err = setUserCookie(w, admin.Id.Hex(), admin.Username, admin.UserType); err != nil {
-		return http.StatusOK, wrapJsonError("未知错误")
+		return http.StatusOK, wrapJsonError(err)
 	}
 	result["user_id"] = admin.Id.Hex()
 	result["username"] = admin.Username
@@ -247,7 +248,7 @@ func (uc *UserController) logout(w http.ResponseWriter, r *http.Request, userId 
 func (uc *UserController) updateSession(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	result, err := service.Workflow().UpdateSession(userId, userType)
 	if err != nil {
-		return http.StatusOK, wrapJsonError(err.Error())
+		return http.StatusOK, wrapJsonError(err)
 	}
 	return http.StatusOK, wrapJsonOk(result)
 }

@@ -24,8 +24,8 @@ func Workflow() *buslogic.Workflow {
 	return wf
 }
 
-func Model() *model.Model {
-	return wf.Model()
+func MongoClient() *model.MongoClient {
+	return wf.MongoClient()
 }
 
 func RedisClient() *redis.Client {

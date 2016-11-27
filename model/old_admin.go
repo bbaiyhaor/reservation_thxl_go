@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type Admin struct {
+type OldAdmin struct {
 	Id                bson.ObjectId `bson:"_id"`
 	CreateTime        time.Time     `bson:"create_time"`
 	UpdateTime        time.Time     `bson:"update_time"`
@@ -18,7 +18,7 @@ type Admin struct {
 	UserType          int           `bson:"user_type"`
 }
 
-func (m *Model) UpsertAdmin(admin *Admin) error {
+func (m *MongoClient) UpsertOldAdmin(admin *OldAdmin) error {
 	if admin == nil || !admin.Id.Valid() {
 		return errors.New("字段不合法")
 	}
@@ -28,24 +28,24 @@ func (m *Model) UpsertAdmin(admin *Admin) error {
 	return err
 }
 
-func (m *Model) GetAdminById(id string) (*Admin, error) {
+func (m *MongoClient) GetOldAdminById(id string) (*OldAdmin, error) {
 	if id == "" || !bson.IsObjectIdHex(id) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("admin")
-	var admin Admin
+	var admin OldAdmin
 	if err := collection.FindId(bson.ObjectIdHex(id)).One(&admin); err != nil {
 		return nil, err
 	}
 	return &admin, nil
 }
 
-func (m *Model) GetAdminByUsername(username string) (*Admin, error) {
+func (m *MongoClient) GetOldAdminByUsername(username string) (*OldAdmin, error) {
 	if len(username) == 0 {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("admin")
-	var admin Admin
+	var admin OldAdmin
 	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_ADMIN}).One(&admin); err != nil {
 		return nil, err
 	}

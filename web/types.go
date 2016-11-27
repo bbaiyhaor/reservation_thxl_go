@@ -2,6 +2,7 @@ package web
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
+	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
 	"github.com/mijia/sweb/render"
 	"github.com/mijia/sweb/server"
 	"golang.org/x/net/context"
@@ -66,22 +67,32 @@ type JsonData struct {
 func wrapJsonOk(payload interface{}) JsonData {
 	return JsonData{
 		Status:  "OK",
+		ErrCode: re.OK,
+		ErrMsg:  re.ReturnMessage(re.OK),
 		Payload: payload,
 	}
 }
 
-func wrapJsonError(msg string, payloads ...interface{}) JsonData {
-	if msg == "" {
-		msg = "服务器开小差了，请稍候重试！"
+func wrapJsonError(err error, payloads ...interface{}) JsonData {
+	if err == nil {
+		err = re.NewRErrorCode("", nil, re.ERROR_UNKNOWN)
 	}
-	data := JsonData{
-		Status:  "FAIL",
-		ErrCode: -1,
-		ErrMsg:  msg,
-	}
-	if msg == buslogic.CHECK_FORCE_ERROR {
+	var data JsonData
+	rerr, ok := err.(*re.RError)
+	if ok {
 		data = JsonData{
-			Status: buslogic.CHECK_FORCE_ERROR,
+			Status:  "FAIL",
+			ErrCode: rerr.Code(),
+			ErrMsg:  rerr.DisplayMessage(),
+		}
+		if rerr.Code() == re.CHECK {
+			data.Status = buslogic.CHECK_FORCE_ERROR
+		}
+	} else {
+		data = JsonData{
+			Status:  "FAIL",
+			ErrCode: re.ERROR_UNKNOWN,
+			ErrMsg:  re.ReturnMessage(re.ERROR_UNKNOWN),
 		}
 	}
 	if len(payloads) > 0 {

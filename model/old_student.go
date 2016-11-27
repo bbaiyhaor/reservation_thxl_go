@@ -7,17 +7,7 @@ import (
 	"time"
 )
 
-const (
-	USER_TYPE_UNKNOWN = iota
-	USER_TYPE_STUDENT
-	USER_TYPE_TEACHER
-	USER_TYPE_ADMIN
-
-	USER_GENDER_MALE   = "男"
-	USER_GENDER_FEMALE = "女"
-)
-
-type Student struct {
+type OldStudent struct {
 	Id                bson.ObjectId `bson:"_id"`
 	CreateTime        time.Time     `bson:"create_time"`
 	UpdateTime        time.Time     `bson:"update_time"`
@@ -40,7 +30,7 @@ type Student struct {
 	FamilyAddress     string        `bson:"family_address"`
 	Mobile            string        `bson:"mobile"`
 	Email             string        `bson:"email"`
-	Experience        Experience    `bson:"experience"`
+	OldExperience     OldExperience `bson:"experience"`
 	FatherAge         string        `bson:"father_age"`
 	FatherJob         string        `bson:"father_job"`
 	FatherEdu         string        `bson:"father_edu"`
@@ -52,17 +42,17 @@ type Student struct {
 	Problem           string        `bson:"problem"`
 }
 
-type Experience struct {
+type OldExperience struct {
 	Time     string `bson:"time"`
 	Location string `bson:"location"`
 	Teacher  string `bson:"teacher"`
 }
 
-func (e Experience) IsEmpty() bool {
+func (e OldExperience) IsEmpty() bool {
 	return e.Time == "" && e.Location == "" && e.Teacher == ""
 }
 
-func (m *Model) AddStudent(username string, password string) (*Student, error) {
+func (m *MongoClient) AddOldStudent(username string, password string) (*OldStudent, error) {
 	if username == "" || password == "" {
 		return nil, errors.New("字段不合法")
 	}
@@ -71,7 +61,7 @@ func (m *Model) AddStudent(username string, password string) (*Student, error) {
 		return nil, errors.New("加密出错，请联系技术支持")
 	}
 	collection := m.mongo.C("student")
-	newStudent := &Student{
+	newOldStudent := &OldStudent{
 		Id:                bson.NewObjectId(),
 		CreateTime:        time.Now(),
 		UpdateTime:        time.Now(),
@@ -82,13 +72,13 @@ func (m *Model) AddStudent(username string, password string) (*Student, error) {
 		KeyCase:           make([]int, 5),
 		MedicalDiagnosis:  make([]int, 8),
 	}
-	if err := collection.Insert(newStudent); err != nil {
+	if err := collection.Insert(newOldStudent); err != nil {
 		return nil, err
 	}
-	return newStudent, nil
+	return newOldStudent, nil
 }
 
-func (m *Model) UpsertStudent(student *Student) error {
+func (m *MongoClient) UpsertOldStudent(student *OldStudent) error {
 	if student == nil || !student.Id.Valid() {
 		return errors.New("字段不合法")
 	}
@@ -98,36 +88,36 @@ func (m *Model) UpsertStudent(student *Student) error {
 	return err
 }
 
-func (m *Model) GetStudentById(id string) (*Student, error) {
+func (m *MongoClient) GetOldStudentById(id string) (*OldStudent, error) {
 	if id == "" || !bson.IsObjectIdHex(id) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("student")
-	var student Student
+	var student OldStudent
 	if err := collection.FindId(bson.ObjectIdHex(id)).One(&student); err != nil {
 		return nil, err
 	}
 	return &student, nil
 }
 
-func (m *Model) GetStudentByUsername(username string) (*Student, error) {
+func (m *MongoClient) GetOldStudentByUsername(username string) (*OldStudent, error) {
 	if username == "" {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("student")
-	var student Student
+	var student OldStudent
 	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_STUDENT}).One(&student); err != nil {
 		return nil, err
 	}
 	return &student, nil
 }
 
-func (m *Model) GetStudentByArchiveNumber(archiveNumber string) (*Student, error) {
+func (m *MongoClient) GetOldStudentByArchiveNumber(archiveNumber string) (*OldStudent, error) {
 	if archiveNumber == "" {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("student")
-	var student Student
+	var student OldStudent
 	if err := collection.Find(bson.M{"archive_number": archiveNumber}).One(&student); err != nil {
 		return nil, err
 	}

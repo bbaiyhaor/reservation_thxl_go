@@ -3,12 +3,14 @@ package buslogic
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
+	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"bytes"
-	"errors"
+	"crypto/rand"
 	"fmt"
+	"github.com/mijia/sweb/log"
+	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -45,9 +47,9 @@ var (
 func (w *Workflow) SendSuccessSMS(reservation *model.Reservation) error {
 	startTime := reservation.StartTime
 	endTime := reservation.EndTime
-	student, err := w.model.GetStudentById(reservation.StudentId)
+	student, err := w.mongoClient.GetStudentById(reservation.StudentId)
 	if err != nil {
-		return errors.New("学生未注册")
+		return re.NewRErrorCode("学生未注册", nil, re.ERROR_DATABASE)
 	}
 	studentSMS := fmt.Sprintf(SMS_SUCCESS_STUDENT, student.Fullname, utils.Weekdays[startTime.Weekday()],
 		startTime.Month(), startTime.Day(), startTime.Format("15:04"), endTime.Format("15:04"))
@@ -70,9 +72,9 @@ func (w *Workflow) SendSuccessSMS(reservation *model.Reservation) error {
 func (w *Workflow) SendCancelSMS(reservation *model.Reservation) error {
 	startTime := reservation.StartTime
 	endTime := reservation.EndTime
-	student, err := w.model.GetStudentById(reservation.StudentId)
+	student, err := w.mongoClient.GetStudentById(reservation.StudentId)
 	if err != nil {
-		return errors.New("学生未注册")
+		return re.NewRErrorCode("学生未注册", nil, re.ERROR_DATABASE)
 	}
 	studentSMS := fmt.Sprintf(SMS_CANCEL_STUDENT, student.Fullname, utils.Weekdays[startTime.Weekday()],
 		startTime.Month(), startTime.Day(), startTime.Format("15:04"), endTime.Format("15:04"))
@@ -95,9 +97,9 @@ func (w *Workflow) SendCancelSMS(reservation *model.Reservation) error {
 func (w *Workflow) SendReminderSMS(reservation *model.Reservation) error {
 	startTime := reservation.StartTime
 	endTime := reservation.EndTime
-	student, err := w.model.GetStudentById(reservation.StudentId)
+	student, err := w.mongoClient.GetStudentById(reservation.StudentId)
 	if err != nil {
-		return errors.New("学生未注册")
+		return re.NewRErrorCode("学生未注册", nil, re.ERROR_DATABASE)
 	}
 	studentSMS := fmt.Sprintf(SMS_REMINDER_STUDENT, student.Fullname, startTime.Format("15:04"), endTime.Format("15:04"))
 	if err := w.sendSMS(student.Mobile, studentSMS); err != nil {
@@ -116,9 +118,9 @@ func (w *Workflow) SendReminderSMS(reservation *model.Reservation) error {
 }
 
 func (w *Workflow) SendFeedbackSMS(reservation *model.Reservation) error {
-	student, err := w.model.GetStudentById(reservation.StudentId)
+	student, err := w.mongoClient.GetStudentById(reservation.StudentId)
 	if err != nil {
-		return errors.New("学生未注册")
+		return re.NewRErrorCode("学生未注册", nil, re.ERROR_DATABASE)
 	}
 	studentSMS := fmt.Sprintf(SMS_FEEDBACK_STUDENT, student.Fullname)
 	if err := w.sendSMS(student.Mobile, studentSMS); err != nil {
@@ -136,11 +138,11 @@ func (w *Workflow) SendResetPasswordSMS(teacher *model.Teacher, verifyCode strin
 }
 
 func (w *Workflow) sendSMS(mobile string, content string) error {
-	if m := utils.IsMobile(mobile); !m {
-		return errors.New("手机号格式不正确")
+	if !utils.IsMobile(mobile) {
+		return re.NewRErrorCode("手机号格式不正确", nil, re.ERROR_FORMAT_MOBILE)
 	}
 	if config.Instance().IsSmockServer() {
-		log.Printf("SMOCK Send SMS: \"%s\" to %s", content, mobile)
+		log.Infof("SMOCK Send SMS: \"%s\" to %s", content, mobile)
 		return nil
 	}
 	requestUrl := "http://utf8.sms.webchinese.cn"
@@ -162,12 +164,27 @@ func (w *Workflow) sendSMS(mobile string, content string) error {
 	}
 	errCode := string(responseBody)
 	if errMsg, ok := SMS_ERROR_MSG[errCode]; ok {
-		log.Printf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg)
-		utils.EmailWarn("thxlfzzx报警：短信发送失败", fmt.Sprintf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg))
-		return errors.New(fmt.Sprintf("短信发送失败：%s", errMsg))
+		log.Errorf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg)
+		EmailWarn("thxlfzzx报警：短信发送失败", fmt.Sprintf("Fail to send SMS \"%s\" to %s: %s", content, mobile, errMsg))
+		return re.NewRError(fmt.Sprintf("短信发送失败：%s", errMsg), nil)
 	}
-	log.Printf("Send SMS \"%s\" to %s: return %s", content, mobile, errCode)
+	log.Infof("Send SMS \"%s\" to %s: return %s", content, mobile, errCode)
 	return nil
+}
+
+// 生成验证码
+var verifyCodeTable = [...]byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
+
+func GenerateVerifyCode(length int) (string, error) {
+	b := make([]byte, length)
+	n, err := io.ReadAtLeast(rand.Reader, b, length)
+	if err != nil || n != length {
+		return "", re.NewRError("生成验证码出错", err)
+	}
+	for i := 0; i < len(b); i++ {
+		b[i] = verifyCodeTable[int(b[i])%len(verifyCodeTable)]
+	}
+	return string(b), nil
 }
 
 // 每天20:00发送第二天预约咨询的提醒短信
@@ -175,9 +192,9 @@ func (w *Workflow) SendTomorrowReservationReminderSMS() {
 	today := utils.BeginOfDay(time.Now())
 	from := today.AddDate(0, 0, 1)
 	to := today.AddDate(0, 0, 2)
-	reservations, err := w.model.GetReservationsBetweenTime(from, to)
+	reservations, err := w.mongoClient.GetReservationsBetweenTime(from, to)
 	if err != nil {
-		log.Printf("获取咨询列表失败：%v", err)
+		log.Errorf("获取咨询列表失败：%v", err)
 		return
 	}
 	succCnt, failCnt := 0, 0
@@ -186,10 +203,10 @@ func (w *Workflow) SendTomorrowReservationReminderSMS() {
 			if err = w.SendReminderSMS(reservation); err == nil {
 				succCnt++
 			} else {
-				log.Printf("发送短信失败：%+v %+v", reservation, err)
+				log.Errorf("发送短信失败：%+v %+v", reservation, err)
 				failCnt++
 			}
 		}
 	}
-	log.Printf("发送%d个预约记录的提醒短信，成功%d个，失败%d个", succCnt+failCnt, succCnt, failCnt)
+	log.Infof("发送%d个预约记录的提醒短信，成功%d个，失败%d个", succCnt+failCnt, succCnt, failCnt)
 }

@@ -54,10 +54,7 @@ func (s *Server) ListenAndServe(addr string) error {
 	//}
 
 	s.Get("/debug/vars", "RuntimeStat", s.getRuntimeStat)
-	// 导出文件的下载地址
-	s.Files("/static/export/*filepath", http.Dir("static/export"))
-	// 兼容旧版本的admin页面
-	s.Files("/legacy/assets/*filepath", http.Dir("static/legacy/assets"))
+	s.Files("/static/*filepath", http.Dir("static"))
 	s.Files("/assets/*filepath", http.Dir("public"))
 	for _, mc := range s.muxControllers {
 		mc.SetResponseRenderer(s)

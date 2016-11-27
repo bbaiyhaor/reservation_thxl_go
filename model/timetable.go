@@ -1,104 +1,72 @@
 package model
 
 import (
+	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
-	"errors"
 	"gopkg.in/mgo.v2/bson"
 	"time"
 )
 
+// Index: status
+// Index: weekday + status
+// Index: teacher_id + status
 type TimedReservation struct {
 	Id         bson.ObjectId   `bson:"_id"`
-	CreateTime time.Time       `bson:"create_time"`
-	UpdateTime time.Time       `bson:"update_time"`
 	Weekday    time.Weekday    `bson:"weekday"`
 	StartTime  time.Time       `bson:"start_time"`
 	EndTime    time.Time       `bson:"end_time"`
 	Status     int             `bson:"status"`
 	TeacherId  string          `bson:"teacher_id"`
-	Exceptions map[string]bool `bson:"exception_map"` // exceptional dates
-	Timed      map[string]bool `bson:"timed_map"`     // timed dates
+	Exceptions map[string]bool `bson:"exception_map"`
+	Timed      map[string]bool `bson:"timed_map"`
+	CreatedAt  time.Time       `bson:"created_at"`
+	UpdatedAt  time.Time       `bson:"updated_at"`
 }
 
-func (m *Model) AddTimedReservation(weekday time.Weekday, startTime time.Time, endTime time.Time, teacherId string) (*TimedReservation, error) {
-	collection := m.mongo.C("timetable")
-	timedReservation := &TimedReservation{
-		Id:         bson.NewObjectId(),
-		CreateTime: time.Now(),
-		UpdateTime: time.Now(),
-		Weekday:    weekday,
-		StartTime:  startTime,
-		EndTime:    endTime,
-		Status:     RESERVATION_STATUS_CLOSED,
-		TeacherId:  teacherId,
-		Exceptions: make(map[string]bool),
-		Timed:      make(map[string]bool),
-	}
-	if err := collection.Insert(timedReservation); err != nil {
-		return nil, err
-	}
-	return timedReservation, nil
+func (m *MongoClient) InsertTimedReservation(timedReservation *TimedReservation) error {
+	now := time.Now()
+	timedReservation.CreatedAt = now
+	timedReservation.UpdatedAt = now
+	return dbTimetable.Insert(timedReservation)
 }
 
-func (m *Model) UpsertTimedReservation(timedReservation *TimedReservation) error {
-	if timedReservation == nil || !timedReservation.Id.Valid() {
-		return errors.New("字段不合法")
-	}
-	collection := m.mongo.C("timetable")
-	timedReservation.UpdateTime = time.Now()
-	_, err := collection.UpsertId(timedReservation.Id, timedReservation)
-	return err
+func (m *MongoClient) UpdateTimedReservation(timedReservation *TimedReservation) error {
+	timedReservation.UpdatedAt = time.Now()
+	return dbTimetable.UpdateId(timedReservation.Id, timedReservation)
 }
 
-func (m *Model) GetTimedReservationById(id string) (*TimedReservation, error) {
-	if id == "" || !bson.IsObjectIdHex(id) {
-		return nil, errors.New("字段不合法")
+func (m *MongoClient) GetTimedReservationById(id string) (*TimedReservation, error) {
+	if !bson.IsObjectIdHex(id) {
+		return nil, re.NewRErrorCode("id is not valid", nil, re.ERROR_DATABASE)
 	}
-	collection := m.mongo.C("timetable")
 	var timedReservation TimedReservation
-	if err := collection.FindId(bson.ObjectIdHex(id)).One(&timedReservation); err != nil {
-		return nil, err
-	}
-	return &timedReservation, nil
+	err := dbTimetable.FindId(bson.ObjectIdHex(id)).One(&timedReservation)
+	return &timedReservation, err
 }
 
-func (m *Model) GetTimedReservationsAll() ([]*TimedReservation, error) {
-	collection := m.mongo.C("timetable")
+func (m *MongoClient) GetAllTimedReservations() ([]*TimedReservation, error) {
 	var timedReservations []*TimedReservation
-	if err := collection.Find(bson.M{"status": bson.M{"$ne": RESERVATION_STATUS_DELETED}}).All(&timedReservations); err != nil {
-		return nil, err
-	}
-	return timedReservations, nil
+	err := dbTimetable.Find(bson.M{"status": bson.M{"$ne": RESERVATION_STATUS_DELETED}}).All(&timedReservations)
+	return timedReservations, err
 }
 
-func (m *Model) GetTimedReservationsByWeekday(weekday time.Weekday) ([]*TimedReservation, error) {
-	collection := m.mongo.C("timetable")
+func (m *MongoClient) GetTimedReservationsByWeekday(weekday time.Weekday) ([]*TimedReservation, error) {
 	var timedReservations []*TimedReservation
-	if err := collection.Find(bson.M{"weekday": weekday,
-		"status": bson.M{"$ne": RESERVATION_STATUS_DELETED}}).All(&timedReservations); err != nil {
-		return nil, err
-	}
-	return timedReservations, nil
+	err := dbTimetable.Find(bson.M{"weekday": weekday,
+		"status": bson.M{"$ne": RESERVATION_STATUS_DELETED}}).All(&timedReservations)
+	return timedReservations, err
 }
 
-func (m *Model) GetTimedReservationsByTeacherId(teacherId string) ([]*TimedReservation, error) {
-	if len(teacherId) == 0 || !bson.IsObjectIdHex(teacherId) {
-		return nil, errors.New("字段不合法")
-	}
-	collection := m.mongo.C("timetable")
+func (m *MongoClient) GetTimedReservationsByTeacherId(teacherId string) ([]*TimedReservation, error) {
 	var timedReservations []*TimedReservation
-	if err := collection.Find(bson.M{"teacher_id": teacherId,
-		"status": bson.M{"$ne": RESERVATION_STATUS_DELETED}}).All(&timedReservations); err != nil {
-		return nil, err
-	}
-	return timedReservations, nil
+	err := dbTimetable.Find(bson.M{"teacher_id": teacherId,
+		"status": bson.M{"$ne": RESERVATION_STATUS_DELETED}}).All(&timedReservations)
+	return timedReservations, err
 }
 
 func (tr TimedReservation) ToReservation(date time.Time) *Reservation {
 	return &Reservation{
 		Id:              tr.Id,
-		CreateTime:      time.Now(),
-		UpdateTime:      time.Now(),
 		StartTime:       utils.ConcatTime(date, tr.StartTime),
 		EndTime:         utils.ConcatTime(date, tr.EndTime),
 		Status:          RESERVATION_STATUS_AVAILABLE,

@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type Teacher struct {
+type OldTeacher struct {
 	Id                bson.ObjectId `bson:"_id"`
 	CreateTime        time.Time     `bson:"create_time"`
 	UpdateTime        time.Time     `bson:"update_time"`
@@ -19,7 +19,7 @@ type Teacher struct {
 	Mobile            string        `bson:"mobile"`
 }
 
-func (m *Model) AddTeacher(username string, password string, fullname string, mobile string) (*Teacher, error) {
+func (m *MongoClient) AddOldTeacher(username string, password string, fullname string, mobile string) (*OldTeacher, error) {
 	if username == "" || password == "" || fullname == "" || mobile == "" {
 		return nil, errors.New("字段不合法")
 	}
@@ -28,7 +28,7 @@ func (m *Model) AddTeacher(username string, password string, fullname string, mo
 		return nil, errors.New("加密出错，请联系技术支持")
 	}
 	collection := m.mongo.C("teacher")
-	newTeacher := &Teacher{
+	newOldTeacher := &OldTeacher{
 		Id:                bson.NewObjectId(),
 		CreateTime:        time.Now(),
 		UpdateTime:        time.Now(),
@@ -38,13 +38,13 @@ func (m *Model) AddTeacher(username string, password string, fullname string, mo
 		Mobile:            mobile,
 		UserType:          USER_TYPE_TEACHER,
 	}
-	if err := collection.Insert(newTeacher); err != nil {
+	if err := collection.Insert(newOldTeacher); err != nil {
 		return nil, err
 	}
-	return newTeacher, nil
+	return newOldTeacher, nil
 }
 
-func (m *Model) UpsertTeacher(teacher *Teacher) error {
+func (m *MongoClient) UpsertOldTeacher(teacher *OldTeacher) error {
 	if teacher == nil || !teacher.Id.Valid() {
 		return errors.New("字段不合法")
 	}
@@ -54,48 +54,48 @@ func (m *Model) UpsertTeacher(teacher *Teacher) error {
 	return err
 }
 
-func (m *Model) GetTeacherById(id string) (*Teacher, error) {
+func (m *MongoClient) GetOldTeacherById(id string) (*OldTeacher, error) {
 	if id == "" || !bson.IsObjectIdHex(id) {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("teacher")
-	var teacher Teacher
+	var teacher OldTeacher
 	if err := collection.FindId(bson.ObjectIdHex(id)).One(&teacher); err != nil {
 		return nil, err
 	}
 	return &teacher, nil
 }
 
-func (m *Model) GetTeacherByUsername(username string) (*Teacher, error) {
+func (m *MongoClient) GetOldTeacherByUsername(username string) (*OldTeacher, error) {
 	if username == "" {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("teacher")
-	var teacher Teacher
+	var teacher OldTeacher
 	if err := collection.Find(bson.M{"username": username, "user_type": USER_TYPE_TEACHER}).One(&teacher); err != nil {
 		return nil, err
 	}
 	return &teacher, nil
 }
 
-func (m *Model) GetTeacherByFullname(fullname string) (*Teacher, error) {
+func (m *MongoClient) GetOldTeacherByFullname(fullname string) (*OldTeacher, error) {
 	if fullname == "" {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("teacher")
-	var teacher Teacher
+	var teacher OldTeacher
 	if err := collection.Find(bson.M{"fullname": fullname}).One(&teacher); err != nil {
 		return nil, err
 	}
 	return &teacher, nil
 }
 
-func (m *Model) GetTeacherByMobile(mobile string) (*Teacher, error) {
+func (m *MongoClient) GetOldTeacherByMobile(mobile string) (*OldTeacher, error) {
 	if mobile == "" {
 		return nil, errors.New("字段不合法")
 	}
 	collection := m.mongo.C("teacher")
-	var teacher Teacher
+	var teacher OldTeacher
 	if err := collection.Find(bson.M{"mobile": mobile}).One(&teacher); err != nil {
 		return nil, err
 	}

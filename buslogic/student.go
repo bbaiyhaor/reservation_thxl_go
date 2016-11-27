@@ -2,8 +2,8 @@ package buslogic
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
+	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
-	"errors"
 	"strconv"
 	"time"
 )
@@ -16,93 +16,97 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 	motherEdu string, parentMarriage string, siginificant string, problem string,
 	userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
-		return nil, errors.New("请先登录")
+		return nil, re.NewRErrorCode("student not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_STUDENT {
-		return nil, errors.New("请重新登录")
+		return nil, re.NewRErrorCode("user is not student", nil, re.ERROR_NOT_AUTHORIZED)
 	} else if reservationId == "" {
-		return nil, errors.New("咨询已下架")
+		return nil, re.NewRErrorCodeContext("reservation id is empty", nil, re.ERROR_MISSING_PARAM, "reservation_id")
 	} else if fullname == "" {
-		return nil, errors.New("姓名为空")
-	} else if gender != model.USER_GENDER_MALE && gender != model.USER_GENDER_FEMALE {
-		return nil, errors.New("性别为空")
+		return nil, re.NewRErrorCodeContext("fullname is empty", nil, re.ERROR_MISSING_PARAM, "fullname")
+	} else if gender == "" {
+		return nil, re.NewRErrorCodeContext("gender is empty", nil, re.ERROR_MISSING_PARAM, "gender")
 	} else if birthday == "" {
-		return nil, errors.New("出生日期为空")
+		return nil, re.NewRErrorCodeContext("birthday is empty", nil, re.ERROR_MISSING_PARAM, "birthday")
 	} else if school == "" {
-		return nil, errors.New("院系为空")
+		return nil, re.NewRErrorCodeContext("school is empty", nil, re.ERROR_MISSING_PARAM, "school")
 	} else if grade == "" {
-		return nil, errors.New("年级为空")
+		return nil, re.NewRErrorCodeContext("grade is empty", nil, re.ERROR_MISSING_PARAM, "grade")
 	} else if currentAddress == "" {
-		return nil, errors.New("现在住址为空")
+		return nil, re.NewRErrorCodeContext("current_address is empty", nil, re.ERROR_MISSING_PARAM, "current_address")
 	} else if familyAddress == "" {
-		return nil, errors.New("家庭住址为空")
+		return nil, re.NewRErrorCodeContext("family_address is empty", nil, re.ERROR_MISSING_PARAM, "family_address")
 	} else if mobile == "" {
-		return nil, errors.New("手机号为空")
+		return nil, re.NewRErrorCodeContext("mobile is empty", nil, re.ERROR_MISSING_PARAM, "mobile")
 	} else if email == "" {
-		return nil, errors.New("邮箱为空")
+		return nil, re.NewRErrorCodeContext("email is empty", nil, re.ERROR_MISSING_PARAM, "email")
 	} else if problem == "" {
-		return nil, errors.New("问题为空")
+		return nil, re.NewRErrorCodeContext("problem is empty", nil, re.ERROR_MISSING_PARAM, "problem")
 	} else if !utils.IsMobile(mobile) {
-		return nil, errors.New("手机号格式不正确")
+		return nil, re.NewRErrorCode("mobile format is wrong", nil, re.ERROR_FORMAT_MOBILE)
 	} else if !utils.IsEmail(email) {
-		return nil, errors.New("邮箱格式不正确")
+		return nil, re.NewRErrorCode("email format is wrong", nil, re.ERROR_FORMAT_EMAIL)
 	}
-	student, err := w.model.GetStudentById(userId)
-	if err != nil {
-		return nil, errors.New("请先登录")
-	} else if student.UserType != model.USER_TYPE_STUDENT {
-		return nil, errors.New("请重新登录")
+	student, err := w.mongoClient.GetStudentById(userId)
+	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
+		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
 	}
-	studentReservations, err := w.model.GetReservationsByStudentId(student.Id.Hex())
+	studentReservations, err := w.mongoClient.GetReservationsByStudentId(student.Id.Hex())
 	if err != nil {
-		return nil, errors.New("获取数据失败")
+		return nil, re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
 	}
 	for _, r := range studentReservations {
 		if r.Status == model.RESERVATION_STATUS_RESERVATED && r.StartTime.After(time.Now()) {
-			return nil, errors.New("你好！你已有一个咨询预约，请完成这次咨询后再预约下一次，或致电62782007取消已有预约。")
+			return nil, re.NewRErrorCode("already have reservation", nil, re.ERROR_STUDENT_ALREADY_HAVE_RESERVATION)
 		}
 	}
 	var reservation *model.Reservation
 	if sourceId == "" {
 		// Source为ADD，无SourceId：直接预约
-		reservation, err = w.model.GetReservationById(reservationId)
+		reservation, err = w.mongoClient.GetReservationById(reservationId)
 		if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
-			return nil, errors.New("咨询已下架")
+			return nil, re.NewRErrorCode("fail to get reservation", nil, re.ERROR_DATABASE)
 		} else if reservation.StartTime.Before(time.Now()) {
-			return nil, errors.New("咨询已过期")
+			return nil, re.NewRErrorCode("cannot make outdated reservation", nil, re.ERROR_STUDENT_MAKE_OUTDATED_RESERVATION)
 		} else if reservation.Status != model.RESERVATION_STATUS_AVAILABLE {
-			return nil, errors.New("咨询已被预约")
+			return nil, re.NewRErrorCode("cannot make reservated reservation", nil, re.ERROR_STUDENT_MAKE_RESERVATED_RESERVATION)
 		} else if student.BindedTeacherId != "" && student.BindedTeacherId != reservation.TeacherId {
-			return nil, errors.New("只能预约匹配咨询师")
+			return nil, re.NewRErrorCode("only make binded teacher reservation", nil, re.ERROR_STUDENT_MAKE_NOT_BINDED_TEACHER_RESERVATION)
 		}
 	} else if reservationId == sourceId {
 		// Source为TIMETABLE且未被预约
-		timedReservation, err := w.model.GetTimedReservationById(sourceId)
+		timedReservation, err := w.mongoClient.GetTimedReservationById(sourceId)
 		if err != nil || timedReservation.Status == model.RESERVATION_STATUS_DELETED {
-			return nil, errors.New("咨询已下架")
+			return nil, re.NewRErrorCode("fail to get timetable", nil, re.ERROR_DATABASE)
 		}
 		start, err := time.ParseInLocation("2006-01-02 15:04", startTime, time.Local)
 		if err != nil {
-			return nil, errors.New("开始时间格式错误")
+			return nil, re.NewRErrorCodeContext("start time is not valid", err, re.ERROR_INVALID_PARAM, "start_time")
 		} else if start.Before(time.Now()) {
-			return nil, errors.New("咨询已过期")
+			return nil, re.NewRErrorCode("cannot make outdated reservation", nil, re.ERROR_STUDENT_MAKE_OUTDATED_RESERVATION)
 		} else if start.Format("15:04") != timedReservation.StartTime.Format("15:04") {
-			return nil, errors.New("开始时间不匹配")
+			return nil, re.NewRErrorCode("start time mismatch", nil, re.ERROR_START_TIME_MISMATCH)
 		} else if timedReservation.Timed[start.Format("2006-01-02")] {
-			return nil, errors.New("咨询已被预约")
+			return nil, re.NewRErrorCode("cannot make reservated reservation", nil, re.ERROR_STUDENT_MAKE_RESERVATED_RESERVATION)
 		} else if student.BindedTeacherId != "" && student.BindedTeacherId != timedReservation.TeacherId {
-			return nil, errors.New("只能预约匹配咨询师")
+			return nil, re.NewRErrorCode("only make binded teacher reservation", nil, re.ERROR_STUDENT_MAKE_NOT_BINDED_TEACHER_RESERVATION)
 		}
 		end := utils.ConcatTime(start, timedReservation.EndTime)
-		reservation, err = w.model.AddReservation(start, end, model.RESERVATION_SOURCE_TIMETABLE, timedReservation.Id.Hex(), timedReservation.TeacherId)
-		if err != nil {
-			return nil, errors.New("获取数据失败")
+		reservation := &model.Reservation{
+			StartTime:       start,
+			EndTime:         end,
+			Status:          model.RESERVATION_STATUS_AVAILABLE,
+			Source:          model.RESERVATION_SOURCE_TIMETABLE,
+			SourceId:        timedReservation.Id.Hex(),
+			TeacherId:       timedReservation.TeacherId,
+			StudentFeedback: model.StudentFeedback{},
+			TeacherFeedback: model.TeacherFeedback{},
 		}
 		timedReservation.Timed[start.Format("2006-01-02")] = true
-		if w.model.UpsertTimedReservation(timedReservation) != nil {
-			return nil, errors.New("获取数据失败")
+		if err = w.mongoClient.InsertReservationAndUpdateTimedReservation(reservation, timedReservation); err != nil {
+			return nil, re.NewRErrorCode("fail to insert reservation and update timetable", err, re.ERROR_DATABASE)
 		}
 	} else {
-		return nil, errors.New("咨询已被预约")
+		return nil, re.NewRErrorCode("cannot make reservated reservation", nil, re.ERROR_STUDENT_MAKE_RESERVATED_RESERVATION)
 	}
 	// 更新学生信息
 	student.Fullname = fullname
@@ -127,14 +131,11 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 	student.Significant = siginificant
 	student.Problem = problem
 	student.BindedTeacherId = reservation.TeacherId
-	if w.model.UpsertStudent(student) != nil {
-		return nil, errors.New("获取数据失败")
-	}
 	// 更新咨询信息
 	reservation.StudentId = student.Id.Hex()
 	reservation.Status = model.RESERVATION_STATUS_RESERVATED
-	if w.model.UpsertReservation(reservation) != nil {
-		return nil, errors.New("获取数据失败")
+	if err = w.mongoClient.UpdateReservationAndStudent(reservation, student); err != nil {
+		return nil, re.NewRErrorCode("fail to update reservation and student", err, re.ERROR_DATABASE)
 	}
 	// send success sms
 	w.SendSuccessSMS(reservation)
@@ -145,29 +146,27 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 func (w *Workflow) GetFeedbackByStudent(reservationId string, sourceId string,
 	userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
-		return nil, errors.New("请先登录")
+		return nil, re.NewRErrorCode("student not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_STUDENT {
-		return nil, errors.New("请重新登录")
+		return nil, re.NewRErrorCode("user is not student", nil, re.ERROR_NOT_AUTHORIZED)
 	} else if reservationId == "" {
-		return nil, errors.New("咨询已下架")
+		return nil, re.NewRErrorCodeContext("reservation id is empty", nil, re.ERROR_MISSING_PARAM, "reservation_id")
 	} else if reservationId == sourceId {
-		return nil, errors.New("咨询未被预约，不能反馈")
+		return nil, re.NewRErrorCode("cannot get feedback of available reservation", nil, re.ERROR_FEEDBACK_AVAILABLE_RESERVATION)
 	}
-	student, err := w.model.GetStudentById(userId)
-	if err != nil {
-		return nil, errors.New("请先登录")
-	} else if student.UserType != model.USER_TYPE_STUDENT {
-		return nil, errors.New("请重新登录")
+	student, err := w.mongoClient.GetStudentById(userId)
+	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
+		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
 	}
-	reservation, err := w.model.GetReservationById(reservationId)
+	reservation, err := w.mongoClient.GetReservationById(reservationId)
 	if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
-		return nil, errors.New("咨询已下架")
+		return nil, re.NewRErrorCode("fail to get reservation", err, re.ERROR_DATABASE)
 	} else if reservation.StartTime.After(time.Now()) {
-		return nil, errors.New("咨询未开始,暂不能反馈")
+		return nil, re.NewRErrorCode("cannot get feedback of future reservation", nil, re.ERROR_FEEDBACK_FUTURE_RESERVATION)
 	} else if reservation.Status == model.RESERVATION_STATUS_AVAILABLE {
-		return nil, errors.New("咨询未被预约,不能反馈")
+		return nil, re.NewRErrorCode("cannot get feedback of available reservation", nil, re.ERROR_FEEDBACK_AVAILABLE_RESERVATION)
 	} else if reservation.StudentId != student.Id.Hex() {
-		return nil, errors.New("只能反馈本人预约的咨询")
+		return nil, re.NewRErrorCode("cannot get feedback of other one's reservation", nil, re.ERROR_FEEDBACK_OTHER_RESERVATION)
 	}
 	return reservation, nil
 }
@@ -176,42 +175,39 @@ func (w *Workflow) GetFeedbackByStudent(reservationId string, sourceId string,
 func (w *Workflow) SubmitFeedbackByStudent(reservationId string, sourceId string, scores []int,
 	userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
-		return nil, errors.New("请先登录")
+		return nil, re.NewRErrorCode("student not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_STUDENT {
-		return nil, errors.New("请重新登录")
+		return nil, re.NewRErrorCode("user is not student", nil, re.ERROR_NOT_AUTHORIZED)
 	} else if reservationId == "" {
-		return nil, errors.New("咨询已下架")
+		return nil, re.NewRErrorCodeContext("reservation id is empty", nil, re.ERROR_MISSING_PARAM, "reservation_id")
 	} else if len(scores) != model.RESERVATION_STUDENT_FEEDBACK_SCORES_LENGTH {
-		return nil, errors.New("请完整填写反馈")
+		return nil, re.NewRErrorCodeContext("scores is not valid", nil, re.ERROR_INVALID_PARAM, "scores")
 	} else if reservationId == sourceId {
-		return nil, errors.New("咨询未被预约，不能反馈")
+		return nil, re.NewRErrorCode("cannot get feedback of available reservation", nil, re.ERROR_FEEDBACK_AVAILABLE_RESERVATION)
 	}
-	student, err := w.model.GetStudentById(userId)
-	if err != nil {
-		return nil, errors.New("请先登录")
-	} else if student.UserType != model.USER_TYPE_STUDENT {
-		return nil, errors.New("请重新登录")
+	student, err := w.mongoClient.GetStudentById(userId)
+	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
+		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
 	}
-	reservation, err := w.model.GetReservationById(reservationId)
+	reservation, err := w.mongoClient.GetReservationById(reservationId)
 	if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
-		return nil, errors.New("咨询已下架")
+		return nil, re.NewRErrorCode("fail to get reservation", err, re.ERROR_DATABASE)
 	} else if reservation.StartTime.After(time.Now()) {
-		return nil, errors.New("咨询未开始,暂不能反馈")
+		return nil, re.NewRErrorCode("cannot get feedback of future reservation", nil, re.ERROR_FEEDBACK_FUTURE_RESERVATION)
 	} else if reservation.Status == model.RESERVATION_STATUS_AVAILABLE {
-		return nil, errors.New("咨询未被预约,不能反馈")
+		return nil, re.NewRErrorCode("cannot get feedback of available reservation", nil, re.ERROR_FEEDBACK_AVAILABLE_RESERVATION)
 	} else if reservation.StudentId != student.Id.Hex() {
-		return nil, errors.New("只能反馈本人预约的咨询")
+		return nil, re.NewRErrorCode("cannot get feedback of other one's reservation", nil, re.ERROR_FEEDBACK_OTHER_RESERVATION)
 	}
 	reservation.StudentFeedback = model.StudentFeedback{
 		Scores: scores,
 	}
-	if w.model.UpsertReservation(reservation) != nil {
-		return nil, errors.New("获取数据失败")
+	if err = w.mongoClient.UpdateReservation(reservation); err != nil {
+		return nil, re.NewRErrorCode("fail to update reservation", err, re.ERROR_DATABASE)
 	}
 	return reservation, nil
 }
 
-//
 func (w *Workflow) ExportStudentInfoToFile(student *model.Student, path string) error {
 	data := make([][]string, 0)
 	data = append(data, []string{"档案分类", student.ArchiveCategory, "档案编号", student.ArchiveNumber})
@@ -237,7 +233,7 @@ func (w *Workflow) ExportStudentInfoToFile(student *model.Student, path string) 
 	data = append(data, []string{"父母婚姻状况", student.ParentMarriage})
 	data = append(data, []string{"在近三个月里，是否发生了对你有重大意义的事（如亲友的死亡、法律诉讼、失恋等）？", student.Significant})
 	data = append(data, []string{"你现在需要接受帮助的主要问题是什么？", student.Problem})
-	bindedTeacher, err := w.model.GetTeacherById(student.BindedTeacherId)
+	bindedTeacher, err := w.mongoClient.GetTeacherById(student.BindedTeacherId)
 	if err != nil {
 		data = append(data, []string{"匹配咨询师", "无"})
 	} else {
@@ -248,9 +244,9 @@ func (w *Workflow) ExportStudentInfoToFile(student *model.Student, path string) 
 	data = append(data, []string{""})
 
 	//咨询小结
-	if reservations, err := w.model.GetReservationsByStudentId(student.Id.Hex()); err == nil {
+	if reservations, err := w.mongoClient.GetReservationsByStudentId(student.Id.Hex()); err == nil {
 		for i, r := range reservations {
-			teacher, err := w.model.GetTeacherById(r.TeacherId)
+			teacher, err := w.mongoClient.GetTeacherById(r.TeacherId)
 			if err != nil {
 				continue
 			}
@@ -360,7 +356,7 @@ func (w *Workflow) WrapStudent(student *model.Student) map[string]interface{} {
 	result["username"] = student.Username
 	result["user_type"] = student.UserType
 	result["binded_teacher_id"] = student.BindedTeacherId
-	if bindedTeacher, err := w.model.GetTeacherById(student.BindedTeacherId); err == nil {
+	if bindedTeacher, err := w.mongoClient.GetTeacherById(student.BindedTeacherId); err == nil {
 		result["binded_teacher_username"] = bindedTeacher.Username
 		result["binded_teacher_fullname"] = bindedTeacher.Fullname
 	} else {

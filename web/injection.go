@@ -1,6 +1,7 @@
 package web
 
 import (
+	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
 	"github.com/mijia/sweb/server"
 	"golang.org/x/net/context"
 	"net/http"
@@ -10,7 +11,7 @@ func RoleCookieInjection(handle func(http.ResponseWriter, *http.Request, string,
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
 		userId, _, userType, err := getUserCookie(r)
 		if err != nil {
-			return http.StatusOK, wrapJsonError("请先登录")
+			return http.StatusOK, wrapJsonError(re.NewRErrorCode("获取用户Cookie失败", err, re.ERROR_NO_LOGIN))
 		}
 		return handle(w, r, userId, userType)
 	}

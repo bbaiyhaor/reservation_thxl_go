@@ -1,9 +1,9 @@
-package utils
+package buslogic
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
+	"github.com/mijia/sweb/log"
 	"github.com/scorredoira/email"
-	"log"
 	"net/mail"
 	"net/smtp"
 	"strings"
@@ -11,13 +11,13 @@ import (
 
 func SendEmail(m *email.Message) error {
 	if config.Instance().IsSmockServer() {
-		log.Printf("SMOCK Send Email: \"%s\" to %s.\n", m.Subject, strings.Join(config.Instance().EmailAddressDev, ","))
+		log.Infof("SMOCK Send Email: \"%s\" to %s.\n", m.Subject, strings.Join(config.Instance().EmailAddressDev, ","))
 		return nil
 	}
 
 	auth := smtp.PlainAuth("", config.Instance().SMTPUser, config.Instance().SMTPPassword, config.Instance().SMTPHost)
 	if err := email.Send(config.Instance().SMTPHost+":587", auth, m); err != nil {
-		log.Printf("Fail to send email %+v", m)
+		log.Infof("Fail to send email %+v", m)
 		return err
 	}
 	return nil

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"errors"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
 	"regexp"
 	"time"
 )
@@ -52,5 +52,5 @@ func StringToWeekday(weekday string) (time.Weekday, error) {
 	case "Saturday":
 		return time.Saturday, nil
 	}
-	return 0, errors.New("格式不正确")
+	return 0, rerror.NewRErrorCode("星期格式错误", nil, rerror.ERROR_FORMAT_WEEKDAY)
 }

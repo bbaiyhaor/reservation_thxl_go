@@ -18,6 +18,10 @@
 			"Rev": "d8ff598a019f2c7bad0980917a588193cf26666e"
 		},
 		{
+			"ImportPath": "github.com/mijia/sweb/form",
+			"Rev": "169a3affd5ea43b3aaaa81744a0b86ff89e2b3f3"
+		},
+		{
 			"ImportPath": "github.com/mijia/sweb/log",
 			"Rev": "169a3affd5ea43b3aaaa81744a0b86ff89e2b3f3"
 		},
@@ -100,6 +104,11 @@
 		},
 		{
 			"ImportPath": "gopkg.in/mgo.v2/internal/scram",
+			"Comment": "r2015.10.05-1-g4d04138",
+			"Rev": "4d04138ffef2791c479c0c8bbffc30b34081b8d9"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2/txn",
 			"Comment": "r2015.10.05-1-g4d04138",
 			"Rev": "4d04138ffef2791c479c0c8bbffc30b34081b8d9"
 		},

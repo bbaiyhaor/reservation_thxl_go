@@ -4,7 +4,7 @@ import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
 	"flag"
-	"log"
+	"github.com/mijia/sweb/log"
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 	flag.Parse()
 
 	config.InitWithParams(*conf, *isSmock)
-	log.Printf("config loaded: %+v", *config.Instance())
+	log.Infof("config loaded: %+v", *config.Instance())
 	workflow := buslogic.NewWorkflow()
 
 	if *method == "reminder" {

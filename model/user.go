@@ -22,40 +22,34 @@ const (
 )
 
 // UniqueIndex: username + user_type
-// UniqueIndex: archive_number + user_type
+// Index: archive_category + archive_number + user_type
 // Index: binded_teacher_id + user_type
 type Student struct {
-	Id              bson.ObjectId `bson:"_id"`
-	Username        string        `bson:"username"`
-	Password        string        `bson:"password"`
-	Salt            string        `bson:"salt"`
-	EncPassword     string        `bson:"encrypted_password"`
-	UserType        int           `bson:"user_type"`
-	BindedTeacherId string        `bson:"binded_teacher_id"`
-	ArchiveCategory string        `bson:"archive_category"`
-	ArchiveNumber   string        `bson:"archive_number"`
-	CrisisLevel     int           `bson:"crisis_level"`
-	Fullname        string        `bson:"fullname"`
-	Gender          string        `bson:"gender"`
-	Birthday        string        `bson:"birthday"`
-	School          string        `bson:"school"`
-	Grade           string        `bson:"grade"`
-	CurrentAddress  string        `bson:"current_address"`
-	FamilyAddress   string        `bson:"family_address"`
-	Mobile          string        `bson:"mobile"`
-	Email           string        `bson:"email"`
-	Experience      Experience    `bson:"experience"`
-	FatherAge       string        `bson:"father_age"`
-	FatherJob       string        `bson:"father_job"`
-	FatherEdu       string        `bson:"father_edu"`
-	MotherAge       string        `bson:"mother_age"`
-	MotherJob       string        `bson:"mother_job"`
-	MotherEdu       string        `bson:"mother_edu"`
-	ParentMarriage  string        `bson:"parent_marriage"`
-	Significant     string        `bson:"significant"`
-	Problem         string        `bson:"problem"`
-	CreatedAt       time.Time     `bson:"created_at"`
-	UpdatedAt       time.Time     `bson:"updated_at"`
+	Id                bson.ObjectId `bson:"_id"`
+	Username          string        `bson:"username"`
+	Password          string        `bson:"password"`
+	Salt              string        `bson:"salt"`
+	EncryptedPassword string        `bson:"encrypted_password"`
+	UserType          int           `bson:"user_type"`
+	BindedTeacherId   string        `bson:"binded_teacher_id"`
+	ArchiveCategory   string        `bson:"archive_category"`
+	ArchiveNumber     string        `bson:"archive_number"`
+	CrisisLevel       int           `bson:"crisis_level"`
+	Fullname          string        `bson:"fullname"`
+	Gender            string        `bson:"gender"`
+	Birthday          string        `bson:"birthday"`
+	School            string        `bson:"school"`
+	Grade             string        `bson:"grade"`
+	CurrentAddress    string        `bson:"current_address"`
+	FamilyAddress     string        `bson:"family_address"`
+	Mobile            string        `bson:"mobile"`
+	Email             string        `bson:"email"`
+	Experience        Experience    `bson:"experience"`
+	ParentInfo        ParentInfo    `bson:"parent_info"`
+	Significant       string        `bson:"significant"`
+	Problem           string        `bson:"problem"`
+	CreatedAt         time.Time     `bson:"created_at"`
+	UpdatedAt         time.Time     `bson:"updated_at"`
 }
 
 type Experience struct {
@@ -66,6 +60,16 @@ type Experience struct {
 
 func (e Experience) IsEmpty() bool {
 	return e.Time == "" && e.Location == "" && e.Teacher == ""
+}
+
+type ParentInfo struct {
+	FatherAge      string `bson:"father_age"`
+	FatherJob      string `bson:"father_job"`
+	FatherEdu      string `bson:"father_edu"`
+	MotherAge      string `bson:"mother_age"`
+	MotherJob      string `bson:"mother_job"`
+	MotherEdu      string `bson:"mother_edu"`
+	ParentMarriage string `bson:"parent_marriage"`
 }
 
 func (student *Student) PreInsert() error {
@@ -90,6 +94,10 @@ func (m *MongoClient) UpdateStudent(student *Student) error {
 	return dbStudent.UpdateId(student.Id, student)
 }
 
+func (m *MongoClient) UpdateStudentWithoutTime(student *Student) error {
+	return dbStudent.UpdateId(student.Id, student)
+}
+
 func (m *MongoClient) GetStudentById(id string) (*Student, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, re.NewRErrorCode("id is not valid", nil, re.ERROR_DATABASE)
@@ -105,9 +113,9 @@ func (m *MongoClient) GetStudentByUsername(username string) (*Student, error) {
 	return &student, err
 }
 
-func (m *MongoClient) GetStudentByArchiveNumber(archiveNumber string) (*Student, error) {
+func (m *MongoClient) GetStudentByArchiveCategoryAndNumber(archiveCategory string, archiveNumber string) (*Student, error) {
 	var student Student
-	err := dbStudent.Find(bson.M{"archive_number": archiveNumber, "user_type": USER_TYPE_STUDENT}).One(&student)
+	err := dbStudent.Find(bson.M{"archive_category": archiveCategory, "archive_number": archiveNumber, "user_type": USER_TYPE_STUDENT}).One(&student)
 	return &student, err
 }
 
@@ -121,16 +129,16 @@ func (m *MongoClient) GetStudentsByBindedTeacherId(teacherId string) ([]*Student
 // Index: fullname + user_type
 // Index: mobile + user_type
 type Teacher struct {
-	Id          bson.ObjectId `bson:"_id"`
-	Username    string        `bson:"username"` // Indexed
-	Password    string        `bson:"password"`
-	Salt        string        `bson:"salt"`
-	EncPassword string        `bson:"encrypted_password"`
-	UserType    int           `bson:"user_type"`
-	Fullname    string        `bson:"fullname"`
-	Mobile      string        `bson:"mobile"`
-	CreatedAt   time.Time     `bson:"created_at"`
-	UpdatedAt   time.Time     `bson:"updated_at"`
+	Id                bson.ObjectId `bson:"_id"`
+	Username          string        `bson:"username"` // Indexed
+	Password          string        `bson:"password"`
+	Salt              string        `bson:"salt"`
+	EncryptedPassword string        `bson:"encrypted_password"`
+	UserType          int           `bson:"user_type"`
+	Fullname          string        `bson:"fullname"`
+	Mobile            string        `bson:"mobile"`
+	CreatedAt         time.Time     `bson:"created_at"`
+	UpdatedAt         time.Time     `bson:"updated_at"`
 }
 
 func (teacher *Teacher) PreInsert() error {
@@ -152,6 +160,10 @@ func (m *MongoClient) InsertTeacher(teacher *Teacher) error {
 
 func (m *MongoClient) UpdateTeacher(teacher *Teacher) error {
 	teacher.UpdatedAt = time.Now()
+	return dbTeacher.UpdateId(teacher.Id, teacher)
+}
+
+func (m *MongoClient) UpdateTeacherWithoutTime(teacher *Teacher) error {
 	return dbTeacher.UpdateId(teacher.Id, teacher)
 }
 
@@ -184,16 +196,16 @@ func (m *MongoClient) GetTeacherByMobile(mobile string) (*Teacher, error) {
 
 // UniqueIndex: username + user_type
 type Admin struct {
-	Id          bson.ObjectId `bson:"_id"`
-	Username    string        `bson:"username"`
-	Password    string        `bson:"password"`
-	Salt        string        `bson:"salt"`
-	EncPassword string        `bson:"encrypted_password"`
-	UserType    int           `bson:"user_type"`
-	Fullname    string        `bson:"fullname"`
-	Mobile      string        `bson:"mobile"`
-	CreatedAt   time.Time     `bson:"created_at"`
-	UpdatedAt   time.Time     `bson:"updated_at"`
+	Id                bson.ObjectId `bson:"_id"`
+	Username          string        `bson:"username"`
+	Password          string        `bson:"password"`
+	Salt              string        `bson:"salt"`
+	EncryptedPassword string        `bson:"encrypted_password"`
+	UserType          int           `bson:"user_type"`
+	Fullname          string        `bson:"fullname"`
+	Mobile            string        `bson:"mobile"`
+	CreatedAt         time.Time     `bson:"created_at"`
+	UpdatedAt         time.Time     `bson:"updated_at"`
 }
 
 func (admin *Admin) PreInsert() error {
@@ -215,6 +227,10 @@ func (m *MongoClient) InsertAdmin(admin *Admin) error {
 
 func (m *MongoClient) UpdateAdmin(admin *Admin) error {
 	admin.UpdatedAt = time.Now()
+	return dbAdmin.UpdateId(admin.Id, admin)
+}
+
+func (m *MongoClient) UpdateAdminWithoutTime(admin *Admin) error {
 	return dbAdmin.UpdateId(admin.Id, admin)
 }
 

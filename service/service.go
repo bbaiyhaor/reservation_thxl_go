@@ -14,10 +14,6 @@ func InitService(confPath string, isSmock bool) {
 	config.InitWithParams(confPath, isSmock)
 	log.Infof("config loaded: %+v", *config.Instance())
 	wf = buslogic.NewWorkflow()
-
-	if err := wf.ImportArchiveFromCSVFile(); err != nil {
-		log.Fatalf("初始化档案失败：%v", err)
-	}
 }
 
 func Workflow() *buslogic.Workflow {

@@ -24,6 +24,33 @@ type OldReservation struct {
 	OldTeacherFeedback OldTeacherFeedback `bson:"teacher_feedback"`
 }
 
+func (r *OldReservation) ToReservation() (*Reservation, error) {
+	now := time.Now()
+	reservation := &Reservation{
+		Id:              r.Id,
+		StartTime:       r.StartTime,
+		EndTime:         r.EndTime,
+		Status:          r.Status,
+		Source:          r.Source,
+		SourceId:        r.SourceId,
+		IsAdminSet:      r.IsAdminSet,
+		SendSms:         r.SendSms,
+		TeacherId:       r.TeacherId,
+		StudentId:       r.StudentId,
+		StudentFeedback: StudentFeedback{r.OldStudentFeedback.Scores},
+		TeacherFeedback: r.OldTeacherFeedback.ToTeacherFeedback(),
+		CreatedAt:       r.CreateTime,
+		UpdatedAt:       r.UpdateTime,
+	}
+	if reservation.CreatedAt.Before(now.AddDate(-3, 0, 0)) {
+		reservation.CreatedAt = now
+	}
+	if reservation.UpdatedAt.Before(now.AddDate(-3, 0, 0)) {
+		reservation.UpdatedAt = now
+	}
+	return reservation, nil
+}
+
 type OldStudentFeedback struct {
 	Scores []int `bson:"scores"`
 }
@@ -51,6 +78,19 @@ type OldTeacherFeedback struct {
 	MedicalDiagnosis []int  `bson:"medical_diagnosis"` // 疑似或明确的医疗诊断
 	Crisis           []int  `bson:"crisis"`            // 危急情况
 	Record           string `bson:"record"`
+}
+
+func (tf OldTeacherFeedback) ToTeacherFeedback() TeacherFeedback {
+	return TeacherFeedback{
+		Category:         tf.Category,
+		Participants:     tf.Participants,
+		Problem:          tf.Problem,
+		Emphasis:         tf.Emphasis,
+		Severity:         tf.Severity,
+		MedicalDiagnosis: tf.MedicalDiagnosis,
+		Crisis:           tf.Crisis,
+		Record:           tf.Record,
+	}
 }
 
 func (tf OldTeacherFeedback) IsEmpty() bool {

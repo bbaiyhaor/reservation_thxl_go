@@ -46,13 +46,6 @@ func (s *Server) ListenAndServe(addr string) error {
 	s.Middleware(server.NewRuntimeWare(ignoredUrls, true, 15*time.Minute))
 	s.Middleware(s.wareWebpackAssets("webpack-assets.json", "bundles"))
 
-	// Change the asset prefix to CDN host for external prod server
-	//if config.Instance().Env != "staging" && !config.Instance().IsSmokeServer() {
-	//	s.EnableAssetsPrefix("https://assets.91zhiwang.com")
-	//} else if config.Instance().IsSmokeServer() {
-	//	s.EnableAssetsPrefix(config.Instance().H5Host)
-	//}
-
 	s.Get("/debug/vars", "RuntimeStat", s.getRuntimeStat)
 	s.Files("/static/*filepath", http.Dir("static"))
 	s.Files("/assets/*filepath", http.Dir("public"))

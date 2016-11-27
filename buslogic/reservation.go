@@ -78,7 +78,7 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType int) ([]*mod
 func (w *Workflow) GetReservationsByTeacher(userId string, userType int) ([]*model.Reservation, error) {
 	if userId == "" {
 		return nil, re.NewRErrorCode("teacher not login", nil, re.ERROR_NO_LOGIN)
-	} else if userType != model.USER_TYPE_STUDENT {
+	} else if userType != model.USER_TYPE_TEACHER {
 		return nil, re.NewRErrorCode("user is not teacher", nil, re.ERROR_NOT_AUTHORIZED)
 	}
 	teacher, err := w.mongoClient.GetTeacherById(userId)
@@ -313,20 +313,10 @@ func (w *Workflow) WrapSimpleReservation(reservation *model.Reservation) map[str
 }
 
 func (w *Workflow) WrapReservation(reservation *model.Reservation) map[string]interface{} {
-	var result = make(map[string]interface{})
+	result := w.WrapSimpleReservation(reservation)
 	if reservation == nil {
 		return result
 	}
-	result["id"] = reservation.Id.Hex()
-	result["start_time"] = reservation.StartTime.Format("2006-01-02 15:04")
-	result["end_time"] = reservation.EndTime.Format("2006-01-02 15:04")
-	result["status"] = reservation.Status
-	if reservation.Status == model.RESERVATION_STATUS_RESERVATED && reservation.StartTime.Before(time.Now()) {
-		result["status"] = model.RESERVATION_STATUS_FEEDBACK
-	}
-	result["source"] = reservation.Source
-	result["source_id"] = reservation.SourceId
-	result["teacher_id"] = reservation.TeacherId
 	if teacher, err := w.mongoClient.GetTeacherById(reservation.TeacherId); err == nil {
 		result["teacher_username"] = teacher.Username
 		result["teacher_fullname"] = teacher.Fullname

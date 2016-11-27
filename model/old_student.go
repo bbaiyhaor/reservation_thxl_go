@@ -42,10 +42,59 @@ type OldStudent struct {
 	Problem           string        `bson:"problem"`
 }
 
+func (s *OldStudent) ToStudent() (*Student, error) {
+	now := time.Now()
+	student := &Student{
+		Id:              s.Id,
+		Username:        s.Username,
+		UserType:        s.UserType,
+		BindedTeacherId: s.BindedTeacherId,
+		ArchiveCategory: s.ArchiveCategory,
+		ArchiveNumber:   s.ArchiveNumber,
+		CrisisLevel:     s.CrisisLevel,
+		Fullname:        s.Fullname,
+		Gender:          s.Gender,
+		Birthday:        s.Birthday,
+		School:          s.School,
+		Grade:           s.Grade,
+		CurrentAddress:  s.CurrentAddress,
+		FamilyAddress:   s.FamilyAddress,
+		Mobile:          s.Mobile,
+		Email:           s.Email,
+		Experience:      s.OldExperience.ToExperience(),
+		ParentInfo:      ParentInfo{s.FatherAge, s.FatherJob, s.FatherEdu, s.MotherAge, s.MotherJob, s.MotherEdu, s.ParentMarriage},
+		Significant:     s.Significant,
+		Problem:         s.Problem,
+		CreatedAt:       s.CreateTime,
+		UpdatedAt:       s.UpdateTime,
+	}
+	if student.CreatedAt.Before(now.AddDate(-3, 0, 0)) {
+		student.CreatedAt = now
+	}
+	if student.UpdatedAt.Before(now.AddDate(-3, 0, 0)) {
+		student.UpdatedAt = now
+	}
+	if s.EncryptedPassword != "" {
+		student.EncryptedPassword = s.EncryptedPassword
+	} else {
+		student.Password = s.Password
+		student.PreInsert()
+	}
+	return student, nil
+}
+
 type OldExperience struct {
 	Time     string `bson:"time"`
 	Location string `bson:"location"`
 	Teacher  string `bson:"teacher"`
+}
+
+func (e OldExperience) ToExperience() Experience {
+	return Experience{
+		Time:     e.Time,
+		Location: e.Location,
+		Teacher:  e.Teacher,
+	}
 }
 
 func (e OldExperience) IsEmpty() bool {

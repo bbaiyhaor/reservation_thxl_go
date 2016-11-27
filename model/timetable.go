@@ -35,6 +35,10 @@ func (m *MongoClient) UpdateTimedReservation(timedReservation *TimedReservation)
 	return dbTimetable.UpdateId(timedReservation.Id, timedReservation)
 }
 
+func (m *MongoClient) UpdateTimedReservationWithoutTime(timedReservation *TimedReservation) error {
+	return dbTimetable.UpdateId(timedReservation.Id, timedReservation)
+}
+
 func (m *MongoClient) GetTimedReservationById(id string) (*TimedReservation, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, re.NewRErrorCode("id is not valid", nil, re.ERROR_DATABASE)

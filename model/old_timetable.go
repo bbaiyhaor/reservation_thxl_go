@@ -20,6 +20,29 @@ type OldTimedReservation struct {
 	Timed      map[string]bool `bson:"timed_map"`     // timed dates
 }
 
+func (t *OldTimedReservation) ToTimedReservation() (*TimedReservation, error) {
+	now := time.Now()
+	timedReservation := &TimedReservation{
+		Id:         t.Id,
+		Weekday:    t.Weekday,
+		StartTime:  t.StartTime,
+		EndTime:    t.EndTime,
+		Status:     t.Status,
+		TeacherId:  t.TeacherId,
+		Exceptions: t.Exceptions,
+		Timed:      t.Timed,
+		CreatedAt:  t.CreateTime,
+		UpdatedAt:  t.UpdateTime,
+	}
+	if timedReservation.CreatedAt.Before(now.AddDate(-3, 0, 0)) {
+		timedReservation.CreatedAt = now
+	}
+	if timedReservation.UpdatedAt.Before(now.AddDate(-3, 0, 0)) {
+		timedReservation.UpdatedAt = now
+	}
+	return timedReservation, nil
+}
+
 func (m *MongoClient) AddOldTimedReservation(weekday time.Weekday, startTime time.Time, endTime time.Time, teacherId string) (*OldTimedReservation, error) {
 	collection := m.mongo.C("timetable")
 	timedReservation := &OldTimedReservation{

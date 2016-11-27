@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-// UniqueIndex: student_username
-// UniqueIndex: archive_number
+// Index: student_username
+// Index: archive_category + archive_number
 type Archive struct {
 	Id              bson.ObjectId `bson:"_id"`
 	StudentUsername string        `bson:"student_username"`
@@ -28,6 +28,10 @@ func (m *MongoClient) UpdateArchive(archive *Archive) error {
 	return dbArchive.UpdateId(archive.Id, archive)
 }
 
+func (m *MongoClient) UpdateArchiveWithoutTime(archive *Archive) error {
+	return dbArchive.UpdateId(archive.Id, archive)
+}
+
 func (m *MongoClient) CountByStudentUsername(studentUsername string) (int, error) {
 	return dbArchive.Find(bson.M{"student_username": studentUsername}).Count()
 }
@@ -38,8 +42,8 @@ func (m *MongoClient) GetArchiveByStudentUsername(studentUsername string) (*Arch
 	return &archive, err
 }
 
-func (m *MongoClient) GetArchiveByArchiveNumber(archiveNumber string) (*Archive, error) {
+func (m *MongoClient) GetArchiveByArchiveCategoryAndNumber(archiveCategory string, archiveNumber string) (*Archive, error) {
 	var archive Archive
-	err := dbArchive.Find(bson.M{"archive_number": archiveNumber}).One(&archive)
+	err := dbArchive.Find(bson.M{"archive_category": archiveCategory, "archive_number": archiveNumber}).One(&archive)
 	return &archive, err
 }

@@ -25,6 +25,7 @@ const (
 	ERROR_LOGIN_PWDCHANGE_USERNAME_MISMATCH   = 108
 	ERROR_LOGIN_PWDCHANGE_MOBILE_MISMATCh     = 109
 	ERROR_LOGIN_PWDCHANGE_VERIFY_CODE_WRONG   = 110
+	ERROR_NO_STUDENT                          = 111
 	// 通用逻辑类错误
 	ERROR_FEEDBACK_AVAILABLE_RESERVATION = 201
 	ERROR_FEEDBACK_FUTURE_RESERVATION    = 202
@@ -87,6 +88,8 @@ func ReturnMessage(code int, args ...interface{}) string {
 		return "用户名不匹配"
 	case ERROR_LOGIN_PWDCHANGE_MOBILE_MISMATCh:
 		return "手机号不匹配"
+	case ERROR_NO_STUDENT:
+		return "学生未注册"
 	case ERROR_FORMAT_MOBILE:
 		return "手机号格式不正确"
 	case ERROR_FORMAT_EMAIL:

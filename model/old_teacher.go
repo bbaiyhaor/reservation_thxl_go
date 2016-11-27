@@ -19,6 +19,32 @@ type OldTeacher struct {
 	Mobile            string        `bson:"mobile"`
 }
 
+func (t *OldTeacher) ToTeacher() (*Teacher, error) {
+	now := time.Now()
+	teacher := &Teacher{
+		Id:        t.Id,
+		Username:  t.Username,
+		UserType:  t.UserType,
+		Fullname:  t.Fullname,
+		Mobile:    t.Mobile,
+		CreatedAt: t.CreateTime,
+		UpdatedAt: t.UpdateTime,
+	}
+	if teacher.CreatedAt.Before(now.AddDate(-3, 0, 0)) {
+		teacher.CreatedAt = now
+	}
+	if teacher.UpdatedAt.Before(now.AddDate(-3, 0, 0)) {
+		teacher.UpdatedAt = now
+	}
+	if t.EncryptedPassword != "" {
+		teacher.EncryptedPassword = t.EncryptedPassword
+	} else {
+		teacher.Password = t.Password
+		teacher.PreInsert()
+	}
+	return teacher, nil
+}
+
 func (m *MongoClient) AddOldTeacher(username string, password string, fullname string, mobile string) (*OldTeacher, error) {
 	if username == "" || password == "" || fullname == "" || mobile == "" {
 		return nil, errors.New("字段不合法")

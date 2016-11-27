@@ -2,6 +2,7 @@ IMPORT_PATH = $(shell echo `pwd` | sed "s|^$(GOPATH)/src/||g")
 APP_NAME = $(shell echo $(IMPORT_PATH) | sed 's:.*/::')
 APP_VERSION = 0.1
 TARGET = ./$(APP_NAME)-$(APP_VERSION)
+EXTERNAL_TARGET = ./$(APP_NAME)-external-$(APP_VERSION)
 DIST_TARGET = ./$(APP_NAME)-$(APP_VERSION)-dist
 DIST_EXTERNAL_TARGET = ./$(APP_NAME)-external-$(APP_VERSION)-dist
 GO_FILES = $(shell find . -type f -name "*.go")
@@ -14,11 +15,12 @@ PORT ?= 9000
 #webpack-dev-server port
 DEV_HOT_PORT ?= 8090
 
-build: clean $(BUNDLE) $(TARGET) $(DIST_TARGET) $(DIST_EXTERNAL_TARGET)
+build: clean $(BUNDLE) $(TARGET) $(EXTERNAL_TARGET) $(DIST_TARGET) $(DIST_EXTERNAL_TARGET)
 
 clean:
 	@rm -rf public/bundles
 	@rm -rf $(TARGET)
+	@rm -rf $(EXTERNAL_TARGET)
 	@rm -rf $(DIST_TARGET)
 	@rm -rf $(DIST_EXTERNAL_TARGET)
 	@rm -rf $(APP_NAME)-$(APP_VERSION).zip
@@ -29,6 +31,10 @@ $(BUNDLE): $(ASSETS)
 $(TARGET): $(GO_FILES)
 	@printf "Building go binary ......"
 	@go build -race -o $@
+
+$(EXTERNAL_TARGET): $(GO_FILES)
+	@printf "Building external go binary ......"
+	@go build -race -o $@ ./external
 
 $(DIST_TARGET): $(GO_FILES)
 	@printf "Building dist go binary ......"

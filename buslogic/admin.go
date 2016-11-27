@@ -473,7 +473,7 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 	}
 	student, err := w.mongoClient.GetStudentByUsername(studentUsername)
 	if err != nil {
-		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
+		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_NO_STUDENT)
 	}
 	var reservation *model.Reservation
 	if sourceId == "" {
@@ -535,13 +535,15 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 	student.Experience.Time = experienceTime
 	student.Experience.Location = experienceLocation
 	student.Experience.Teacher = experienceTeacher
-	student.FatherAge = fatherAge
-	student.FatherJob = fatherJob
-	student.FatherEdu = fatherEdu
-	student.MotherAge = motherAge
-	student.MotherJob = motherJob
-	student.MotherEdu = motherEdu
-	student.ParentMarriage = parentMarriage
+	student.ParentInfo = model.ParentInfo{
+		FatherAge:      fatherAge,
+		FatherJob:      fatherJob,
+		FatherEdu:      fatherEdu,
+		MotherAge:      motherAge,
+		MotherJob:      motherJob,
+		MotherEdu:      motherEdu,
+		ParentMarriage: parentMarriage,
+	}
 	student.Significant = siginificant
 	student.Problem = problem
 	student.BindedTeacherId = reservation.TeacherId
@@ -576,7 +578,7 @@ func (w *Workflow) GetStudentInfoByAdmin(studentId string,
 	}
 	student, err := w.mongoClient.GetStudentById(studentId)
 	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
-		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_NO_STUDENT)
 	}
 	reservations, err := w.mongoClient.GetReservationsByStudentId(student.Id.Hex())
 	if err != nil {
@@ -638,11 +640,11 @@ func (w *Workflow) UpdateStudentArchiveNumberByAdmin(studentId string, archiveCa
 	if err != nil {
 		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
 	}
-	archiveStudent, err := w.mongoClient.GetStudentByArchiveNumber(archiveNumber)
+	archiveStudent, err := w.mongoClient.GetStudentByArchiveCategoryAndNumber(archiveCategory, archiveNumber)
 	if err == nil && archiveStudent.Id.Valid() && archiveStudent.Id.Hex() != student.Id.Hex() {
 		return nil, re.NewRErrorCode("archive number already exists", nil, re.ERROR_ADMIN_ARCHIVE_NUMBER_ALREADY_EXIST)
 	}
-	archive, err := w.mongoClient.GetArchiveByArchiveNumber(archiveNumber)
+	archive, err := w.mongoClient.GetArchiveByArchiveCategoryAndNumber(archiveCategory, archiveNumber)
 	if err == nil && archive.Id.Valid() && archive.StudentUsername != student.Username {
 		return nil, re.NewRErrorCode("archive number already exists", nil, re.ERROR_ADMIN_ARCHIVE_NUMBER_ALREADY_EXIST)
 	}
@@ -804,7 +806,7 @@ func (w *Workflow) QueryStudentInfoByAdmin(studentUsername string,
 	}
 	student, err := w.mongoClient.GetStudentByUsername(studentUsername)
 	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
-		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_NO_STUDENT)
 	}
 	reservations, err := w.mongoClient.GetReservationsByStudentId(student.Id.Hex())
 	if err != nil {

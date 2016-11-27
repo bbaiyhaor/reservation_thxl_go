@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"gopkg.in/mgo.v2/bson"
+	"time"
 )
 
 type OldArchive struct {
@@ -10,6 +11,19 @@ type OldArchive struct {
 	StudentUsername    string        `bson:"student_username"` // Indexed
 	OldArchiveCategory string        `bson:"archive_category"`
 	OldArchiveNumber   string        `bson:"archive_number"`
+}
+
+func (a *OldArchive) ToArchive() (*Archive, error) {
+	now := time.Now()
+	archive := &Archive{
+		Id:              a.Id,
+		StudentUsername: a.StudentUsername,
+		ArchiveCategory: a.OldArchiveCategory,
+		ArchiveNumber:   a.OldArchiveNumber,
+		CreatedAt:       now,
+		UpdatedAt:       now,
+	}
+	return archive, nil
 }
 
 func (m *MongoClient) AddOldArchive(studentUsername string, archiveCategory string, archiveNumber string) (*OldArchive, error) {

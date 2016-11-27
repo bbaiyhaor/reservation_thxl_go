@@ -121,13 +121,15 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 	student.Experience.Time = experienceTime
 	student.Experience.Location = experienceLocation
 	student.Experience.Teacher = experienceTeacher
-	student.FatherAge = fatherAge
-	student.FatherJob = fatherJob
-	student.FatherEdu = fatherEdu
-	student.MotherAge = motherAge
-	student.MotherJob = motherJob
-	student.MotherEdu = motherEdu
-	student.ParentMarriage = parentMarriage
+	student.ParentInfo = model.ParentInfo{
+		FatherAge:      fatherAge,
+		FatherJob:      fatherJob,
+		FatherEdu:      fatherEdu,
+		MotherAge:      motherAge,
+		MotherJob:      motherJob,
+		MotherEdu:      motherEdu,
+		ParentMarriage: parentMarriage,
+	}
 	student.Significant = siginificant
 	student.Problem = problem
 	student.BindedTeacherId = reservation.TeacherId
@@ -228,9 +230,9 @@ func (w *Workflow) ExportStudentInfoToFile(student *model.Student, path string) 
 	} else {
 		data = append(data, []string{"咨询经历", "无"})
 	}
-	data = append(data, []string{"父亲", "年龄", student.FatherAge, "职业", student.FatherJob, "学历", student.FatherEdu})
-	data = append(data, []string{"母亲", "年龄", student.MotherAge, "职业", student.MotherJob, "学历", student.MotherEdu})
-	data = append(data, []string{"父母婚姻状况", student.ParentMarriage})
+	data = append(data, []string{"父亲", "年龄", student.ParentInfo.FatherAge, "职业", student.ParentInfo.FatherJob, "学历", student.ParentInfo.FatherEdu})
+	data = append(data, []string{"母亲", "年龄", student.ParentInfo.MotherAge, "职业", student.ParentInfo.MotherJob, "学历", student.ParentInfo.MotherEdu})
+	data = append(data, []string{"父母婚姻状况", student.ParentInfo.ParentMarriage})
 	data = append(data, []string{"在近三个月里，是否发生了对你有重大意义的事（如亲友的死亡、法律诉讼、失恋等）？", student.Significant})
 	data = append(data, []string{"你现在需要接受帮助的主要问题是什么？", student.Problem})
 	bindedTeacher, err := w.mongoClient.GetTeacherById(student.BindedTeacherId)
@@ -335,27 +337,23 @@ func (w *Workflow) WrapSimpleStudent(student *model.Student) map[string]interfac
 	result["experience_time"] = student.Experience.Time
 	result["experience_location"] = student.Experience.Location
 	result["experience_teacher"] = student.Experience.Teacher
-	result["father_age"] = student.FatherAge
-	result["father_job"] = student.FatherJob
-	result["father_edu"] = student.FatherEdu
-	result["mother_age"] = student.MotherAge
-	result["mother_job"] = student.MotherJob
-	result["mother_edu"] = student.MotherEdu
-	result["parent_marriage"] = student.ParentMarriage
+	result["father_age"] = student.ParentInfo.FatherAge
+	result["father_job"] = student.ParentInfo.FatherJob
+	result["father_edu"] = student.ParentInfo.FatherEdu
+	result["mother_age"] = student.ParentInfo.MotherAge
+	result["mother_job"] = student.ParentInfo.MotherJob
+	result["mother_edu"] = student.ParentInfo.MotherEdu
+	result["parent_marriage"] = student.ParentInfo.ParentMarriage
 	result["significant"] = student.Significant
 	result["problem"] = student.Problem
 	return result
 }
 
 func (w *Workflow) WrapStudent(student *model.Student) map[string]interface{} {
-	var result = make(map[string]interface{})
+	result := w.WrapSimpleStudent(student)
 	if student == nil {
 		return result
 	}
-	result["id"] = student.Id.Hex()
-	result["username"] = student.Username
-	result["user_type"] = student.UserType
-	result["binded_teacher_id"] = student.BindedTeacherId
 	if bindedTeacher, err := w.mongoClient.GetTeacherById(student.BindedTeacherId); err == nil {
 		result["binded_teacher_username"] = bindedTeacher.Username
 		result["binded_teacher_fullname"] = bindedTeacher.Fullname
@@ -363,29 +361,5 @@ func (w *Workflow) WrapStudent(student *model.Student) map[string]interface{} {
 		result["binded_teacher_username"] = ""
 		result["binded_teacher_fullname"] = ""
 	}
-	result["archive_category"] = student.ArchiveCategory
-	result["archive_number"] = student.ArchiveNumber
-	result["crisis_level"] = student.CrisisLevel
-	result["fullname"] = student.Fullname
-	result["gender"] = student.Gender
-	result["birthday"] = student.Birthday
-	result["school"] = student.School
-	result["grade"] = student.Grade
-	result["current_address"] = student.CurrentAddress
-	result["family_address"] = student.FamilyAddress
-	result["mobile"] = student.Mobile
-	result["email"] = student.Email
-	result["experience_time"] = student.Experience.Time
-	result["experience_location"] = student.Experience.Location
-	result["experience_teacher"] = student.Experience.Teacher
-	result["father_age"] = student.FatherAge
-	result["father_job"] = student.FatherJob
-	result["father_edu"] = student.FatherEdu
-	result["mother_age"] = student.MotherAge
-	result["mother_job"] = student.MotherJob
-	result["mother_edu"] = student.MotherEdu
-	result["parent_marriage"] = student.ParentMarriage
-	result["significant"] = student.Significant
-	result["problem"] = student.Problem
 	return result
 }

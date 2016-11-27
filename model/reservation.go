@@ -163,6 +163,10 @@ func (m *MongoClient) InsertReservation(reservation *Reservation) error {
 }
 
 func (m *MongoClient) InsertReservationAndUpdateTimedReservation(reservation *Reservation, timedReservation *TimedReservation) error {
+	now := time.Now()
+	reservation.CreatedAt = now
+	reservation.UpdatedAt = now
+	timedReservation.UpdatedAt = now
 	runner := txn.NewRunner(dbReservation)
 	ops := []txn.Op{{
 		C:      "reservation",
@@ -185,7 +189,14 @@ func (m *MongoClient) UpdateReservation(reservation *Reservation) error {
 	return dbReservation.UpdateId(reservation.Id, reservation)
 }
 
+func (m *MongoClient) UpdateReservationWithoutTime(reservation *Reservation) error {
+	return dbReservation.UpdateId(reservation.Id, reservation)
+}
+
 func (m *MongoClient) UpdateReservationAndTimedReservation(reservation *Reservation, timedReservation *TimedReservation) error {
+	now := time.Now()
+	reservation.UpdatedAt = now
+	timedReservation.UpdatedAt = now
 	runner := txn.NewRunner(dbReservation)
 	ops := []txn.Op{{
 		C:      "reservation",
@@ -205,6 +216,9 @@ func (m *MongoClient) UpdateReservationAndTimedReservation(reservation *Reservat
 }
 
 func (m *MongoClient) UpdateReservationAndStudent(reservation *Reservation, student *Student) error {
+	now := time.Now()
+	reservation.UpdatedAt = now
+	student.UpdatedAt = now
 	runner := txn.NewRunner(dbReservation)
 	ops := []txn.Op{{
 		C:      "reservation",

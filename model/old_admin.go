@@ -18,6 +18,32 @@ type OldAdmin struct {
 	UserType          int           `bson:"user_type"`
 }
 
+func (a *OldAdmin) ToAdmin() (*Admin, error) {
+	now := time.Now()
+	admin := &Admin{
+		Id:        a.Id,
+		Username:  a.Username,
+		UserType:  a.UserType,
+		Fullname:  a.Fullname,
+		Mobile:    a.Mobile,
+		CreatedAt: a.CreateTime,
+		UpdatedAt: a.UpdateTime,
+	}
+	if admin.CreatedAt.Before(now.AddDate(-3, 0, 0)) {
+		admin.CreatedAt = now
+	}
+	if admin.UpdatedAt.Before(now.AddDate(-3, 0, 0)) {
+		admin.UpdatedAt = now
+	}
+	if a.EncryptedPassword != "" {
+		admin.EncryptedPassword = a.EncryptedPassword
+	} else {
+		admin.Password = a.Password
+		admin.PreInsert()
+	}
+	return admin, nil
+}
+
 func (m *MongoClient) UpsertOldAdmin(admin *OldAdmin) error {
 	if admin == nil || !admin.Id.Valid() {
 		return errors.New("字段不合法")

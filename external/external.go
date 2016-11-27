@@ -22,5 +22,12 @@ func main() {
 		workflow.SendTomorrowReservationReminderSMS()
 	} else if *method == "timetable" {
 		workflow.SendTodayTimetableMail(*mailTo)
+	} else if *method == "transfer-data-2016-11" {
+		TransferDataForNov2016(workflow)
+	} else if *method == "import-archive-file" {
+		err := workflow.ImportArchiveFromCSVFile()
+		if err != nil {
+			log.Errorf("import archive file failed, err: %+v", err)
+		}
 	}
 }

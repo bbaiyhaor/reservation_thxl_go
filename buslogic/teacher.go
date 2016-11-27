@@ -131,7 +131,7 @@ func (w *Workflow) GetStudentInfoByTeacher(studentId string,
 	}
 	student, err := w.mongoClient.GetStudentById(studentId)
 	if err != nil {
-		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_NO_STUDENT)
 	}
 	if student.BindedTeacherId != teacher.Id.Hex() {
 		return nil, nil, re.NewRErrorCode("cannot view other one's student", nil, re.ERROR_TEACHER_VIEW_OTHER_STUDENT)
@@ -159,7 +159,7 @@ func (w *Workflow) QueryStudentInfoByTeacher(studentUsername string,
 	}
 	student, err := w.mongoClient.GetStudentByUsername(studentUsername)
 	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
-		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_NO_STUDENT)
 	}
 	if student.BindedTeacherId != teacher.Id.Hex() {
 		return nil, nil, re.NewRErrorCode("cannot view other one's student", nil, re.ERROR_TEACHER_VIEW_OTHER_STUDENT)

@@ -33,6 +33,7 @@ func (uc *UserController) MuxHandlers(m JsonMuxer) {
 	m.PostJson(kUserApiBaseUrl+"/teacher/password/reset/sms", "TeacherResetPasswordSms", uc.teacherResetPasswordSms)
 	m.PostJson(kUserApiBaseUrl+"/teacher/password/reset/verify", "TeacherResetPasswordVerify", uc.teacherResetPasswordVerify)
 	m.PostJson(kUserApiBaseUrl+"/admin/login", "AdminLogin", uc.adminLogin)
+	m.PostJson(kUserApiBaseUrl+"/admin/password/change", "AdminChangePassword", RoleCookieInjection(uc.adminChangePassword))
 	m.GetJson(kUserApiBaseUrl+"/logout", "Logout", RoleCookieInjection(uc.logout))
 	m.GetJson(kUserApiBaseUrl+"/session", "UpdateSession", RoleCookieInjection(uc.updateSession))
 }
@@ -224,6 +225,21 @@ func (uc *UserController) adminLogin(ctx context.Context, w http.ResponseWriter,
 	result["username"] = admin.Username
 	result["user_type"] = admin.UserType
 	result["redirect_url"] = "/reservation/admin"
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (uc *UserController) adminChangePassword(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	username := form.ParamString(r, "username", "")
+	oldPassword := form.ParamString(r, "old_password", "")
+	newPassword := form.ParamString(r, "new_password", "")
+
+	var result = make(map[string]interface{})
+
+	_, err := service.Workflow().AdminChangePassword(username, oldPassword, newPassword, userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
 
 	return http.StatusOK, wrapJsonOk(result)
 }

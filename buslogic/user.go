@@ -38,6 +38,35 @@ func (w *Workflow) StudentLogin(username string, password string) (*model.Studen
 	return nil, re.NewRErrorCode("wrong password", nil, re.ERROR_LOGIN_PASSWORD_WRONG)
 }
 
+// 学生注册
+func (w *Workflow) StudentRegister(username string, password string) (*model.Student, error) {
+	if username == "" {
+		return nil, re.NewRErrorCodeContext("username is empty", nil, re.ERROR_MISSING_PARAM, "username")
+	} else if password == "" {
+		return nil, re.NewRErrorCodeContext("password is empty", nil, re.ERROR_MISSING_PARAM, "password")
+	}
+	if !utils.IsStudentId(username) {
+		return nil, re.NewRErrorCode("student id format is wrong", nil, re.ERROR_FORMAT_STUDENTID)
+	}
+	if student, _ := w.mongoClient.GetStudentByUsername(username); student != nil {
+		return nil, re.NewRErrorCode("student already exists", nil, re.ERROR_EXIST_USERNAME)
+	}
+	student := &model.Student{
+		Username: username,
+		Password: password,
+		UserType: model.USER_TYPE_STUDENT,
+	}
+	archive, err := w.mongoClient.GetArchiveByStudentUsername(username)
+	if err == nil {
+		student.ArchiveCategory = archive.ArchiveCategory
+		student.ArchiveNumber = archive.ArchiveNumber
+	}
+	if err := w.mongoClient.InsertStudent(student); err != nil {
+		return nil, re.NewRErrorCode("fail to insert student", err, re.ERROR_DATABASE)
+	}
+	return student, nil
+}
+
 // 咨询师登录
 func (w *Workflow) TeacherLogin(username string, password string) (*model.Teacher, error) {
 	if username == "" {
@@ -121,6 +150,7 @@ func (w *Workflow) TeacherResetPasswordSms(username, fullname, mobile string) er
 	return nil
 }
 
+// 咨询师验证短信重置密码
 func (w *Workflow) TeacherRestPasswordVerify(username, newPassword, verifyCode string) error {
 	if username == "" {
 		return re.NewRErrorCodeContext("username is empty", nil, re.ERROR_MISSING_PARAM, "username")
@@ -167,33 +197,37 @@ func (w *Workflow) AdminLogin(username string, password string) (*model.Admin, e
 	return nil, re.NewRErrorCode("wrong password", nil, re.ERROR_LOGIN_PASSWORD_WRONG)
 }
 
-// 学生注册
-func (w *Workflow) StudentRegister(username string, password string) (*model.Student, error) {
-	if username == "" {
+// 管理员更改密码
+func (w *Workflow) AdminChangePassword(username, oldPassword, newPassword string, userId string, userType int) (*model.Admin, error) {
+	if userId == "" {
+		return nil, re.NewRErrorCode("teacher not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_ADMIN {
+		return nil, re.NewRErrorCode("user is not teacher", nil, re.ERROR_NOT_AUTHORIZED)
+	} else if username == "" {
 		return nil, re.NewRErrorCodeContext("username is empty", nil, re.ERROR_MISSING_PARAM, "username")
-	} else if password == "" {
-		return nil, re.NewRErrorCodeContext("password is empty", nil, re.ERROR_MISSING_PARAM, "password")
+	} else if oldPassword == "" {
+		return nil, re.NewRErrorCodeContext("old password is empty", nil, re.ERROR_MISSING_PARAM, "old_password")
+	} else if newPassword == "" {
+		return nil, re.NewRErrorCodeContext("new password is empty", nil, re.ERROR_MISSING_PARAM, "new_password")
 	}
-	if !utils.IsStudentId(username) {
-		return nil, re.NewRErrorCode("student id format is wrong", nil, re.ERROR_FORMAT_STUDENTID)
+	admin, err := w.mongoClient.GetAdminById(userId)
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+		return nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
+	} else if username != admin.Username {
+		return nil, re.NewRErrorCode("username not match", nil, re.ERROR_LOGIN_PWDCHANGE_INFO_MISMATCH)
 	}
-	if student, _ := w.mongoClient.GetStudentByUsername(username); student != nil {
-		return nil, re.NewRErrorCode("student already exists", nil, re.ERROR_EXIST_USERNAME)
+	if admin.Password != model.EncodePassword(admin.Salt, oldPassword) {
+		return nil, re.NewRErrorCode("old password mismatch", nil, re.ERROR_LOGIN_PWDCHANGE_OLDPWD_MISMATCH)
 	}
-	student := &model.Student{
-		Username: username,
-		Password: password,
-		UserType: model.USER_TYPE_STUDENT,
+	if oldPassword == newPassword {
+		return nil, re.NewRErrorCode("new password should be different", nil, re.ERROR_LOGIN_PWDCHANGE_OLDPWD_EQUAL_NEWPED)
 	}
-	archive, err := w.mongoClient.GetArchiveByStudentUsername(username)
-	if err == nil {
-		student.ArchiveCategory = archive.ArchiveCategory
-		student.ArchiveNumber = archive.ArchiveNumber
+	admin.Password = newPassword
+	admin.PreInsert()
+	if err = w.mongoClient.UpdateAdmin(admin); err != nil {
+		return nil, re.NewRErrorCode("fail to update admin", err, re.ERROR_DATABASE)
 	}
-	if err := w.mongoClient.InsertStudent(student); err != nil {
-		return nil, re.NewRErrorCode("fail to insert student", err, re.ERROR_DATABASE)
-	}
-	return student, nil
+	return admin, nil
 }
 
 // 更新session

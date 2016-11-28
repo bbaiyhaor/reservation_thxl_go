@@ -815,6 +815,40 @@ func (w *Workflow) QueryStudentInfoByAdmin(studentUsername string,
 	return student, reservations, nil
 }
 
+// 管理员重置咨询师密码
+func (w *Workflow) ResetTeacherPasswordByAdmin(teacherUsername string, teacherFullname string, teacherMobile string, password string,
+	userId string, userType int) (*model.Teacher, error) {
+	if userId == "" {
+		return nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_ADMIN {
+		return nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
+	} else if teacherUsername == "" {
+		return nil, re.NewRErrorCodeContext("teacher_username id is empty", nil, re.ERROR_MISSING_PARAM, "teacher_username")
+	} else if teacherFullname == "" {
+		return nil, re.NewRErrorCodeContext("teacher_fullname id is empty", nil, re.ERROR_MISSING_PARAM, "teacher_fullname")
+	} else if teacherMobile == "" {
+		return nil, re.NewRErrorCodeContext("teacher_mobile id is empty", nil, re.ERROR_MISSING_PARAM, "teacher_mobile")
+	} else if password == "" {
+		return nil, re.NewRErrorCodeContext("password is empty", nil, re.ERROR_MISSING_PARAM, "password")
+	}
+	admin, err := w.mongoClient.GetAdminById(userId)
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+		return nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
+	}
+	teacher, err := w.mongoClient.GetTeacherByUsername(teacherUsername)
+	if err != nil {
+		return nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_NO_USER)
+	} else if teacherFullname != teacher.Fullname || teacherMobile != teacher.Mobile {
+		return nil, re.NewRErrorCode("teacher fullname/mobile mismatch", nil, re.ERROR_LOGIN_PWDCHANGE_INFO_MISMATCH)
+	}
+	teacher.Password = password
+	teacher.PreInsert()
+	if err = w.mongoClient.UpdateTeacher(teacher); err != nil {
+		return nil, re.NewRErrorCode("fail to update teacher", err, re.ERROR_DATABASE)
+	}
+	return teacher, nil
+}
+
 // 管理员导出当天时间表
 func (w *Workflow) ExportTodayReservationTimetableByAdmin(userId string, userType int) (string, error) {
 	if userId == "" {

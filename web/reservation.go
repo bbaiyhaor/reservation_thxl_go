@@ -22,54 +22,55 @@ const (
 )
 
 func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
-	m.GetJson(kCategoryApiBaseUrl+"/feedback", "GetFeedbackCategories", rc.GetFeedbackCategories)
+	m.GetJson(kCategoryApiBaseUrl+"/feedback", "GetFeedbackCategories", rc.getFeedbackCategories)
 
-	m.GetJson(kStudentApiBaseUrl+"/reservation/view", "ViewReservationsByStudent", RoleCookieInjection(rc.ViewReservationsByStudent))
-	m.PostJson(kStudentApiBaseUrl+"/reservation/make", "MakeReservationByStudent", RoleCookieInjection(rc.MakeReservationByStudent))
-	m.PostJson(kStudentApiBaseUrl+"/reservation/feedback/get", "GetFeedbackByStudent", RoleCookieInjection(rc.GetFeedbackByStudent))
-	m.PostJson(kStudentApiBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByStudent", RoleCookieInjection(rc.SubmitFeedbackByStudent))
+	m.GetJson(kStudentApiBaseUrl+"/reservation/view", "ViewReservationsByStudent", RoleCookieInjection(rc.viewReservationsByStudent))
+	m.PostJson(kStudentApiBaseUrl+"/reservation/make", "MakeReservationByStudent", RoleCookieInjection(rc.makeReservationByStudent))
+	m.PostJson(kStudentApiBaseUrl+"/reservation/feedback/get", "GetFeedbackByStudent", RoleCookieInjection(rc.getFeedbackByStudent))
+	m.PostJson(kStudentApiBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByStudent", RoleCookieInjection(rc.submitFeedbackByStudent))
 
-	m.GetJson(kTeacherApiBaseUrl+"/reservation/view", "ViewReservationsByTeacher", RoleCookieInjection(rc.ViewReservationsByTeacher))
-	m.PostJson(kTeacherApiBaseUrl+"/reservation/feedback/get", "GetFeedbackByTeacher", RoleCookieInjection(rc.GetFeedbackByTeacher))
-	m.PostJson(kTeacherApiBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByTeacher", RoleCookieInjection(rc.SubmitFeedbackByTeacher))
-	m.PostJson(kTeacherApiBaseUrl+"/student/get", "GetStudentInfoByTeacher", RoleCookieInjection(rc.GetStudentInfoByTeacher))
-	m.PostJson(kTeacherApiBaseUrl+"/student/query", "QueryStudentInfoByTeacher", RoleCookieInjection(rc.QueryStudentInfoByTeacher))
+	m.GetJson(kTeacherApiBaseUrl+"/reservation/view", "ViewReservationsByTeacher", RoleCookieInjection(rc.viewReservationsByTeacher))
+	m.PostJson(kTeacherApiBaseUrl+"/reservation/feedback/get", "GetFeedbackByTeacher", RoleCookieInjection(rc.getFeedbackByTeacher))
+	m.PostJson(kTeacherApiBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByTeacher", RoleCookieInjection(rc.submitFeedbackByTeacher))
+	m.PostJson(kTeacherApiBaseUrl+"/student/get", "GetStudentInfoByTeacher", RoleCookieInjection(rc.getStudentInfoByTeacher))
+	m.PostJson(kTeacherApiBaseUrl+"/student/query", "QueryStudentInfoByTeacher", RoleCookieInjection(rc.queryStudentInfoByTeacher))
 
-	m.GetJson(kAdminApiBaseUrl+"/timetable/view", "ViewTimedReservationsByAdmin", RoleCookieInjection(rc.ViewTimedReservationsByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/timetable/add", "AddTimedReservationByAdmin", RoleCookieInjection(rc.AddTimedReservationByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/timetable/edit", "EditTimedReservationByAdmin", RoleCookieInjection(rc.EditTimedReservationByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/timetable/remove", "RemoveTimedReservationsByAdmin", RoleCookieInjection(rc.RemoveTimedReservationsByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/timetable/open", "OpenTimedReservationsByAdmin", RoleCookieInjection(rc.OpenTimedReservationsByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/timetable/close", "CloseTimedReservationsByAdmin", RoleCookieInjection(rc.CloseTimedReservationsByAdmin))
-	m.GetJson(kAdminApiBaseUrl+"/reservation/view", "ViewReservationsByAdmin", RoleCookieInjection(rc.ViewReservationsByAdmin))
-	m.GetJson(kAdminApiBaseUrl+"/reservation/view/daily", "ViewDailyReservationsByAdmin", RoleCookieInjection(rc.ViewDailyReservationsByAdmin))
-	m.GetJson(kAdminApiBaseUrl+"/reservation/view/teacher/username", "ViewReservationsWithTeacherUsernameByAdmin", RoleCookieInjection(rc.ViewReservationsWithTeacherUsernameByAdmin))
-	m.GetJson(kAdminApiBaseUrl+"/reservation/export/today", "ExportTodayReservationsByAdmin", RoleCookieInjection(rc.ExportTodayReservationsByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report", "ExportReportFormByAdmin", RoleCookieInjection(rc.ExportReportFormByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report/monthly", "ExportReportMonthlyByAdmin", RoleCookieInjection(rc.ExportReportMonthlyByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/reservation/add", "AddReservationByAdmin", RoleCookieInjection(rc.AddReservationByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/reservation/edit", "EditReservationByAdmin", RoleCookieInjection(rc.EditReservationByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/reservation/remove", "RemoveReservationsByAdmin", RoleCookieInjection(rc.RemoveReservationsByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/reservation/cancel", "CancelReservationByAdmin", RoleCookieInjection(rc.CancelReservationByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/reservation/feedback/get", "GetFeedbackByAdmin", RoleCookieInjection(rc.GetFeedbackByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByAdmin", RoleCookieInjection(rc.SubmitFeedbackByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/reservation/student/set", "SetStudentByAdmin", RoleCookieInjection(rc.SetStudentByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/student/get", "GetStudentInfoByAdmin", RoleCookieInjection(rc.GetStudentInfoByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/student/search", "SearchStudentByAdmin", RoleCookieInjection(rc.SearchStudentByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/student/crisis/update", "UpdateStudentCrisisLevelByAdmin", RoleCookieInjection(rc.UpdateStudentCrisisLevelByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/student/archive/update", "UpdateStudentArchiveNumberByAdmin", RoleCookieInjection(rc.UpdateStudentArchiveNumberByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/student/password/reset", "ResetStudentPasswordByAdmin", RoleCookieInjection(rc.ResetStudentPasswordByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/student/account/delete", "DeleteStudentAccountByAdmin", RoleCookieInjection(rc.DeleteStudentAccountByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/student/export", "ExportStudentByAdmin", RoleCookieInjection(rc.ExportStudentByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/student/unbind", "UnbindStudentByAdmin", RoleCookieInjection(rc.UnbindStudentByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/student/bind", "BindStudentByAdmin", RoleCookieInjection(rc.BindStudentByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/student/query", "QueryStudentInfoByAdmin", RoleCookieInjection(rc.QueryStudentInfoByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/teacher/search", "SearchTeacherByAdmin", RoleCookieInjection(rc.SearchTeacherByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/teacher/workload", "GetTeacherWorkloadByAdmin", RoleCookieInjection(rc.GetTeacherWorkloadByAdmin))
+	m.GetJson(kAdminApiBaseUrl+"/timetable/view", "ViewTimedReservationsByAdmin", RoleCookieInjection(rc.viewTimedReservationsByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/timetable/add", "AddTimedReservationByAdmin", RoleCookieInjection(rc.addTimedReservationByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/timetable/edit", "EditTimedReservationByAdmin", RoleCookieInjection(rc.editTimedReservationByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/timetable/remove", "RemoveTimedReservationsByAdmin", RoleCookieInjection(rc.removeTimedReservationsByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/timetable/open", "OpenTimedReservationsByAdmin", RoleCookieInjection(rc.openTimedReservationsByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/timetable/close", "CloseTimedReservationsByAdmin", RoleCookieInjection(rc.closeTimedReservationsByAdmin))
+	m.GetJson(kAdminApiBaseUrl+"/reservation/view", "ViewReservationsByAdmin", RoleCookieInjection(rc.viewReservationsByAdmin))
+	m.GetJson(kAdminApiBaseUrl+"/reservation/view/daily", "ViewDailyReservationsByAdmin", RoleCookieInjection(rc.viewDailyReservationsByAdmin))
+	m.GetJson(kAdminApiBaseUrl+"/reservation/view/teacher/username", "ViewReservationsWithTeacherUsernameByAdmin", RoleCookieInjection(rc.viewReservationsWithTeacherUsernameByAdmin))
+	m.GetJson(kAdminApiBaseUrl+"/reservation/export/today", "ExportTodayReservationsByAdmin", RoleCookieInjection(rc.exportTodayReservationsByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report", "ExportReportFormByAdmin", RoleCookieInjection(rc.exportReportFormByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report/monthly", "ExportReportMonthlyByAdmin", RoleCookieInjection(rc.exportReportMonthlyByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/reservation/add", "AddReservationByAdmin", RoleCookieInjection(rc.addReservationByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/reservation/edit", "EditReservationByAdmin", RoleCookieInjection(rc.editReservationByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/reservation/remove", "RemoveReservationsByAdmin", RoleCookieInjection(rc.removeReservationsByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/reservation/cancel", "CancelReservationByAdmin", RoleCookieInjection(rc.cancelReservationByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/reservation/feedback/get", "GetFeedbackByAdmin", RoleCookieInjection(rc.getFeedbackByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByAdmin", RoleCookieInjection(rc.submitFeedbackByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/reservation/student/set", "SetStudentByAdmin", RoleCookieInjection(rc.setStudentByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/student/get", "GetStudentInfoByAdmin", RoleCookieInjection(rc.getStudentInfoByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/student/search", "SearchStudentByAdmin", RoleCookieInjection(rc.searchStudentByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/student/crisis/update", "UpdateStudentCrisisLevelByAdmin", RoleCookieInjection(rc.updateStudentCrisisLevelByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/student/archive/update", "UpdateStudentArchiveNumberByAdmin", RoleCookieInjection(rc.updateStudentArchiveNumberByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/student/password/reset", "ResetStudentPasswordByAdmin", RoleCookieInjection(rc.resetStudentPasswordByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/student/account/delete", "DeleteStudentAccountByAdmin", RoleCookieInjection(rc.deleteStudentAccountByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/student/export", "ExportStudentByAdmin", RoleCookieInjection(rc.exportStudentByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/student/unbind", "UnbindStudentByAdmin", RoleCookieInjection(rc.unbindStudentByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/student/bind", "BindStudentByAdmin", RoleCookieInjection(rc.bindStudentByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/student/query", "QueryStudentInfoByAdmin", RoleCookieInjection(rc.queryStudentInfoByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/teacher/password/reset", "ResetTeacherPasswordByAdmin", RoleCookieInjection(rc.resetTeacherPasswordByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/teacher/search", "SearchTeacherByAdmin", RoleCookieInjection(rc.searchTeacherByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/teacher/workload", "GetTeacherWorkloadByAdmin", RoleCookieInjection(rc.getTeacherWorkloadByAdmin))
 }
 
 //==================== category ====================
-func (rc *ReservationController) GetFeedbackCategories(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
+func (rc *ReservationController) getFeedbackCategories(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
 	var result = make(map[string]interface{})
 
 	result["first_category"] = model.FeedbackFirstCategory
@@ -79,7 +80,7 @@ func (rc *ReservationController) GetFeedbackCategories(ctx context.Context, w ht
 }
 
 //==================== student ====================
-func (rc *ReservationController) ViewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) viewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	var result = make(map[string]interface{})
 
 	student, err := service.MongoClient().GetStudentById(userId)
@@ -112,7 +113,7 @@ func (rc *ReservationController) ViewReservationsByStudent(w http.ResponseWriter
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) MakeReservationByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) makeReservationByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
 	sourceId := form.ParamString(r, "source_id", "")
 	startTime := form.ParamString(r, "start_time", "")
@@ -152,7 +153,7 @@ func (rc *ReservationController) MakeReservationByStudent(w http.ResponseWriter,
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) GetFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) getFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
 	sourceId := form.ParamString(r, "source_id", "")
 
@@ -169,7 +170,7 @@ func (rc *ReservationController) GetFeedbackByStudent(w http.ResponseWriter, r *
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) SubmitFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) submitFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
 	sourceId := form.ParamString(r, "source_id", "")
 	scores := []string(r.Form["scores"])
@@ -191,7 +192,7 @@ func (rc *ReservationController) SubmitFeedbackByStudent(w http.ResponseWriter, 
 }
 
 //==================== teacher ====================
-func (rc *ReservationController) ViewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) viewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	var result = make(map[string]interface{})
 
 	teacher, err := service.MongoClient().GetTeacherById(userId)
@@ -221,7 +222,7 @@ func (rc *ReservationController) ViewReservationsByTeacher(w http.ResponseWriter
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) GetFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) getFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
 	sourceId := form.ParamString(r, "source_id", "")
 
@@ -238,7 +239,7 @@ func (rc *ReservationController) GetFeedbackByTeacher(w http.ResponseWriter, r *
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) SubmitFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) submitFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
 	sourceId := form.ParamString(r, "source_id", "")
 	category := form.ParamString(r, "category", "")
@@ -285,7 +286,7 @@ func (rc *ReservationController) SubmitFeedbackByTeacher(w http.ResponseWriter, 
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) GetStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) getStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := form.ParamString(r, "student_id", "")
 
 	var result = make(map[string]interface{})
@@ -306,7 +307,7 @@ func (rc *ReservationController) GetStudentInfoByTeacher(w http.ResponseWriter, 
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) QueryStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) queryStudentInfoByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentUsername := form.ParamString(r, "student_username", "")
 
 	var result = make(map[string]interface{})
@@ -328,7 +329,7 @@ func (rc *ReservationController) QueryStudentInfoByTeacher(w http.ResponseWriter
 }
 
 //==================== admin ====================
-func (rc *ReservationController) ViewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) viewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	var result = make(map[string]interface{})
 
 	reservations, err := service.Workflow().GetReservationsByAdmin(userId, userType)
@@ -352,7 +353,7 @@ func (rc *ReservationController) ViewReservationsByAdmin(w http.ResponseWriter, 
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ViewDailyReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) viewDailyReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	fromDate := form.ParamString(r, "from_date", "")
 
 	var result = make(map[string]interface{})
@@ -378,7 +379,7 @@ func (rc *ReservationController) ViewDailyReservationsByAdmin(w http.ResponseWri
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ViewReservationsWithTeacherUsernameByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) viewReservationsWithTeacherUsernameByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	teacherUsername := form.ParamString(r, "teacher_username", "")
 
 	var result = make(map[string]interface{})
@@ -404,7 +405,7 @@ func (rc *ReservationController) ViewReservationsWithTeacherUsernameByAdmin(w ht
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ExportTodayReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) exportTodayReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	var result = make(map[string]interface{})
 
 	url, err := service.Workflow().ExportTodayReservationTimetableByAdmin(userId, userType)
@@ -416,7 +417,7 @@ func (rc *ReservationController) ExportTodayReservationsByAdmin(w http.ResponseW
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) AddReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) addReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	startTime := form.ParamString(r, "start_time", "")
 	endTime := form.ParamString(r, "end_time", "")
 	teacherUsername := form.ParamString(r, "teacher_username", "")
@@ -439,7 +440,7 @@ func (rc *ReservationController) AddReservationByAdmin(w http.ResponseWriter, r 
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) EditReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) editReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
 	sourceId := form.ParamString(r, "source_id", "")
 	originalStartTime := form.ParamString(r, "original_start_time", "")
@@ -465,7 +466,7 @@ func (rc *ReservationController) EditReservationByAdmin(w http.ResponseWriter, r
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) RemoveReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) removeReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationIds := []string(r.Form["reservation_ids"])
 	sourceIds := []string(r.Form["source_ids"])
 	startTimes := []string(r.Form["start_times"])
@@ -481,7 +482,7 @@ func (rc *ReservationController) RemoveReservationsByAdmin(w http.ResponseWriter
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) CancelReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) cancelReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationIds := []string(r.Form["reservation_ids"])
 	sourceIds := []string(r.Form["source_ids"])
 
@@ -496,7 +497,7 @@ func (rc *ReservationController) CancelReservationByAdmin(w http.ResponseWriter,
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) GetFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) getFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
 	sourceId := form.ParamString(r, "source_id", "")
 
@@ -513,7 +514,7 @@ func (rc *ReservationController) GetFeedbackByAdmin(w http.ResponseWriter, r *ht
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) SubmitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) submitFeedbackByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
 	sourceId := form.ParamString(r, "source_id", "")
 	category := form.ParamString(r, "category", "")
@@ -560,7 +561,7 @@ func (rc *ReservationController) SubmitFeedbackByAdmin(w http.ResponseWriter, r 
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) SetStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) setStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
 	sourceId := form.ParamString(r, "source_id", "")
 	startTime := form.ParamString(r, "start_time", "")
@@ -605,7 +606,7 @@ func (rc *ReservationController) SetStudentByAdmin(w http.ResponseWriter, r *htt
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) GetStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) getStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := form.ParamString(r, "student_id", "")
 
 	var result = make(map[string]interface{})
@@ -626,7 +627,7 @@ func (rc *ReservationController) GetStudentInfoByAdmin(w http.ResponseWriter, r 
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) SearchStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) searchStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentUsername := form.ParamString(r, "student_username", "")
 
 	var result = make(map[string]interface{})
@@ -640,7 +641,7 @@ func (rc *ReservationController) SearchStudentByAdmin(w http.ResponseWriter, r *
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) UpdateStudentCrisisLevelByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) updateStudentCrisisLevelByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := form.ParamString(r, "student_id", "")
 	crisisLevel := form.ParamString(r, "crisis_level", "")
 
@@ -654,7 +655,7 @@ func (rc *ReservationController) UpdateStudentCrisisLevelByAdmin(w http.Response
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) UpdateStudentArchiveNumberByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) updateStudentArchiveNumberByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := form.ParamString(r, "student_id", "")
 	archiveCategory := form.ParamString(r, "archive_category", "")
 	archiveNumber := form.ParamString(r, "archive_number", "")
@@ -669,7 +670,7 @@ func (rc *ReservationController) UpdateStudentArchiveNumberByAdmin(w http.Respon
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ResetStudentPasswordByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) resetStudentPasswordByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := form.ParamString(r, "student_id", "")
 	password := form.ParamString(r, "password", "")
 
@@ -683,7 +684,7 @@ func (rc *ReservationController) ResetStudentPasswordByAdmin(w http.ResponseWrit
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) DeleteStudentAccountByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) deleteStudentAccountByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := form.ParamString(r, "student_id", "")
 
 	var result = make(map[string]interface{})
@@ -696,7 +697,7 @@ func (rc *ReservationController) DeleteStudentAccountByAdmin(w http.ResponseWrit
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ExportStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) exportStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := form.ParamString(r, "student_id", "")
 
 	var result = make(map[string]interface{})
@@ -710,7 +711,7 @@ func (rc *ReservationController) ExportStudentByAdmin(w http.ResponseWriter, r *
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) UnbindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) unbindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := form.ParamString(r, "student_id", "")
 
 	var result = make(map[string]interface{})
@@ -724,7 +725,7 @@ func (rc *ReservationController) UnbindStudentByAdmin(w http.ResponseWriter, r *
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) BindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) bindStudentByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := form.ParamString(r, "student_id", "")
 	teacherUsername := form.ParamString(r, "teacher_username", "")
 
@@ -739,7 +740,7 @@ func (rc *ReservationController) BindStudentByAdmin(w http.ResponseWriter, r *ht
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) QueryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) queryStudentInfoByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentUsername := form.ParamString(r, "student_username", "")
 
 	var result = make(map[string]interface{})
@@ -760,7 +761,24 @@ func (rc *ReservationController) QueryStudentInfoByAdmin(w http.ResponseWriter, 
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) SearchTeacherByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) resetTeacherPasswordByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	teacherUsername := form.ParamString(r, "teacher_username", "")
+	teacherFullname := form.ParamString(r, "teacher_fullname", "")
+	teacherMobile := form.ParamString(r, "teacher_mobile", "")
+	password := form.ParamString(r, "password", "")
+
+	var result = make(map[string]interface{})
+
+	teacher, err := service.Workflow().ResetTeacherPasswordByAdmin(teacherUsername, teacherFullname, teacherMobile, password, userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
+	result["teacher"] = service.Workflow().WrapTeacher(teacher)
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (rc *ReservationController) searchTeacherByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	teacherUsername := form.ParamString(r, "teacher_username", "")
 	teacherFullname := form.ParamString(r, "teacher_fullname", "")
 	teacherMoble := form.ParamString(r, "teacher_mobile", "")
@@ -777,7 +795,7 @@ func (rc *ReservationController) SearchTeacherByAdmin(w http.ResponseWriter, r *
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) GetTeacherWorkloadByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) getTeacherWorkloadByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	fromDate := form.ParamString(r, "from_date", "")
 	toDate := form.ParamString(r, "to_date", "")
 
@@ -792,7 +810,7 @@ func (rc *ReservationController) GetTeacherWorkloadByAdmin(w http.ResponseWriter
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ExportReportFormByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) exportReportFormByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	fromDate := form.ParamString(r, "from_date", "")
 	toDate := form.ParamString(r, "to_date", "")
 
@@ -807,7 +825,7 @@ func (rc *ReservationController) ExportReportFormByAdmin(w http.ResponseWriter, 
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ExportReportMonthlyByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) exportReportMonthlyByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	monthlyDate := form.ParamString(r, "monthly_date", "")
 
 	var result = make(map[string]interface{})
@@ -823,7 +841,7 @@ func (rc *ReservationController) ExportReportMonthlyByAdmin(w http.ResponseWrite
 }
 
 //==================== timetable ====================
-func (rc *ReservationController) ViewTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) viewTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	var result = make(map[string]interface{})
 
 	timedReservations, err := service.Workflow().ViewTimetableByAdmin(userId, userType)
@@ -844,7 +862,7 @@ func (rc *ReservationController) ViewTimedReservationsByAdmin(w http.ResponseWri
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) AddTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) addTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	weekday := form.ParamString(r, "weekday", "")
 	startTime := form.ParamString(r, "start_clock", "")
 	endTime := form.ParamString(r, "end_clock", "")
@@ -868,7 +886,7 @@ func (rc *ReservationController) AddTimedReservationByAdmin(w http.ResponseWrite
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) EditTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) editTimedReservationByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	timedReservationId := form.ParamString(r, "timed_reservation_id", "")
 	weekday := form.ParamString(r, "weekday", "")
 	startTime := form.ParamString(r, "start_clock", "")
@@ -893,7 +911,7 @@ func (rc *ReservationController) EditTimedReservationByAdmin(w http.ResponseWrit
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) RemoveTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) removeTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	timedReservationIds := []string(r.Form["timed_reservation_ids"])
 
 	var result = make(map[string]interface{})
@@ -907,7 +925,7 @@ func (rc *ReservationController) RemoveTimedReservationsByAdmin(w http.ResponseW
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) OpenTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) openTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	timedReservationIds := []string(r.Form["timed_reservation_ids"])
 
 	var result = make(map[string]interface{})
@@ -921,7 +939,7 @@ func (rc *ReservationController) OpenTimedReservationsByAdmin(w http.ResponseWri
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) CloseTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) closeTimedReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	timedReservationIds := []string(r.Form["timed_reservation_ids"])
 
 	var result = make(map[string]interface{})

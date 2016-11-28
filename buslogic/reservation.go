@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
+	"github.com/mijia/sweb/log"
 	"sort"
 	"time"
 )
@@ -272,6 +273,22 @@ func (w *Workflow) GetReservationsWithTeacherUsernameByAdmin(teacherUsername str
 	}
 	sort.Sort(ByStartTimeOfReservation(result))
 	return result, nil
+}
+
+func (w *Workflow) ShiftReservationTimeInDays(days int) error {
+	reservations, err := w.mongoClient.GetAllReservations()
+	if err != nil {
+		return err
+	}
+	for _, r := range reservations {
+		r.StartTime = r.StartTime.AddDate(0, 0, days)
+		r.EndTime = r.EndTime.AddDate(0, 0, days)
+		err = w.mongoClient.UpdateReservationWithoutTime(r)
+		if err != nil {
+			log.Errorf("fail to update reservation %+v, err: %+v", r, err)
+		}
+	}
+	return nil
 }
 
 type ByStartTimeOfReservation []*model.Reservation

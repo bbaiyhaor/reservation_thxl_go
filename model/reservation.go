@@ -237,6 +237,12 @@ func (m *MongoClient) UpdateReservationAndStudent(reservation *Reservation, stud
 	return nil
 }
 
+func (m *MongoClient) GetAllReservations() ([]*Reservation, error) {
+	var reservations []*Reservation
+	err := dbReservation.Find(bson.M{}).All(&reservations)
+	return reservations, err
+}
+
 func (m *MongoClient) GetReservationById(id string) (*Reservation, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, re.NewRErrorCode("id is not valid", nil, re.ERROR_DATABASE)

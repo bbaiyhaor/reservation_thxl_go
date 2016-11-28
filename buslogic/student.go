@@ -354,9 +354,17 @@ func (w *Workflow) WrapStudent(student *model.Student) map[string]interface{} {
 	if student == nil {
 		return result
 	}
-	if bindedTeacher, err := w.mongoClient.GetTeacherById(student.BindedTeacherId); err == nil {
-		result["binded_teacher_username"] = bindedTeacher.Username
-		result["binded_teacher_fullname"] = bindedTeacher.Fullname
+	result["archive_category"] = student.ArchiveCategory
+	result["archive_number"] = student.ArchiveNumber
+	result["crisis_level"] = student.CrisisLevel
+	if student.BindedTeacherId != "" {
+		if bindedTeacher, err := w.mongoClient.GetTeacherById(student.BindedTeacherId); err == nil {
+			result["binded_teacher_username"] = bindedTeacher.Username
+			result["binded_teacher_fullname"] = bindedTeacher.Fullname
+		} else {
+			result["binded_teacher_username"] = ""
+			result["binded_teacher_fullname"] = ""
+		}
 	} else {
 		result["binded_teacher_username"] = ""
 		result["binded_teacher_fullname"] = ""

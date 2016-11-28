@@ -356,11 +356,13 @@ func (w *Workflow) WrapTimedReservation(timedReservation *model.TimedReservation
 	result["start_clock"] = timedReservation.StartTime.Format("15:04")
 	result["end_clock"] = timedReservation.EndTime.Format("15:04")
 	result["status"] = timedReservation.Status
-	result["teacher_id"] = timedReservation.TeacherId
-	if teacher, err := w.mongoClient.GetTeacherById(timedReservation.TeacherId); err == nil {
-		result["teacher_username"] = teacher.Username
-		result["teacher_fullname"] = teacher.Fullname
-		result["teacher_mobile"] = teacher.Mobile
+	if timedReservation.TeacherId != "" {
+		result["teacher_id"] = timedReservation.TeacherId
+		if teacher, err := w.mongoClient.GetTeacherById(timedReservation.TeacherId); err == nil {
+			result["teacher_username"] = teacher.Username
+			result["teacher_fullname"] = teacher.Fullname
+			result["teacher_mobile"] = teacher.Mobile
+		}
 	}
 	return result
 }

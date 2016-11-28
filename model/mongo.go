@@ -14,6 +14,7 @@ var (
 	dbArchive     *mgo.Collection
 	dbReservation *mgo.Collection
 	dbTimetable   *mgo.Collection
+	dbTxn         *mgo.Collection
 )
 
 type MongoClient struct {
@@ -47,6 +48,7 @@ func NewMongoClient() *MongoClient {
 	dbArchive = mongo.C("archive")
 	dbReservation = mongo.C("reservation")
 	dbTimetable = mongo.C("timetable")
+	dbTxn = mongo.C("txn")
 	ret := &MongoClient{
 		mongo: mongo,
 	}

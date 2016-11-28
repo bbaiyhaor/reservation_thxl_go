@@ -162,18 +162,20 @@ func (m *MongoClient) InsertReservation(reservation *Reservation) error {
 	return dbReservation.Insert(reservation)
 }
 
-func (m *MongoClient) InsertReservationAndUpdateTimedReservation(reservation *Reservation, timedReservation *TimedReservation) error {
+func (m *MongoClient) InsertReservationAndUpdateTimedReservationTransactional(reservation *Reservation, timedReservation *TimedReservation) error {
 	now := time.Now()
 	reservation.CreatedAt = now
 	reservation.UpdatedAt = now
 	timedReservation.UpdatedAt = now
-	runner := txn.NewRunner(dbReservation)
+	runner := txn.NewRunner(dbTxn)
 	ops := []txn.Op{{
 		C:      "reservation",
+		Assert: txn.DocMissing,
 		Insert: reservation,
 	}, {
 		C:      "timetable",
 		Id:     timedReservation.Id,
+		Assert: txn.DocExists,
 		Update: timedReservation,
 	}}
 	txnId := bson.NewObjectId()
@@ -182,6 +184,14 @@ func (m *MongoClient) InsertReservationAndUpdateTimedReservation(reservation *Re
 		return err
 	}
 	return nil
+}
+
+func (m *MongoClient) InsertReservationAndUpdateTimedReservation(reservation *Reservation, timedReservation *TimedReservation) error {
+	err := m.InsertReservation(reservation)
+	if err != nil {
+		return err
+	}
+	return m.UpdateTimedReservation(timedReservation)
 }
 
 func (m *MongoClient) UpdateReservation(reservation *Reservation) error {
@@ -193,18 +203,20 @@ func (m *MongoClient) UpdateReservationWithoutTime(reservation *Reservation) err
 	return dbReservation.UpdateId(reservation.Id, reservation)
 }
 
-func (m *MongoClient) UpdateReservationAndTimedReservation(reservation *Reservation, timedReservation *TimedReservation) error {
+func (m *MongoClient) UpdateReservationAndTimedReservationTransactional(reservation *Reservation, timedReservation *TimedReservation) error {
 	now := time.Now()
 	reservation.UpdatedAt = now
 	timedReservation.UpdatedAt = now
-	runner := txn.NewRunner(dbReservation)
+	runner := txn.NewRunner(dbTxn)
 	ops := []txn.Op{{
 		C:      "reservation",
 		Id:     reservation.Id,
+		Assert: txn.DocExists,
 		Update: reservation,
 	}, {
 		C:      "timetable",
 		Id:     timedReservation.Id,
+		Assert: txn.DocExists,
 		Update: timedReservation,
 	}}
 	txnId := bson.NewObjectId()
@@ -215,18 +227,28 @@ func (m *MongoClient) UpdateReservationAndTimedReservation(reservation *Reservat
 	return nil
 }
 
-func (m *MongoClient) UpdateReservationAndStudent(reservation *Reservation, student *Student) error {
+func (m *MongoClient) UpdateReservationAndTimedReservation(reservation *Reservation, timedReservation *TimedReservation) error {
+	err := m.UpdateReservation(reservation)
+	if err != nil {
+		return err
+	}
+	return m.UpdateTimedReservation(timedReservation)
+}
+
+func (m *MongoClient) UpdateReservationAndStudentTransactional(reservation *Reservation, student *Student) error {
 	now := time.Now()
 	reservation.UpdatedAt = now
 	student.UpdatedAt = now
-	runner := txn.NewRunner(dbReservation)
+	runner := txn.NewRunner(dbTxn)
 	ops := []txn.Op{{
 		C:      "reservation",
 		Id:     reservation.Id,
+		Assert: txn.DocExists,
 		Update: reservation,
 	}, {
 		C:      "student",
 		Id:     student.Id,
+		Assert: txn.DocExists,
 		Update: student,
 	}}
 	txnId := bson.NewObjectId()
@@ -235,6 +257,14 @@ func (m *MongoClient) UpdateReservationAndStudent(reservation *Reservation, stud
 		return err
 	}
 	return nil
+}
+
+func (m *MongoClient) UpdateReservationAndStudent(reservation *Reservation, student *Student) error {
+	err := m.UpdateReservation(reservation)
+	if err != nil {
+		return err
+	}
+	return m.UpdateStudent(student)
 }
 
 func (m *MongoClient) GetAllReservations() ([]*Reservation, error) {

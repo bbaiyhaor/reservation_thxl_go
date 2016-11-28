@@ -322,9 +322,11 @@ func (w *Workflow) WrapSimpleReservation(reservation *model.Reservation) map[str
 	}
 	result["source"] = reservation.Source
 	result["source_id"] = reservation.SourceId
-	result["teacher_id"] = reservation.TeacherId
-	if teacher, err := w.mongoClient.GetTeacherById(reservation.TeacherId); err == nil {
-		result["teacher_fullname"] = teacher.Fullname
+	if reservation.TeacherId != "" {
+		result["teacher_id"] = reservation.TeacherId
+		if teacher, err := w.mongoClient.GetTeacherById(reservation.TeacherId); err == nil {
+			result["teacher_fullname"] = teacher.Fullname
+		}
 	}
 	return result
 }
@@ -334,16 +336,20 @@ func (w *Workflow) WrapReservation(reservation *model.Reservation) map[string]in
 	if reservation == nil {
 		return result
 	}
-	if teacher, err := w.mongoClient.GetTeacherById(reservation.TeacherId); err == nil {
-		result["teacher_username"] = teacher.Username
-		result["teacher_fullname"] = teacher.Fullname
-		result["teacher_mobile"] = teacher.Mobile
+	if reservation.TeacherId != "" {
+		if teacher, err := w.mongoClient.GetTeacherById(reservation.TeacherId); err == nil {
+			result["teacher_username"] = teacher.Username
+			result["teacher_fullname"] = teacher.Fullname
+			result["teacher_mobile"] = teacher.Mobile
+		}
 	}
-	result["student_id"] = reservation.StudentId
-	if student, err := w.mongoClient.GetStudentById(reservation.StudentId); err == nil {
-		result["student_username"] = student.Username
-		result["student_fullname"] = student.Fullname
-		result["student_crisis_level"] = student.CrisisLevel
+	if reservation.StudentId != "" {
+		result["student_id"] = reservation.StudentId
+		if student, err := w.mongoClient.GetStudentById(reservation.StudentId); err == nil {
+			result["student_username"] = student.Username
+			result["student_fullname"] = student.Fullname
+			result["student_crisis_level"] = student.CrisisLevel
+		}
 	}
 	result["student_feedback"] = reservation.StudentFeedback.ToStringJson()
 	result["teacher_feedback"] = reservation.TeacherFeedback.ToStringJson()

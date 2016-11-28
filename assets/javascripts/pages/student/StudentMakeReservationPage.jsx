@@ -81,9 +81,7 @@ export default class StudentMakeReservationPage extends React.Component {
     setTimeout(() => {
       Application.makeReservationByStudent(payload, () => {
         this.loading.hide();
-        this.alert.show('预约成功', '你已预约成功，请关注短信提醒。', '好的', () => {
-          hashHistory.push('reservation');
-        });
+        hashHistory.push('reservation/make/success');
       }, (error) => {
         this.loading.hide();
         this.alert.show('预约失败', error, '好的');

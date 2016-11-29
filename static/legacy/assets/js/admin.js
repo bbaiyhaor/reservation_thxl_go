@@ -861,7 +861,7 @@ function getStudent(index) {
 
 function showStudent(student, reservations) {
   $('body').append('\
-    <div id="pop_show_student_' + student.id + '" class="pop_window" style="text-align: left; height: 70%; overflow:auto;">\
+    <div id="pop_show_student_' + student.id + '" class="pop_window" style="text-align: left; height: 80%; overflow:auto;">\
       <div style="width: 60%; float: left;">\
         学号：' + student.username + '<br>\
         姓名：' + student.fullname + '<br>\
@@ -1167,6 +1167,105 @@ function exportReportMonthly() {
     if (data.status === 'OK') {
       window.open(data.payload.report_url);
       // window.open(data.payload.key_case_url);
+    } else {
+      alert(data.err_msg);
+    }
+  });
+}
+
+function changeAdminPassword() {
+  $('body').append('\
+    <div id="change_admin_password" class="pop_window" style="text-align: left; width: 30%">\
+      <p style="color: red;">更改管理员密码</p>\
+      输入用户名：<input id="admin_username"><br>\
+      输入旧密码：<input id="admin_old_password" type="password"><br>\
+      输入新密码：<input id="admin_new_password" type="password"><br>\
+      确认新密码：<input id="admin_new_password_confirm" type="password"><br>\
+      <span id="change_admin_password_tip" style="color: red;"></span>\
+      <br>\
+      <button onclick="changeAdminPasswordConfirm();">确定</button><button style="margin-left: 20px;" onclick="$(\'#change_admin_password\').remove();">取消</button>\
+    </div>\
+  ');
+  optimize('#change_admin_password');
+}
+
+function changeAdminPasswordConfirm() {
+  var username = $('#admin_username').val();
+  var oldPassword = $('#admin_old_password').val();
+  var newPassword = $('#admin_new_password').val();
+  var newPasswordConfirm = $('#admin_new_password_confirm').val();
+  if (username === '' || oldPassword === '' || newPassword === '' || newPasswordConfirm === '') {
+    alert('请填写完整');
+    return;
+  } else if (newPassword !== newPasswordConfirm) {
+    alert('两次密码输入不一致');
+    $('#admin_new_password').val('');
+	  $('#admin_new_password_confirm').val('');
+	  return;
+  }
+  $.post('/api/user/admin/password/change', {
+    username: username,
+    old_password: oldPassword,
+    new_password: newPassword,
+  }, function(data, textStatus, xhr) {
+    if (data.status === 'OK') {
+      $('#change_admin_password_tip').text('更改成功');
+	    $('#admin_username').val('');
+	    $('#admin_old_password').val('');
+	    $('#admin_new_password').val('');
+	    $('#admin_new_password_confirm').val('');
+    } else {
+      alert(data.err_msg);
+    }
+  });
+}
+
+function resetTeacherPassword() {
+  $('body').append('\
+    <div id="reset_teacher_password" class="pop_window" style="text-align: left; width: 30%">\
+      <p style="color: red;">重置咨询师密码</p>\
+      咨询师工号：<input id="reset_teacher_username"><br>\
+      咨询师姓名：<input id="reset_teacher_fullname"><br>\
+      咨询师手机：<input id="reset_teacher_mobile"><br>\
+      输入新密码：<input id="reset_teacher_new_password" type="password"><br>\
+      确认新密码：<input id="reset_teacher_new_password_confirm" type="password"><br>\
+      <span id="reset_teacher_password_tip" style="color: red;"></span>\
+      <br>\
+      <button onclick="resetTeacherPasswordConfirm();">确定</button><button style="margin-left: 20px;" onclick="$(\'#reset_teacher_password\').remove();">取消</button>\
+    </div>\
+  ');
+  optimize('#reset_teacher_password');
+}
+
+function resetTeacherPasswordConfirm() {
+  var username = $('#reset_teacher_username').val();
+  var fullname = $('#reset_teacher_fullname').val();
+  var mobile = $('#reset_teacher_mobile').val();
+  var password = $('#reset_teacher_new_password').val();
+  var passwordConfirm = $('#reset_teacher_new_password_confirm').val();
+  console.log(username, fullname, mobile, password, passwordConfirm)
+  if (username === '' || fullname === '' || mobile === '' || password === '' || passwordConfirm === '') {
+    alert('请填写完整');
+    return;
+  } else if (password !== passwordConfirm) {
+	  alert('两次密码输入不一致');
+	  $('#reset_teacher_new_password').val('');
+	  $('#reset_teacher_new_password_confirm').val('');
+	  return;
+  } 
+  $.post('/api/admin/teacher/password/reset', {
+    "teacher_username": username,
+    "teacher_fullname": fullname,
+    "teacher_mobile": mobile,
+    "password": password,
+  }, function(data, textStatus, xhr) {
+    if (data.status === 'OK') {
+      $('#reset_teacher_password_tip').text('重置成功');
+	    $('#reset_teacher_username').val('');
+      $('#reset_teacher_fullname').val('');
+      $('#reset_teacher_mobile').val('');
+      $('#reset_teacher_new_password').val('');
+      $('#reset_teacher_new_password_confirm').val('');
     } else {
       alert(data.err_msg);
     }

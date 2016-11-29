@@ -51,6 +51,12 @@ func main() {
 			log.Errorf("fail to shift reservation: %+v", err)
 			return
 		}
+	} else if *method == "add-new-admin" {
+		// 添加新管理员
+		if _, err := workflow.AddNewAdmin(*username, *password); err != nil {
+			log.Errorf("fail to add new admin: %+v", err)
+			return
+		}
 	}
 	log.Info("Success")
 }

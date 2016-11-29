@@ -272,6 +272,9 @@ func (w *Workflow) UpdateSession(userId string, userType int) (map[string]interf
 
 // external: 重置账户密码
 func (w *Workflow) ResetUserPassword(username string, userType int, password string) error {
+	if username == "" || password == "" {
+		return re.NewRError("missing parameters", nil)
+	}
 	switch userType {
 	case model.USER_TYPE_STUDENT:
 		student, err := w.mongoClient.GetStudentByUsername(username)
@@ -300,4 +303,22 @@ func (w *Workflow) ResetUserPassword(username string, userType int, password str
 	default:
 		return re.NewRError(fmt.Sprintf("unknown user_type: %d", userType), nil)
 	}
+}
+
+// external: 添加新管理员
+func (w *Workflow) AddNewAdmin(username string, password string) (*model.Admin, error) {
+	if username == "" || password == "" {
+		return nil, re.NewRError("missing parameters", nil)
+	}
+	oldAdmin, err := w.mongoClient.GetAdminByUsername(username)
+	if err == nil && oldAdmin != nil {
+		return oldAdmin, re.NewRError(fmt.Sprintf("admin already exists: %+v", oldAdmin), nil)
+	}
+	newAdmin := &model.Admin{
+		Username: username,
+		Password: password,
+		UserType: model.USER_TYPE_ADMIN,
+	}
+	err = w.mongoClient.InsertAdmin(newAdmin)
+	return newAdmin, err
 }

@@ -77,10 +77,10 @@ export const User = {
   updateSession(succCallback, errCallback) {
     const succ = (data) => {
       if (data.status === 'OK') {
-        this.userId = data.payload.user_id;
-        this.username = data.payload.username;
-        this.userType = data.payload.user_type;
-        this.fullname = data.payload.fullname;
+        this.userId = data.payload.user.id;
+        this.username = data.payload.user.username;
+        this.userType = data.payload.user.user_type;
+        this.fullname = data.payload.user.fullname;
         succCallback && succCallback(data.payload);
       } else {
         errCallback && errCallback(data.err_msg, data.payload);
@@ -92,10 +92,10 @@ export const User = {
   studentLogin(username, password, succCallback, errCallback) {
     const succ = (data) => {
       if (data.status === 'OK') {
-        this.userId = data.payload.user_id;
-        this.username = data.payload.username;
-        this.userType = data.payload.user_type;
-        this.fullname = data.payload.fullname;
+        this.userId = data.payload.user.id;
+        this.username = data.payload.user.username;
+        this.userType = data.payload.user.user_type;
+        this.fullname = data.payload.user.fullname;
         succCallback && succCallback(data.payload);
       } else {
         errCallback && errCallback(data.err_msg, data.payload);
@@ -111,10 +111,6 @@ export const User = {
   studentRegister(username, password, succCallback, errCallback) {
     const succ = (data) => {
       if (data.status === 'OK') {
-        this.userId = data.payload.user_id;
-        this.username = data.payload.username;
-        this.userType = data.payload.user_type;
-        this.fullname = data.payload.fullname;
         succCallback && succCallback(data.payload);
       } else {
         errCallback && errCallback(data.err_msg, data.payload);
@@ -130,10 +126,10 @@ export const User = {
   teacherLogin(username, password, succCallback, errCallback) {
     const succ = (data) => {
       if (data.status === 'OK') {
-        this.userId = data.payload.user_id;
-        this.username = data.payload.username;
-        this.userType = data.payload.user_type;
-        this.fullname = data.payload.fullname;
+        this.userId = data.payload.user.user_id;
+        this.username = data.payload.user.username;
+        this.userType = data.payload.user.user_type;
+        this.fullname = data.payload.user.fullname;
         succCallback && succCallback(data.payload);
       } else {
         errCallback && errCallback(data.err_msg, data.payload);

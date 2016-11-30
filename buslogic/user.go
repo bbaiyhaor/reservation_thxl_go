@@ -242,28 +242,19 @@ func (w *Workflow) UpdateSession(userId string, userType int) (map[string]interf
 		if err != nil || admin.UserType != userType {
 			return nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 		}
-		result["user_id"] = admin.Id.Hex()
-		result["username"] = admin.Username
-		result["user_type"] = admin.UserType
-		result["fullname"] = admin.Fullname
+		result["user"] = w.WrapAdmin(admin)
 	case model.USER_TYPE_TEACHER:
 		teacher, err := w.mongoClient.GetTeacherById(userId)
 		if err != nil || teacher.UserType != userType {
 			return nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 		}
-		result["user_id"] = teacher.Id.Hex()
-		result["username"] = teacher.Username
-		result["user_type"] = teacher.UserType
-		result["fullname"] = teacher.Fullname
+		result["user"] = w.WrapTeacher(teacher)
 	case model.USER_TYPE_STUDENT:
 		student, err := w.mongoClient.GetStudentById(userId)
 		if err != nil || student.UserType != userType {
 			return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
 		}
-		result["user_id"] = student.Id.Hex()
-		result["username"] = student.Username
-		result["user_type"] = student.UserType
-		result["fullname"] = student.Fullname
+		result["user"] = w.WrapSimpleStudent(student)
 	default:
 		return nil, re.NewRErrorCode("fail to get user", nil, re.ERROR_NO_USER)
 	}

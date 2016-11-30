@@ -109,13 +109,7 @@ func (uc *UserController) studentRegister(ctx context.Context, w http.ResponseWr
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
-	if err = setUserCookie(w, student.Id.Hex(), student.Username, student.UserType); err != nil {
-		return http.StatusOK, wrapJsonError(err)
-	}
-	result["user_id"] = student.Id.Hex()
-	result["username"] = student.Username
-	result["user_type"] = student.UserType
-	result["fullname"] = student.Fullname
+	result["user"] = service.Workflow().WrapSimpleStudent(student)
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -133,10 +127,7 @@ func (uc *UserController) studentLogin(ctx context.Context, w http.ResponseWrite
 	if err = setUserCookie(w, student.Id.Hex(), student.Username, student.UserType); err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
-	result["user_id"] = student.Id.Hex()
-	result["username"] = student.Username
-	result["user_type"] = student.UserType
-	result["fullname"] = student.Fullname
+	result["user"] = service.Workflow().WrapSimpleStudent(student)
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -154,10 +145,7 @@ func (uc *UserController) teacherLogin(ctx context.Context, w http.ResponseWrite
 	if err = setUserCookie(w, teacher.Id.Hex(), teacher.Username, teacher.UserType); err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
-	result["user_id"] = teacher.Id.Hex()
-	result["username"] = teacher.Username
-	result["user_type"] = teacher.UserType
-	result["fullname"] = teacher.Fullname
+	result["user"] = service.Workflow().WrapTeacher(teacher)
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -221,9 +209,7 @@ func (uc *UserController) adminLogin(ctx context.Context, w http.ResponseWriter,
 	if err = setUserCookie(w, admin.Id.Hex(), admin.Username, admin.UserType); err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
-	result["user_id"] = admin.Id.Hex()
-	result["username"] = admin.Username
-	result["user_type"] = admin.UserType
+	result["user"] = service.Workflow().WrapAdmin(admin)
 	result["redirect_url"] = "/reservation/admin"
 
 	return http.StatusOK, wrapJsonOk(result)

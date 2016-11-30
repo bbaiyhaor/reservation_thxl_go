@@ -1,7 +1,6 @@
 package web
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"encoding/base64"
 	"net/http"
@@ -11,105 +10,36 @@ import (
 )
 
 func setUserCookie(w http.ResponseWriter, userId string, username string, userType int) error {
-	if config.Instance().IsSmockServer() {
-		http.SetCookie(w, &http.Cookie{
-			Name:     "user_id",
-			Value:    userId,
-			Path:     "/",
-			Expires:  time.Now().AddDate(1, 0, 0),
-			MaxAge:   365 * 24 * 60 * 60,
-			HttpOnly: true,
-		})
-		http.SetCookie(w, &http.Cookie{
-			Name:     "username",
-			Value:    username,
-			Path:     "/",
-			Expires:  time.Now().AddDate(1, 0, 0),
-			MaxAge:   365 * 24 * 60 * 60,
-			HttpOnly: true,
-		})
-		http.SetCookie(w, &http.Cookie{
-			Name:     "user_type",
-			Value:    strconv.Itoa(userType),
-			Path:     "/",
-			Expires:  time.Now().AddDate(1, 0, 0),
-			MaxAge:   365 * 24 * 60 * 60,
-			HttpOnly: true,
-		})
-	} else {
-		encCookie, err := encryptUserCookie(userId, username, userType)
-		if err != nil {
-			return err
-		}
-		http.SetCookie(w, &http.Cookie{
-			Name:     "USER",
-			Value:    encCookie,
-			Path:     "/",
-			Expires:  time.Now().AddDate(1, 0, 0),
-			MaxAge:   365 * 24 * 60 * 60,
-			HttpOnly: true,
-		})
+	encCookie, err := encryptUserCookie(userId, username, userType)
+	if err != nil {
+		return err
 	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "SESS",
+		Value:    encCookie,
+		Path:     "/",
+		Expires:  time.Now().AddDate(1, 0, 0),
+		MaxAge:   365 * 24 * 60 * 60,
+		HttpOnly: true,
+	})
 	return nil
 }
 
 func getUserCookie(r *http.Request) (userId string, username string, userType int, err error) {
-	if config.Instance().IsSmockServer() {
-		var cookie *http.Cookie
-		if cookie, err = r.Cookie("user_id"); err != nil {
-			return
-		} else {
-			userId = cookie.Value
-		}
-		if cookie, err = r.Cookie("username"); err != nil {
-			return
-		} else {
-			username = cookie.Value
-		}
-		if cookie, err = r.Cookie("user_type"); err != nil {
-			return
-		} else {
-			var ut int
-			if ut, err = strconv.Atoi(cookie.Value); err != nil {
-				return
-			} else {
-				userType = ut
-			}
-		}
-	} else {
-		var cookie *http.Cookie
-		if cookie, err = r.Cookie("USER"); err != nil {
-			return
-		}
-		userId, username, userType, err = decryptUserCookie(cookie.Value)
+	var cookie *http.Cookie
+	if cookie, err = r.Cookie("SESS"); err != nil {
+		return
 	}
+	userId, username, userType, err = decryptUserCookie(cookie.Value)
 	return
 }
 
 func clearUserCookie(w http.ResponseWriter) error {
-	if config.Instance().IsSmockServer() {
-		http.SetCookie(w, &http.Cookie{
-			Name:   "user_id",
-			Path:   "/",
-			MaxAge: -1,
-		})
-		http.SetCookie(w, &http.Cookie{
-			Name:   "username",
-			Path:   "/",
-			MaxAge: -1,
-		})
-		http.SetCookie(w, &http.Cookie{
-			Name:   "user_type",
-			Path:   "/",
-			MaxAge: -1,
-		})
-	} else {
-		http.SetCookie(w, &http.Cookie{
-			Name:   "USER",
-			Path:   "/",
-			MaxAge: -1,
-		})
-	}
+	http.SetCookie(w, &http.Cookie{
+		Name:   "SESS",
+		Path:   "/",
+		MaxAge: -1,
+	})
 	return nil
 }
 

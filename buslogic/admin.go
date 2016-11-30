@@ -1053,3 +1053,16 @@ func (w *Workflow) ExportReportMonthlyByAdmin(monthlyDate string, userId string,
 	//}
 	return reportPath, keyCasePath, nil
 }
+
+func (w *Workflow) WrapAdmin(admin *model.Admin) map[string]interface{} {
+	var result = make(map[string]interface{})
+	if admin == nil {
+		return result
+	}
+	result["id"] = admin.Id.Hex()
+	result["username"] = admin.Username
+	result["user_type"] = admin.UserType
+	result["fullname"] = admin.Fullname
+	result["mobile"] = admin.Mobile
+	return result
+}

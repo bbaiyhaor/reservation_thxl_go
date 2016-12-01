@@ -681,6 +681,7 @@ func (w *Workflow) ResetStudentPasswordByAdmin(studentId string, password string
 	if err = w.mongoClient.UpdateStudent(student); err != nil {
 		return nil, re.NewRErrorCode("fail to update student", err, re.ERROR_DATABASE)
 	}
+	w.ClearUserLoginRedisKey(student.Id.Hex(), student.UserType)
 	return student, nil
 }
 
@@ -846,6 +847,7 @@ func (w *Workflow) ResetTeacherPasswordByAdmin(teacherUsername string, teacherFu
 	if err = w.mongoClient.UpdateTeacher(teacher); err != nil {
 		return nil, re.NewRErrorCode("fail to update teacher", err, re.ERROR_DATABASE)
 	}
+	w.ClearUserLoginRedisKey(teacher.Id.Hex(), teacher.UserType)
 	return teacher, nil
 }
 

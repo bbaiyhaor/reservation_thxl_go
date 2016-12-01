@@ -124,7 +124,7 @@ func (uc *UserController) studentLogin(ctx context.Context, w http.ResponseWrite
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
-	if err = setUserCookie(w, student.Id.Hex(), student.Username, student.UserType); err != nil {
+	if err = setSession(w, student.Id.Hex(), student.Username, student.UserType); err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
 	result["user"] = service.Workflow().WrapSimpleStudent(student)
@@ -142,7 +142,7 @@ func (uc *UserController) teacherLogin(ctx context.Context, w http.ResponseWrite
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
-	if err = setUserCookie(w, teacher.Id.Hex(), teacher.Username, teacher.UserType); err != nil {
+	if err = setSession(w, teacher.Id.Hex(), teacher.Username, teacher.UserType); err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
 	result["user"] = service.Workflow().WrapTeacher(teacher)
@@ -206,7 +206,7 @@ func (uc *UserController) adminLogin(ctx context.Context, w http.ResponseWriter,
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
-	if err = setUserCookie(w, admin.Id.Hex(), admin.Username, admin.UserType); err != nil {
+	if err = setSession(w, admin.Id.Hex(), admin.Username, admin.UserType); err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
 	result["user"] = service.Workflow().WrapAdmin(admin)
@@ -243,7 +243,7 @@ func (uc *UserController) logout(w http.ResponseWriter, r *http.Request, userId 
 	default:
 		result["redirect_url"] = "/m"
 	}
-	clearUserCookie(w)
+	clearSession(w, r)
 
 	return http.StatusOK, wrapJsonOk(result)
 }

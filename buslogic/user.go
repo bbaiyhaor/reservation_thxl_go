@@ -14,6 +14,19 @@ const (
 	TEACHER_DEFAULT_PASSWORD = "thxlfzzx"
 )
 
+var (
+	USER_LOGIN_COUNT = map[int]int{
+		model.USER_TYPE_ADMIN:   1,
+		model.USER_TYPE_TEACHER: 1,
+		model.USER_TYPE_STUDENT: 5,
+	}
+	USER_LOGIN_EXPIRE = map[int]time.Duration{
+		model.USER_TYPE_ADMIN:   time.Hour * 24 * 7,
+		model.USER_TYPE_TEACHER: time.Hour * 24 * 7,
+		model.USER_TYPE_STUDENT: time.Hour * 24 * 30,
+	}
+)
+
 // 学生登录
 func (w *Workflow) StudentLogin(username string, password string) (*model.Student, error) {
 	if username == "" {
@@ -173,6 +186,7 @@ func (w *Workflow) TeacherRestPasswordVerify(username, newPassword, verifyCode s
 	if err = w.mongoClient.UpdateTeacher(teacher); err != nil {
 		return re.NewRErrorCode("fail to update teacher", err, re.ERROR_DATABASE)
 	}
+	w.ClearUserLoginRedisKey(teacher.Id.Hex(), teacher.UserType)
 	return nil
 }
 
@@ -227,6 +241,7 @@ func (w *Workflow) AdminChangePassword(username, oldPassword, newPassword string
 	if err = w.mongoClient.UpdateAdmin(admin); err != nil {
 		return nil, re.NewRErrorCode("fail to update admin", err, re.ERROR_DATABASE)
 	}
+	w.ClearUserLoginRedisKey(admin.Id.Hex(), admin.UserType)
 	return admin, nil
 }
 
@@ -266,6 +281,8 @@ func (w *Workflow) ResetUserPassword(username string, userType int, password str
 	if username == "" || password == "" {
 		return re.NewRError("missing parameters", nil)
 	}
+	var err error
+	var userId string
 	switch userType {
 	case model.USER_TYPE_STUDENT:
 		student, err := w.mongoClient.GetStudentByUsername(username)
@@ -274,7 +291,8 @@ func (w *Workflow) ResetUserPassword(username string, userType int, password str
 		}
 		student.Password = password
 		student.PreInsert()
-		return w.mongoClient.UpdateStudent(student)
+		err = w.mongoClient.UpdateStudent(student)
+		userId = student.Id.Hex()
 	case model.USER_TYPE_TEACHER:
 		teacher, err := w.mongoClient.GetTeacherByUsername(username)
 		if err != nil || teacher.UserType != userType {
@@ -282,7 +300,8 @@ func (w *Workflow) ResetUserPassword(username string, userType int, password str
 		}
 		teacher.Password = password
 		teacher.PreInsert()
-		return w.mongoClient.UpdateTeacher(teacher)
+		err = w.mongoClient.UpdateTeacher(teacher)
+		userId = teacher.Id.Hex()
 	case model.USER_TYPE_ADMIN:
 		admin, err := w.mongoClient.GetAdminByUsername(username)
 		if err != nil || admin.UserType != userType {
@@ -290,10 +309,28 @@ func (w *Workflow) ResetUserPassword(username string, userType int, password str
 		}
 		admin.Password = password
 		admin.PreInsert()
-		return w.mongoClient.UpdateAdmin(admin)
+		err = w.mongoClient.UpdateAdmin(admin)
+		userId = admin.Id.Hex()
 	default:
 		return re.NewRError(fmt.Sprintf("unknown user_type: %d", userType), nil)
 	}
+	if err != nil {
+		return re.NewRError("fail to update user", err)
+	}
+	return w.ClearUserLoginRedisKey(userId, userType)
+}
+
+func (w *Workflow) ClearUserLoginRedisKey(userId string, userType int) error {
+	redisKeys, err := w.redisClient.Keys(fmt.Sprintf(model.REDIS_KEY_USER_LOGIN, userType, userId, "*")).Result()
+	if err != nil {
+		return re.NewRError("fail to get user login session keys from redis", err)
+	}
+	for _, k := range redisKeys {
+		if err := w.redisClient.Del(k).Err(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // external: 添加新管理员

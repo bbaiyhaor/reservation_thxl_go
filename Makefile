@@ -56,7 +56,7 @@ restart: kill $(TARGET)
 	@printf "\n\nrestart the app .........\n\n"
 	@$(TARGET) -debug --web=:$(PORT) --devWeb=:$(DEV_HOT_PORT) & echo $$! > $(PID)
 
-dist: clean $(TARGET) $(DIST_TARGET) $(DIST_EXTERNAL_TARGET)
+dist: clean $(DIST_TARGET) $(DIST_EXTERNAL_TARGET)
 	@NODE_ENV=production $(NODE_BIN)/webpack --progress --colors
 	@zip -r -v $(APP_NAME)-$(APP_VERSION).zip $(DIST_TARGET) $(DIST_EXTERNAL_TARGET) \
     	webpack-assets.json public templates static deploy

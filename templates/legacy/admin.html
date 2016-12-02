@@ -1,0 +1,98 @@
+{{ define "title" }}
+<title>学生心理发展指导中心预约系统</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<link type="text/css" href="/static/legacy/assets/css/style.css" rel="stylesheet">
+<script type="text/javascript" src="/static/legacy/assets/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="/static/legacy/assets/js/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="/static/legacy/assets/js/jquery-ui.min.css" type="text/css">
+{{ end }}
+
+{{ define "content" }}
+<body background="/static/legacy/assets/img/bg.png"  style="text-align:center;">
+<div id="page_title">
+    学生心理发展指导中心预约系统<br>管理员系统
+</div>
+<div style="padding-top:10px">
+    <button onclick="changeAdminPassword();" style="color: red;">更改管理员密码</button>
+    <button onclick="resetTeacherPassword();" style="margin-left: 20px; color: red;">重置咨询师密码</button>
+    <a href="/reservation/admin/timetable" style="margin-left: 50px;">编辑预设咨询</a>
+    <button onclick="logout();">退出登录</button>
+</div>
+<div style="padding-top:10px">
+    <button onclick="removeReservations();">批量删除</button>
+    <button onclick="cancelReservations();">取消预约</button>
+    <input type="text" id="query_date" style="width:80px; margin-left: 20px;"/>
+    <button onclick="queryReservations();">按时间查询</button>
+    <input type="text" id="query_teacher_username" style="width:80px; margin-left: 20px;"/>
+    <button onclick="queryReservationsByTeacher();">按工号查询</button>
+</div>
+<div style="padding-top:10px">
+    <button onclick="exportTodayReservations();">导出当天时间表</button>
+    <input type="text" id="monthly_report_date" style="width:80px; margin-left: 20px;">
+    <button onclick="exportReportMonthly();">导出月报</button>
+</div>
+<div style="padding-top:10px">
+    <span style="margin-left:50px">请输入学生学号</span>
+    <input type="text" id="query_student" style="width: 100px"/>
+    <button onclick="queryStudent();">查看学生信息</button>
+</div>
+<div style="padding-top: 10px">
+    咨询师工作量　
+    起<input type="text" id="workload_from" style="width: 100px"/>
+    止<input type="text" id="workload_to" style="width: 100px"/>
+    <button onclick="getWorkload();">统计</button>
+</div>
+<div id="page_maintable">
+
+</div>
+<div id="page_bottom"><br><br>清华大学学生心理发展指导中心<br>联系方式：010-62782007</div>
+
+</body>
+<script type="text/javascript" src="/static/legacy/assets/js/user.js"></script>
+<script type="text/javascript" src="/static/legacy/assets/js/admin.js"></script>
+<script type="text/javascript">
+    $(function() {
+        viewReservations();
+        $('#query_date').datepicker({
+            showOtherMonths: true,
+            selectOtherMonths: true,
+            showButtonPanel: true,
+            dateFormat: 'yy-mm-dd',
+            showWeek: true,
+            firstDay: 1
+        });
+        $('#export_date').datepicker({
+            showOtherMonths: true,
+            selectOtherMonths: true,
+            showButtonPanel: true,
+            dateFormat: 'yy-mm-dd',
+            showWeek: true,
+            firstDay: 1
+        });
+        $('#monthly_report_date').datepicker({
+            showOtherMonths: true,
+            selectOtherMonths: true,
+            showButtonPanel: true,
+            dateFormat: 'yy-mm-dd',
+            showWeek: true,
+            firstDay: 1
+        });
+        $('#workload_from').datepicker({
+            showOtherMonths: true,
+            selectOtherMonths: true,
+            showButtonPanel: true,
+            dateFormat: 'yy-mm-dd',
+            showWeek: true,
+            firstDay: 1
+        });
+        $('#workload_to').datepicker({
+            showOtherMonths: true,
+            selectOtherMonths: true,
+            showButtonPanel: true,
+            dateFormat: 'yy-mm-dd',
+            showWeek: true,
+            firstDay: 1
+        });
+    });
+</script>
+{{ end }}

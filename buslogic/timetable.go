@@ -3,32 +3,33 @@ package buslogic
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
-	"errors"
+	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"fmt"
+	"github.com/mijia/sweb/log"
 	"github.com/scorredoira/email"
-	"log"
 	"net/mail"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 )
 
 // 管理员查看时间表
-func (w *Workflow) ViewTimetableByAdmin(userId string, userType model.UserType) (map[time.Weekday][]*model.TimedReservation, error) {
-	if len(userId) == 0 {
-		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
-		return nil, errors.New("权限不足")
+func (w *Workflow) ViewTimetableByAdmin(userId string, userType int) (map[time.Weekday][]*model.TimedReservation, error) {
+	if userId == "" {
+		return nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_ADMIN {
+		return nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	}
-	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
-		return nil, errors.New("管理员账户出错，请联系技术支持")
+	admin, err := w.mongoClient.GetAdminById(userId)
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+		return nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	timedReservations := make(map[time.Weekday][]*model.TimedReservation)
 	for i := time.Sunday; i <= time.Saturday; i++ {
-		if trs, err := w.model.GetTimedReservationsByWeekday(i); err == nil {
-			sort.Sort(model.TimedReservationSlice(trs))
+		if trs, err := w.mongoClient.GetTimedReservationsByWeekday(i); err == nil {
+			sort.Sort(ByWeekdayOfTimedReservation(trs))
 			timedReservations[i] = trs
 		}
 	}
@@ -38,63 +39,77 @@ func (w *Workflow) ViewTimetableByAdmin(userId string, userType model.UserType) 
 // 管理员添加时间表
 func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClock string,
 	teacherUsername string, teacherFullname string, teacherMobile string, force bool,
-	userId string, userType model.UserType) (*model.TimedReservation, error) {
-	if len(userId) == 0 {
-		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
-		return nil, errors.New("权限不足")
-	} else if len(startClock) == 0 {
-		return nil, errors.New("开始时间为空")
-	} else if len(endClock) == 0 {
-		return nil, errors.New("结束时间为空")
-	} else if len(teacherUsername) == 0 {
-		return nil, errors.New("咨询师工号为空")
-	} else if len(teacherFullname) == 0 {
-		return nil, errors.New("咨询师姓名为空")
-	} else if len(teacherMobile) == 0 {
-		return nil, errors.New("咨询师手机号为空")
-	} else if !util.IsMobile(teacherMobile) {
-		return nil, errors.New("咨询师手机号格式不正确")
+	userId string, userType int) (*model.TimedReservation, error) {
+	if userId == "" {
+		return nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_ADMIN {
+		return nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
+	} else if startClock == "" {
+		return nil, re.NewRErrorCodeContext("start clock is empty", nil, re.ERROR_MISSING_PARAM, "start_clock")
+	} else if endClock == "" {
+		return nil, re.NewRErrorCodeContext("end clock is empty", nil, re.ERROR_MISSING_PARAM, "end_clock")
+	} else if teacherUsername == "" {
+		return nil, re.NewRErrorCodeContext("teacher username is empty", nil, re.ERROR_MISSING_PARAM, "teacher_username")
+	} else if teacherFullname == "" {
+		return nil, re.NewRErrorCodeContext("teacher fullname is empty", nil, re.ERROR_MISSING_PARAM, "teacher_fullname")
+	} else if teacherMobile == "" {
+		return nil, re.NewRErrorCodeContext("teacher mobile is empty", nil, re.ERROR_MISSING_PARAM, "teacher_mobile")
+	} else if !utils.IsMobile(teacherMobile) {
+		return nil, re.NewRErrorCode("mobile format is wrong", nil, re.ERROR_FORMAT_MOBILE)
 	}
-	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
-		return nil, errors.New("管理员账户出错，请联系技术支持")
+	admin, err := w.mongoClient.GetAdminById(userId)
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+		return nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
-	week, err := util.StringToWeekday(weekday)
+	week, err := utils.StringToWeekday(weekday)
 	if err != nil {
-		return nil, errors.New("星期格式错误")
+		return nil, re.NewRErrorCode("weekday format is wrong", nil, re.ERROR_FORMAT_WEEKDAY)
 	}
 	start, err := time.ParseInLocation("2006-01-02 15:04", "2006-01-02 "+startClock, time.Local)
 	if err != nil {
-		return nil, errors.New("开始时间格式错误")
+		return nil, re.NewRErrorCodeContext("start time format is wrong", err, re.ERROR_INVALID_PARAM, "start_time")
 	}
 	end, err := time.ParseInLocation("2006-01-02 15:04", "2006-01-02 "+endClock, time.Local)
 	if err != nil {
-		return nil, errors.New("结束时间格式错误")
+		return nil, re.NewRErrorCodeContext("end time format is wrong", err, re.ERROR_INVALID_PARAM, "end_time")
 	}
-	if start.After(end) {
-		return nil, errors.New("开始时间不能晚于结束时间")
+	if end.Before(start) {
+		return nil, re.NewRErrorCode("start time cannot be after end time", nil, re.ERROR_ADMIN_EDIT_RESERVATION_END_TIME_BEFORE_START_TIME)
 	}
-	teacher, err := w.model.GetTeacherByUsername(teacherUsername)
+	teacher, err := w.mongoClient.GetTeacherByUsername(teacherUsername)
 	if err != nil {
-		if teacher, err = w.model.AddTeacher(teacherUsername, TeacherDefaultPassword, teacherFullname, teacherMobile); err != nil {
-			return nil, errors.New("获取数据失败")
+		teacher := &model.Teacher{
+			Username: teacherUsername,
+			Password: TEACHER_DEFAULT_PASSWORD,
+			Fullname: teacherFullname,
+			Mobile:   teacherMobile,
 		}
-	} else if teacher.UserType != model.TEACHER {
-		return nil, errors.New("咨询师权限不足")
-	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
+		if err = w.mongoClient.InsertTeacher(teacher); err != nil {
+			return nil, re.NewRErrorCode("fail to insert new teacher", err, re.ERROR_DATABASE)
+		}
+	} else if teacher.UserType != model.USER_TYPE_TEACHER {
+		return nil, re.NewRErrorCode("teacher has wrong user type", nil, re.ERROR_DATABASE)
+	} else if teacher.Fullname != teacherFullname || teacher.Mobile != teacherMobile {
 		if !force {
-			return nil, errors.New(model.CHECK_MESSAGE)
+			return nil, re.NewRErrorCode("teacher info changes without force symbol", nil, re.CHECK)
 		}
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
-		if err = w.model.UpsertTeacher(teacher); err != nil {
-			return nil, errors.New("获取数据失败")
+		if err = w.mongoClient.UpdateTeacher(teacher); err != nil {
+			return nil, re.NewRErrorCode("fail to update teacher", err, re.ERROR_DATABASE)
 		}
 	}
-	timedReservation, err := w.model.AddTimedReservation(week, start, end, teacher.Id.Hex())
-	if err != nil {
-		return nil, errors.New("获取数据失败")
+	timedReservation := &model.TimedReservation{
+		Weekday:    week,
+		StartTime:  start,
+		EndTime:    end,
+		Status:     model.RESERVATION_STATUS_CLOSED,
+		TeacherId:  teacher.Id.Hex(),
+		Exceptions: make(map[string]bool),
+		Timed:      make(map[string]bool),
+	}
+	if err = w.mongoClient.InsertTimedReservation(timedReservation); err != nil {
+		return nil, re.NewRErrorCode("fail to insert new timetable", err, re.ERROR_DATABASE)
 	}
 	return timedReservation, nil
 }
@@ -102,93 +117,99 @@ func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClo
 // 管理员编辑时间表
 func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday string,
 	startClock string, endClock string, teacherUsername string, teacherFullname string, teacherMobile string,
-	force bool, userId string, userType model.UserType) (*model.TimedReservation, error) {
-	if len(userId) == 0 {
-		return nil, errors.New("请先登录")
-	} else if userType != model.ADMIN {
-		return nil, errors.New("权限不足")
-	} else if len(timedReservationId) == 0 {
-		return nil, errors.New("咨询已下架")
-	} else if len(startClock) == 0 {
-		return nil, errors.New("开始时间为空")
-	} else if len(endClock) == 0 {
-		return nil, errors.New("结束时间为空")
-	} else if len(teacherUsername) == 0 {
-		return nil, errors.New("咨询师工号为空")
-	} else if len(teacherFullname) == 0 {
-		return nil, errors.New("咨询师姓名为空")
-	} else if len(teacherMobile) == 0 {
-		return nil, errors.New("咨询师手机号为空")
-	} else if !util.IsMobile(teacherMobile) {
-		return nil, errors.New("咨询师手机号格式不正确")
+	force bool, userId string, userType int) (*model.TimedReservation, error) {
+	if userId == "" {
+		return nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_ADMIN {
+		return nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
+	} else if timedReservationId == "" {
+		return nil, re.NewRErrorCodeContext("timed reservation id is empty", nil, re.ERROR_MISSING_PARAM, "timed_reservation_id")
+	} else if startClock == "" {
+		return nil, re.NewRErrorCodeContext("start clock is empty", nil, re.ERROR_MISSING_PARAM, "start_clock")
+	} else if endClock == "" {
+		return nil, re.NewRErrorCodeContext("end clock is empty", nil, re.ERROR_MISSING_PARAM, "end_clock")
+	} else if teacherUsername == "" {
+		return nil, re.NewRErrorCodeContext("teacher username is empty", nil, re.ERROR_MISSING_PARAM, "teacher_username")
+	} else if teacherFullname == "" {
+		return nil, re.NewRErrorCodeContext("teacher fullname is empty", nil, re.ERROR_MISSING_PARAM, "teacher_fullname")
+	} else if teacherMobile == "" {
+		return nil, re.NewRErrorCodeContext("teacher mobile is empty", nil, re.ERROR_MISSING_PARAM, "teacher_mobile")
+	} else if !utils.IsMobile(teacherMobile) {
+		return nil, re.NewRErrorCode("mobile format is wrong", nil, re.ERROR_FORMAT_MOBILE)
 	}
-	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
-		return nil, errors.New("管理员账户出错，请联系技术支持")
+	admin, err := w.mongoClient.GetAdminById(userId)
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+		return nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
-	timedReservation, err := w.model.GetTimedReservationById(timedReservationId)
-	if err != nil || timedReservation.Status == model.DELETED {
-		return nil, errors.New("咨询已下架")
+	timedReservation, err := w.mongoClient.GetTimedReservationById(timedReservationId)
+	if err != nil || timedReservation.Status == model.RESERVATION_STATUS_DELETED {
+		return nil, re.NewRErrorCode("fail to get timetable", err, re.ERROR_DATABASE)
 	}
-	week, err := util.StringToWeekday(weekday)
+	week, err := utils.StringToWeekday(weekday)
 	if err != nil {
-		return nil, errors.New("星期格式错误")
+		return nil, re.NewRErrorCode("weekday format is wrong", nil, re.ERROR_FORMAT_WEEKDAY)
 	}
-	start, err := time.ParseInLocation("2006-01-02 15:04", "2006-01-02"+startClock, time.Local)
+	start, err := time.ParseInLocation("2006-01-02 15:04", "2006-01-02 "+startClock, time.Local)
 	if err != nil {
-		return nil, errors.New("开始时间格式错误")
+		return nil, re.NewRErrorCodeContext("start time format is wrong", err, re.ERROR_INVALID_PARAM, "start_time")
 	}
-	end, err := time.ParseInLocation("2006-01-02 15:04", "2006-01-02"+endClock, time.Local)
+	end, err := time.ParseInLocation("2006-01-02 15:04", "2006-01-02 "+endClock, time.Local)
 	if err != nil {
-		return nil, errors.New("结束时间格式错误")
+		return nil, re.NewRErrorCodeContext("end time format is wrong", err, re.ERROR_INVALID_PARAM, "end_time")
 	}
-	if start.After(end) {
-		return nil, errors.New("开始时间不能晚于结束时间")
+	if end.Before(start) {
+		return nil, re.NewRErrorCode("start time cannot be after end time", nil, re.ERROR_ADMIN_EDIT_RESERVATION_END_TIME_BEFORE_START_TIME)
 	}
-	teacher, err := w.model.GetTeacherByUsername(teacherUsername)
+	teacher, err := w.mongoClient.GetTeacherByUsername(teacherUsername)
 	if err != nil {
-		if teacher, err = w.model.AddTeacher(teacherUsername, TeacherDefaultPassword, teacherFullname, teacherMobile); err != nil {
-			return nil, errors.New("获取数据失败")
+		teacher := &model.Teacher{
+			Username: teacherUsername,
+			Password: TEACHER_DEFAULT_PASSWORD,
+			Fullname: teacherFullname,
+			Mobile:   teacherMobile,
 		}
-	} else if teacher.UserType != model.TEACHER {
-		return nil, errors.New("咨询师权限不足")
-	} else if !strings.EqualFold(teacher.Fullname, teacherFullname) || !strings.EqualFold(teacher.Mobile, teacherMobile) {
+		if err = w.mongoClient.InsertTeacher(teacher); err != nil {
+			return nil, re.NewRErrorCode("fail to insert new teacher", err, re.ERROR_DATABASE)
+		}
+	} else if teacher.UserType != model.USER_TYPE_TEACHER {
+		return nil, re.NewRErrorCode("teacher has wrong user type", nil, re.ERROR_DATABASE)
+	} else if teacher.Fullname != teacherFullname || teacher.Mobile != teacherMobile {
 		if !force {
-			return nil, errors.New(model.CHECK_MESSAGE)
+			return nil, re.NewRErrorCode("teacher info changes without force symbol", nil, re.CHECK)
 		}
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
-		if err = w.model.UpsertTeacher(teacher); err != nil {
-			return nil, errors.New("获取数据失败")
+		if err = w.mongoClient.UpdateTeacher(teacher); err != nil {
+			return nil, re.NewRErrorCode("fail to update teacher", err, re.ERROR_DATABASE)
 		}
 	}
 	timedReservation.Weekday = week
 	timedReservation.StartTime = start
 	timedReservation.EndTime = end
-	timedReservation.Status = model.CLOSED
+	timedReservation.Status = model.RESERVATION_STATUS_CLOSED
 	timedReservation.TeacherId = teacher.Id.Hex()
-	if err = w.model.UpsertTimedReservation(timedReservation); err != nil {
-		return nil, errors.New("获取数据失败")
+	if err = w.mongoClient.UpdateTimedReservation(timedReservation); err != nil {
+		return nil, re.NewRErrorCode("fail to insert new timetable", err, re.ERROR_DATABASE)
 	}
 	return timedReservation, nil
 }
 
 // 管理员删除时间表
-func (w *Workflow) RemoveTimetablesByAdmin(timedReservationIds []string, userId string, userType model.UserType) (int, error) {
-	if len(userId) == 0 {
-		return 0, errors.New("请先登录")
-	} else if userType != model.ADMIN {
-		return 0, errors.New("权限不足")
+func (w *Workflow) RemoveTimetablesByAdmin(timedReservationIds []string, userId string, userType int) (int, error) {
+	if userId == "" {
+		return 0, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_ADMIN {
+		return 0, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	}
-	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
-		return 0, errors.New("管理员账户出错，请联系技术支持")
+	admin, err := w.mongoClient.GetAdminById(userId)
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+		return 0, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	removed := 0
 	for _, id := range timedReservationIds {
-		if timedReservation, err := w.model.GetTimedReservationById(id); err == nil {
-			timedReservation.Status = model.DELETED
-			if err = w.model.UpsertTimedReservation(timedReservation); err == nil {
+		if timedReservation, err := w.mongoClient.GetTimedReservationById(id); err == nil {
+			timedReservation.Status = model.RESERVATION_STATUS_DELETED
+			if err = w.mongoClient.UpdateTimedReservation(timedReservation); err == nil {
 				removed++
 			}
 		}
@@ -197,22 +218,22 @@ func (w *Workflow) RemoveTimetablesByAdmin(timedReservationIds []string, userId 
 }
 
 // 管理员开启时间表
-func (w *Workflow) OpenTimetablesByAdmin(timedReservationIds []string, userId string, userType model.UserType) (int, error) {
-	if len(userId) == 0 {
-		return 0, errors.New("请先登录")
-	} else if userType != model.ADMIN {
-		return 0, errors.New("权限不足")
+func (w *Workflow) OpenTimetablesByAdmin(timedReservationIds []string, userId string, userType int) (int, error) {
+	if userId == "" {
+		return 0, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_ADMIN {
+		return 0, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	}
-	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
-		return 0, errors.New("管理员账户出错，请联系技术支持")
+	admin, err := w.mongoClient.GetAdminById(userId)
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+		return 0, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	opened := 0
 	for _, id := range timedReservationIds {
-		if timedReservation, err := w.model.GetTimedReservationById(id); err == nil {
-			if timedReservation.Status == model.CLOSED {
-				timedReservation.Status = model.AVAILABLE
-				if err = w.model.UpsertTimedReservation(timedReservation); err == nil {
+		if timedReservation, err := w.mongoClient.GetTimedReservationById(id); err == nil {
+			if timedReservation.Status == model.RESERVATION_STATUS_CLOSED {
+				timedReservation.Status = model.RESERVATION_STATUS_AVAILABLE
+				if err = w.mongoClient.UpdateTimedReservation(timedReservation); err == nil {
 					opened++
 				}
 			}
@@ -222,22 +243,22 @@ func (w *Workflow) OpenTimetablesByAdmin(timedReservationIds []string, userId st
 }
 
 // 管理员关闭时间表
-func (w *Workflow) CloseTimetablesByAdmin(timedReservationIds []string, userId string, userType model.UserType) (int, error) {
-	if len(userId) == 0 {
-		return 0, errors.New("请先登录")
-	} else if userType != model.ADMIN {
-		return 0, errors.New("权限不足")
+func (w *Workflow) CloseTimetablesByAdmin(timedReservationIds []string, userId string, userType int) (int, error) {
+	if userId == "" {
+		return 0, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_ADMIN {
+		return 0, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	}
-	admin, err := w.model.GetAdminById(userId)
-	if err != nil || admin.UserType != model.ADMIN {
-		return 0, errors.New("管理员账户出错，请联系技术支持")
+	admin, err := w.mongoClient.GetAdminById(userId)
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+		return 0, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	closed := 0
 	for _, id := range timedReservationIds {
-		if timedReservation, err := w.model.GetTimedReservationById(id); err == nil {
-			if timedReservation.Status == model.AVAILABLE {
-				timedReservation.Status = model.CLOSED
-				if err = w.model.UpsertTimedReservation(timedReservation); err == nil {
+		if timedReservation, err := w.mongoClient.GetTimedReservationById(id); err == nil {
+			if timedReservation.Status == model.RESERVATION_STATUS_AVAILABLE {
+				timedReservation.Status = model.RESERVATION_STATUS_CLOSED
+				if err = w.mongoClient.UpdateTimedReservation(timedReservation); err == nil {
 					closed++
 				}
 			}
@@ -246,17 +267,17 @@ func (w *Workflow) CloseTimetablesByAdmin(timedReservationIds []string, userId s
 	return closed, nil
 }
 
-func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.Reservation, filename string) error {
+func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.Reservation, path string) error {
 	data := make([][]string, 0)
-	today := util.BeginOfDay(time.Now())
+	today := utils.BeginOfDay(time.Now())
 	data = append(data, []string{today.Format("2006-01-02")})
 	data = append(data, []string{"时间", "咨询师", "学生姓名", "联系方式"})
 	for _, r := range reservations {
-		teacher, err := w.model.GetTeacherById(r.TeacherId)
+		teacher, err := w.mongoClient.GetTeacherById(r.TeacherId)
 		if err != nil {
 			continue
 		}
-		if student, err := w.model.GetStudentById(r.StudentId); err == nil {
+		if student, err := w.mongoClient.GetStudentById(r.StudentId); err == nil {
 			data = append(data, []string{r.StartTime.Format("15:04") + " - " + r.EndTime.Format("15:04"),
 				teacher.Fullname, student.Fullname, student.Mobile})
 		} else {
@@ -264,7 +285,7 @@ func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.R
 				teacher.Fullname, "", ""})
 		}
 	}
-	if err := util.WriteToCSV(data, filename); err != nil {
+	if err := utils.WriteToCSV(data, path); err != nil {
 		return err
 	}
 	return nil
@@ -272,25 +293,25 @@ func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.R
 
 // 每天8:00发送当天咨询安排表邮件
 func (w *Workflow) SendTodayTimetableMail(mailTo string) {
-	today := util.BeginOfDay(time.Now())
+	today := utils.BeginOfDay(time.Now())
 	tomorrow := today.AddDate(0, 0, 1)
-	reservations, err := w.model.GetReservationsBetweenTime(today, tomorrow)
+	reservations, err := w.mongoClient.GetReservationsBetweenTime(today, tomorrow)
 	if err != nil {
-		log.Printf("%v", err)
+		log.Errorf("%v", err)
 		return
 	}
 	todayDate := today.Format("2006-01-02")
-	if timedReservations, err := w.model.GetTimedReservationsByWeekday(today.Weekday()); err == nil {
+	if timedReservations, err := w.mongoClient.GetTimedReservationsByWeekday(today.Weekday()); err == nil {
 		for _, tr := range timedReservations {
 			if !tr.Exceptions[todayDate] && !tr.Timed[todayDate] {
 				reservations = append(reservations, tr.ToReservation(today))
 			}
 		}
 	}
-	sort.Sort(model.ReservationSlice(reservations))
-	filename := "timetable_" + todayDate + util.CsvSuffix
-	if err = w.ExportTodayReservationTimetableToFile(reservations, filename); err != nil {
-		log.Printf("%v", err)
+	sort.Sort(ByStartTimeOfReservation(reservations))
+	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("timetable_%s%s", todayDate, utils.CSV_FILE_SUFFIX))
+	if err = w.ExportTodayReservationTimetableToFile(reservations, path); err != nil {
+		log.Errorf("%v", err)
 		return
 	}
 	// email
@@ -298,10 +319,50 @@ func (w *Workflow) SendTodayTimetableMail(mailTo string) {
 	m := email.NewMessage(title, title)
 	m.From = mail.Address{Name: "", Address: config.Instance().SMTPUser}
 	m.To = strings.Split(mailTo, ",")
-	m.Attach(fmt.Sprintf("%s%s", util.ExportFolder, filename))
-	if err := util.SendEmail(m); err != nil {
-		log.Printf("发送邮件失败：%v", err)
+	m.Attach(path)
+	if err := SendEmail(m); err != nil {
+		log.Errorf("发送邮件失败：%v", err)
 		return
 	}
-	log.Printf("发送邮件成功")
+	log.Infof("发送邮件成功")
+}
+
+type ByWeekdayOfTimedReservation []*model.TimedReservation
+
+func (ts ByWeekdayOfTimedReservation) Len() int {
+	return len(ts)
+}
+
+func (ts ByWeekdayOfTimedReservation) Swap(i, j int) {
+	ts[i], ts[j] = ts[j], ts[i]
+}
+
+func (ts ByWeekdayOfTimedReservation) Less(i, j int) bool {
+	if ts[i].Weekday != ts[j].Weekday {
+		return ts[i].Weekday < ts[j].Weekday
+	} else if !ts[i].StartTime.Equal(ts[j].StartTime) {
+		return ts[i].StartTime.Before(ts[j].StartTime)
+	}
+	return ts[i].TeacherId < ts[j].TeacherId
+}
+
+func (w *Workflow) WrapTimedReservation(timedReservation *model.TimedReservation) map[string]interface{} {
+	var result = make(map[string]interface{})
+	if timedReservation == nil {
+		return result
+	}
+	result["id"] = timedReservation.Id.Hex()
+	result["weekday"] = timedReservation.Weekday
+	result["start_clock"] = timedReservation.StartTime.Format("15:04")
+	result["end_clock"] = timedReservation.EndTime.Format("15:04")
+	result["status"] = timedReservation.Status
+	if timedReservation.TeacherId != "" {
+		result["teacher_id"] = timedReservation.TeacherId
+		if teacher, err := w.mongoClient.GetTeacherById(timedReservation.TeacherId); err == nil {
+			result["teacher_username"] = teacher.Username
+			result["teacher_fullname"] = teacher.Fullname
+			result["teacher_mobile"] = teacher.Mobile
+		}
+	}
+	return result
 }

@@ -2,7 +2,7 @@ package buslogic
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/util"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"fmt"
 	"sort"
 	"strconv"
@@ -22,7 +22,7 @@ type MonthlyReport struct {
 	Amount        int
 }
 
-func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, filename string) error {
+func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, path string) error {
 	report := make(map[string]*MonthlyReport)
 	for index, category := range model.FeedbackAllCategory {
 		report[index] = &MonthlyReport{
@@ -40,7 +40,7 @@ func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, fil
 		category := r.TeacherFeedback.Category
 		// 学生
 		if r.TeacherFeedback.Participants[0] > 0 {
-			student, err := w.model.GetStudentById(r.StudentId)
+			student, err := w.mongoClient.GetStudentById(r.StudentId)
 			if err != nil {
 				continue
 			}
@@ -69,10 +69,10 @@ func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, fil
 				amount.Amount++
 			}
 			switch student.Gender {
-			case "男":
+			case model.USER_GENDER_MALE:
 				report[category].Male++
 				amount.Male++
-			case "女":
+			case model.USER_GENDER_FEMALE:
 				report[category].Female++
 				amount.Female++
 			}
@@ -201,19 +201,19 @@ func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, fil
 	amountLine = append(amountLine, strconv.Itoa(amount.Amount))
 	data = append(data, amountLine)
 	data = append(data, percentLine)
-	if err := util.WriteToCSV(data, filename); err != nil {
+	if err := utils.WriteToCSV(data, path); err != nil {
 		return err
 	}
 	return nil
 }
 
-//func ExportKeyCaseReport(reservations []*models.Reservation, filename string) error {
-//	students := make(map[string]*models.Student)
+//func ExportKeyCaseReport(reservations []*model.Reservation, filename string) error {
+//	students := make(map[string]*model.Student)
 //	for _, r := range reservations {
 //		if r.TeacherFeedback.IsEmpty() {
 //			continue
 //		}
-//		student, err := models.GetStudentById(r.StudentId)
+//		student, err := model.GetStudentById(r.StudentId)
 //		if err != nil || student == nil {
 //			continue
 //		}
@@ -222,14 +222,14 @@ func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, fil
 //		}
 //	}
 //	keyCase := make(map[int]*MonthlyReport)
-//	for index, category := range models.KEY_CASE {
+//	for index, category := range model.KEY_CASE {
 //		keyCase[index] = &MonthlyReport{
 //			Category:      category,
 //			UnderGraduate: make(map[string]int),
 //		}
 //	}
 //	medicalDiagnosis := make(map[int]*MonthlyReport)
-//	for index, category := range models.MEDICAL_DIAGNOSIS {
+//	for index, category := range model.MEDICAL_DIAGNOSIS {
 //		medicalDiagnosis[index] = &MonthlyReport{
 //			Category:      category,
 //			UnderGraduate: make(map[string]int),
@@ -350,7 +350,7 @@ func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, fil
 //	}
 //	head = append(head, "硕", "博", "合计（男）", "合计（女）", "男女合计", "辅助总计", "百分比")
 //	data = append(data, head)
-//	for index, category := range models.KEY_CASE {
+//	for index, category := range model.KEY_CASE {
 //		line := []string{category}
 //		for _, g := range grades {
 //			if value, exist := keyCase[index].UnderGraduate[g]; exist && value > 0 {
@@ -385,7 +385,7 @@ func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, fil
 //		data = append(data, line)
 //	}
 //	data = append(data, []string{""})
-//	for index, category := range models.MEDICAL_DIAGNOSIS {
+//	for index, category := range model.MEDICAL_DIAGNOSIS {
 //		line := []string{category}
 //		for _, g := range grades {
 //			if value, exist := medicalDiagnosis[index].UnderGraduate[g]; exist && value > 0 {
@@ -448,12 +448,12 @@ func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, fil
 //		line := []string{student.Fullname, student.Username}
 //		for index, value := range student.KeyCase {
 //			if value > 0 {
-//				line = append(line, models.KEY_CASE[index])
+//				line = append(line, model.KEY_CASE[index])
 //			}
 //		}
 //		for index, value := range student.MedicalDiagnosis {
 //			if value > 0 {
-//				line = append(line, models.MEDICAL_DIAGNOSIS[index])
+//				line = append(line, model.MEDICAL_DIAGNOSIS[index])
 //			}
 //		}
 //		data = append(data, line)

@@ -1,0 +1,55 @@
+{{ define "title" }}
+<title>学生心理发展指导中心预约系统</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<link type="text/css" href="/static/legacy/assets/css/style.css" rel="stylesheet">
+<script type="text/javascript" src="/static/legacy/assets/js/jquery-3.1.1.min.js"></script>
+{{ end }}
+
+{{ define "content" }}
+<body background="/static/legacy/assets/img/bg.png"  style="text-align:center;">
+<div id="page_title">
+    学生心理发展指导中心预约系统<br>管理员系统-预设咨询安排表
+</div>
+<div style="padding-top:10px">
+    <button onclick="removeTimedReservations();">批量删除</button>
+    <button onclick="openTimedReservations();">批量打开</button>
+    <button onclick="closeTimedReservations();">批量关闭</button>
+    <a href="/reservation/admin" style="margin-left: 50px;">返回管理员界面</a>
+</div>
+<div style="margin-top: 20px">
+    <div style="text-align: center; font-size: 20px">周一</div>
+    <div id="page_maintable_Monday"></div>
+</div>
+<div style="margin-top: 20px">
+    <div style="text-align: center; font-size: 20px">周二</div>
+    <div id="page_maintable_Tuesday"></div>
+</div>
+<div style="margin-top: 20px">
+    <div style="text-align: center; font-size: 20px">周三</div>
+    <div id="page_maintable_Wednesday"></div>
+</div>
+<div style="margin-top: 20px">
+    <div style="text-align: center; font-size: 20px">周四</div>
+    <div id="page_maintable_Thursday"></div>
+</div>
+<div style="margin-top: 20px">
+    <div style="text-align: center; font-size: 20px">周五</div>
+    <div id="page_maintable_Friday"></div>
+</div>
+<div style="margin-top: 20px">
+    <div style="text-align: center; font-size: 20px">周六</div>
+    <div id="page_maintable_Saturday"></div>
+</div>
+<div style="margin-top: 20px">
+    <div style="text-align: center; font-size: 20px">周日</div>
+    <div id="page_maintable_Sunday"></div>
+</div>
+<div id="page_bottom"><br><br>清华大学学生心理发展指导中心<br>联系方式：010-62782007</div>
+
+</body>
+<script type="text/javascript" src="/static/legacy/assets/js/user.js"></script>
+<script type="text/javascript" src="/static/legacy/assets/js/timetable.js"></script>
+<script type="text/javascript">
+    viewTimedReservations();
+</script>
+{{ end }}

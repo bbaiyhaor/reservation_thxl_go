@@ -1,51 +1,45 @@
 package model
 
 import (
-	"errors"
+	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
 	"gopkg.in/mgo.v2/bson"
+	"gopkg.in/mgo.v2/txn"
 	"strconv"
-	"strings"
 	"time"
 )
 
-type ReservationStatus int
-
 const (
-	AVAILABLE ReservationStatus = 1 + iota
-	RESERVATED
-	FEEDBACK
-	DELETED
-	CLOSED
+	RESERVATION_STATUS_AVAILABLE  = 1
+	RESERVATION_STATUS_RESERVATED = 2
+	RESERVATION_STATUS_FEEDBACK   = 3
+	RESERVATION_STATUS_DELETED    = 4
+	RESERVATION_STATUS_CLOSED     = 5
+
+	RESERVATION_SOURCE_TIMETABLE   = 1
+	RESERVATION_SOURCE_TEACHER_ADD = 2
+	RESERVATION_SOURCE_ADMIN_ADD   = 3
+
+	RESERVATION_STUDENT_FEEDBACK_SCORES_LENGTH = 5
 )
 
-var reservationStatuses = [...]string{
-	"AVAILABLE",
-	"RESERVATED",
-	"FEEDBACK",
-	"DELETED",
-	"CLOSED",
-}
-
-func (rs ReservationStatus) String() string {
-	return reservationStatuses[rs-1]
-}
-
-type ReservationSource int
-
-const (
-	TIMETABLE ReservationSource = 1 + iota
-	TEACHER_ADD
-	ADMIN_ADD
-)
-
-var reservationSources = [...]string{
-	"TIMETABLE",
-	"TEACHER",
-	"ADMIN",
-}
-
-func (rs ReservationSource) String() string {
-	return reservationSources[rs-1]
+// Index: student_id + status + start_time
+// Index: start_time + end_time + status
+// Index: start_time + status
+type Reservation struct {
+	Id              bson.ObjectId   `bson:"_id"`
+	StartTime       time.Time       `bson:"start_time"`
+	EndTime         time.Time       `bson:"end_time"`
+	Status          int             `bson:"status"`
+	Source          int             `bson:"source"`
+	SourceId        string          `bson:"source_id"`
+	IsAdminSet      bool            `bson:"is_admin_set"`
+	SendSms         bool            `bson:"send_sms"`
+	TeacherId       string          `bson:"teacher_id"`
+	StudentId       string          `bson:"student_id"`
+	StudentFeedback StudentFeedback `bson:"student_feedback"`
+	TeacherFeedback TeacherFeedback `bson:"teacher_feedback"`
+	CreatedAt       time.Time       `bson:"created_at"`
+	UpdatedAt       time.Time       `bson:"updated_at"`
 }
 
 type StudentFeedback struct {
@@ -56,7 +50,7 @@ func (sf StudentFeedback) IsEmpty() bool {
 	return len(sf.Scores) == 0
 }
 
-func (sf StudentFeedback) ToJson() map[string]interface{} {
+func (sf StudentFeedback) ToStringJson() map[string]interface{} {
 	var json = make(map[string]interface{})
 	scores := ""
 	for _, s := range sf.Scores {
@@ -80,9 +74,8 @@ type TeacherFeedback struct {
 var (
 	PARTICIPANTS      = [...]string{"学生", "家长", "教师", "辅导员", "其他"}
 	SEVERITY          = [...]string{"缓考", "休学复学", "家属陪读", "家属不知情", "任何其他需要知会院系关注的原因"}
-	MEDICAL_DIAGNOSIS = [...]string{"服药", "精神分裂", "双相情感障碍", "焦虑症（状态）", "抑郁症（状态）",
-		"强迫症", "进食障碍", "失眠", "其他精神症状", "躯体疾病", "不遵医嘱"}
-	CRISIS = [...]string{"自伤", "伤害他人", "自杀念头", "自杀未遂"}
+	MEDICAL_DIAGNOSIS = [...]string{"服药", "精神分裂", "双相情感障碍", "焦虑症（状态）", "抑郁症（状态）", "强迫症", "进食障碍", "失眠", "其他精神症状", "躯体疾病", "不遵医嘱"}
+	CRISIS            = [...]string{"自伤", "伤害他人", "自杀念头", "自杀未遂"}
 )
 
 func (tf TeacherFeedback) IsEmpty() bool {
@@ -91,9 +84,37 @@ func (tf TeacherFeedback) IsEmpty() bool {
 }
 
 func (tf TeacherFeedback) ToJson() map[string]interface{} {
+	var feedback = make(map[string]interface{})
+	feedback["category"] = tf.Category
+	if len(tf.Participants) != len(PARTICIPANTS) {
+		feedback["participants"] = make([]int, len(PARTICIPANTS))
+	} else {
+		feedback["participants"] = tf.Participants
+	}
+	feedback["emphasis"] = tf.Emphasis
+	if len(tf.Severity) != len(SEVERITY) {
+		feedback["severity"] = make([]int, len(SEVERITY))
+	} else {
+		feedback["severity"] = tf.Severity
+	}
+	if len(tf.MedicalDiagnosis) != len(MEDICAL_DIAGNOSIS) {
+		feedback["medical_diagnosis"] = make([]int, len(MEDICAL_DIAGNOSIS))
+	} else {
+		feedback["medical_diagnosis"] = tf.MedicalDiagnosis
+	}
+	if len(tf.Crisis) != len(CRISIS) {
+		feedback["crisis"] = make([]int, len(CRISIS))
+	} else {
+		feedback["crisis"] = tf.Crisis
+	}
+	feedback["record"] = tf.Record
+	return feedback
+}
+
+func (tf TeacherFeedback) ToStringJson() map[string]interface{} {
 	var json = make(map[string]interface{})
 	json["category"] = FeedbackAllCategory[tf.Category]
-	participants := ""
+	var participants string
 	if len(tf.Participants) == len(PARTICIPANTS) {
 		for i := 0; i < len(tf.Participants); i++ {
 			if tf.Participants[i] > 0 {
@@ -103,7 +124,7 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	}
 	json["participants"] = participants
 	json["emphasis"] = strconv.Itoa(tf.Emphasis)
-	severity := ""
+	var severity string
 	if len(tf.Severity) == len(SEVERITY) {
 		for i := 0; i < len(tf.Severity); i++ {
 			if tf.Severity[i] > 0 {
@@ -112,7 +133,7 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 		}
 	}
 	json["severity"] = severity
-	medicalDiagnosis := ""
+	var medicalDiagnosis string
 	if len(tf.MedicalDiagnosis) == len(MEDICAL_DIAGNOSIS) {
 		for i := 0; i < len(tf.MedicalDiagnosis); i++ {
 			if tf.MedicalDiagnosis[i] > 0 {
@@ -121,7 +142,7 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 		}
 	}
 	json["medical_diagnosis"] = medicalDiagnosis
-	crisis := ""
+	var crisis string
 	if len(tf.Crisis) == len(CRISIS) {
 		for i := 0; i < len(tf.Crisis); i++ {
 			if tf.Crisis[i] > 0 {
@@ -134,203 +155,161 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	return json
 }
 
-type Reservation struct {
-	Id              bson.ObjectId     `bson:"_id"`
-	CreateTime      time.Time         `bson:"create_time"`
-	UpdateTime      time.Time         `bson:"update_time"`
-	StartTime       time.Time         `bson:"start_time"` // indexed
-	EndTime         time.Time         `bson:"end_time"`
-	Status          ReservationStatus `bson:"status"`
-	Source          ReservationSource `bson:"source"`
-	SourceId        string            `bson:"source_id"`
-	IsAdminSet      bool              `bson:"is_admin_set"`
-	SendSms         bool              `bson:"send_sms"`
-	TeacherId       string            `bson:"teacher_id"` // indexed
-	StudentId       string            `bson:"student_id"` // indexed
-	StudentFeedback StudentFeedback   `bson:"student_feedback"`
-	TeacherFeedback TeacherFeedback   `bson:"teacher_feedback"`
+func (m *MongoClient) InsertReservation(reservation *Reservation) error {
+	now := time.Now()
+	reservation.Id = bson.NewObjectId()
+	reservation.CreatedAt = now
+	reservation.UpdatedAt = now
+	return dbReservation.Insert(reservation)
 }
 
-func (m *Model) AddReservation(startTime time.Time, endTime time.Time, source ReservationSource, sourceId string,
-	teacherId string) (*Reservation, error) {
-	collection := m.mongo.C("reservation")
-	newReservation := &Reservation{
-		Id:              bson.NewObjectId(),
-		CreateTime:      time.Now(),
-		UpdateTime:      time.Now(),
-		StartTime:       startTime,
-		EndTime:         endTime,
-		Status:          AVAILABLE,
-		Source:          source,
-		SourceId:        sourceId,
-		TeacherId:       teacherId,
-		StudentFeedback: StudentFeedback{},
-		TeacherFeedback: TeacherFeedback{},
+func (m *MongoClient) InsertReservationAndUpdateTimedReservationTransactional(reservation *Reservation, timedReservation *TimedReservation) error {
+	now := time.Now()
+	reservation.Id = bson.NewObjectId()
+	reservation.CreatedAt = now
+	reservation.UpdatedAt = now
+	timedReservation.UpdatedAt = now
+	runner := txn.NewRunner(dbTxn)
+	ops := []txn.Op{{
+		C:      "reservation",
+		Assert: txn.DocMissing,
+		Insert: reservation,
+	}, {
+		C:      "timetable",
+		Id:     timedReservation.Id,
+		Assert: txn.DocExists,
+		Update: timedReservation,
+	}}
+	txnId := bson.NewObjectId()
+	if err := runner.Run(ops, txnId, nil); err != nil {
+		runner.Resume(txnId)
+		return err
 	}
-	if err := collection.Insert(newReservation); err != nil {
-		return nil, err
-	}
-	return newReservation, nil
+	return nil
 }
 
-func (m *Model) UpsertReservation(reservation *Reservation) error {
-	if reservation == nil || !reservation.Id.Valid() {
-		return errors.New("字段不合法")
+func (m *MongoClient) InsertReservationAndUpdateTimedReservation(reservation *Reservation, timedReservation *TimedReservation) error {
+	err := m.InsertReservation(reservation)
+	if err != nil {
+		return err
 	}
-	collection := m.mongo.C("reservation")
-	reservation.UpdateTime = time.Now()
-	_, err := collection.UpsertId(reservation.Id, reservation)
-	return err
+	return m.UpdateTimedReservation(timedReservation)
 }
 
-func (m *Model) GetReservationById(id string) (*Reservation, error) {
-	if len(id) == 0 || !bson.IsObjectIdHex(id) {
-		return nil, errors.New("字段不合法")
-	}
-	collection := m.mongo.C("reservation")
-	reservation := &Reservation{}
-	if err := collection.FindId(bson.ObjectIdHex(id)).One(reservation); err != nil {
-		return nil, err
-	}
-	return reservation, nil
+func (m *MongoClient) UpdateReservation(reservation *Reservation) error {
+	reservation.UpdatedAt = time.Now()
+	return dbReservation.UpdateId(reservation.Id, reservation)
 }
 
-func (m *Model) GetReservationsByStudentId(studentId string) ([]*Reservation, error) {
-	if len(studentId) == 0 || !bson.IsObjectIdHex(studentId) {
-		return nil, errors.New("字段不合法")
+func (m *MongoClient) UpdateReservationWithoutTime(reservation *Reservation) error {
+	return dbReservation.UpdateId(reservation.Id, reservation)
+}
+
+func (m *MongoClient) UpdateReservationAndTimedReservationTransactional(reservation *Reservation, timedReservation *TimedReservation) error {
+	now := time.Now()
+	reservation.UpdatedAt = now
+	timedReservation.UpdatedAt = now
+	runner := txn.NewRunner(dbTxn)
+	ops := []txn.Op{{
+		C:      "reservation",
+		Id:     reservation.Id,
+		Assert: txn.DocExists,
+		Update: reservation,
+	}, {
+		C:      "timetable",
+		Id:     timedReservation.Id,
+		Assert: txn.DocExists,
+		Update: timedReservation,
+	}}
+	txnId := bson.NewObjectId()
+	if err := runner.Run(ops, txnId, nil); err != nil {
+		runner.Resume(txnId)
+		return err
 	}
-	collection := m.mongo.C("reservation")
+	return nil
+}
+
+func (m *MongoClient) UpdateReservationAndTimedReservation(reservation *Reservation, timedReservation *TimedReservation) error {
+	err := m.UpdateReservation(reservation)
+	if err != nil {
+		return err
+	}
+	return m.UpdateTimedReservation(timedReservation)
+}
+
+func (m *MongoClient) UpdateReservationAndStudentTransactional(reservation *Reservation, student *Student) error {
+	now := time.Now()
+	reservation.UpdatedAt = now
+	student.UpdatedAt = now
+	runner := txn.NewRunner(dbTxn)
+	ops := []txn.Op{{
+		C:      "reservation",
+		Id:     reservation.Id,
+		Assert: txn.DocExists,
+		Update: reservation,
+	}, {
+		C:      "student",
+		Id:     student.Id,
+		Assert: txn.DocExists,
+		Update: student,
+	}}
+	txnId := bson.NewObjectId()
+	if err := runner.Run(ops, txnId, nil); err != nil {
+		runner.Resume(txnId)
+		return err
+	}
+	return nil
+}
+
+func (m *MongoClient) UpdateReservationAndStudent(reservation *Reservation, student *Student) error {
+	err := m.UpdateReservation(reservation)
+	if err != nil {
+		return err
+	}
+	return m.UpdateStudent(student)
+}
+
+func (m *MongoClient) GetAllReservations() ([]*Reservation, error) {
 	var reservations []*Reservation
-	if err := collection.Find(bson.M{"student_id": studentId,
-		"status": bson.M{"$ne": DELETED}}).Sort("start_time").All(&reservations); err != nil {
-		return nil, err
-	}
-	return reservations, nil
+	err := dbReservation.Find(bson.M{}).All(&reservations)
+	return reservations, err
 }
 
-func (m *Model) GetReservationsBetweenTime(from time.Time, to time.Time) ([]*Reservation, error) {
-	collection := m.mongo.C("reservation")
+func (m *MongoClient) GetReservationById(id string) (*Reservation, error) {
+	if !bson.IsObjectIdHex(id) {
+		return nil, re.NewRErrorCode("id is not valid", nil, re.ERROR_DATABASE)
+	}
+	var reservation Reservation
+	err := dbReservation.FindId(bson.ObjectIdHex(id)).One(&reservation)
+	return &reservation, err
+}
+
+func (m *MongoClient) GetReservationsByStudentId(studentId string) ([]*Reservation, error) {
 	var reservations []*Reservation
-	if err := collection.Find(bson.M{"start_time": bson.M{"$gte": from, "$lte": to},
-		"status": bson.M{"$ne": DELETED}}).Sort("start_time").All(&reservations); err != nil {
-		return nil, err
-	}
-	return reservations, nil
+	err := dbReservation.Find(bson.M{"student_id": studentId,
+		"status": bson.M{"$ne": RESERVATION_STATUS_DELETED}}).Sort("start_time").All(&reservations)
+	return reservations, err
 }
 
-func (m *Model) GetReservatedReservationsBetweenTime(from time.Time, to time.Time) ([]*Reservation, error) {
-	collection := m.mongo.C("reservation")
+func (m *MongoClient) GetReservationsBetweenTime(start time.Time, end time.Time) ([]*Reservation, error) {
 	var reservations []*Reservation
-	if err := collection.Find(bson.M{"start_time": bson.M{"$gte": from, "$lte": to},
-		"status": RESERVATED}).Sort("start_time").All(&reservations); err != nil {
-		return nil, err
-	}
-	return reservations, nil
+	err := dbReservation.Find(bson.M{"start_time": bson.M{"$gte": start, "$lt": end},
+		"status": bson.M{"$ne": RESERVATION_STATUS_DELETED}}).Sort("start_time").All(&reservations)
+	return reservations, err
 }
 
-func (m *Model) GetReservationsAfterTime(from time.Time) ([]*Reservation, error) {
-	collection := m.mongo.C("reservation")
+func (m *MongoClient) GetReservatedReservationsBetweenTime(start time.Time, end time.Time) ([]*Reservation, error) {
 	var reservations []*Reservation
-	if err := collection.Find(bson.M{"start_time": bson.M{"$gte": from},
-		"status": bson.M{"$ne": DELETED}}).Sort("start_time").All(&reservations); err != nil {
-		return nil, err
-	}
-	return reservations, nil
+	err := dbReservation.Find(bson.M{"start_time": bson.M{"$gte": start, "$lt": end},
+		"status": RESERVATION_STATUS_RESERVATED}).Sort("start_time").All(&reservations)
+	return reservations, err
 }
 
-/**
-TimedReservation
-*/
-
-func (m *Model) AddTimedReservation(weekday time.Weekday, startTime time.Time, endTime time.Time, teacherId string) (*TimedReservation, error) {
-	collection := m.mongo.C("timetable")
-	timedReservation := &TimedReservation{
-		Id:         bson.NewObjectId(),
-		CreateTime: time.Now(),
-		UpdateTime: time.Now(),
-		Weekday:    weekday,
-		StartTime:  startTime,
-		EndTime:    endTime,
-		Status:     CLOSED,
-		TeacherId:  teacherId,
-		Exceptions: make(map[string]bool),
-		Timed:      make(map[string]bool),
-	}
-	if err := collection.Insert(timedReservation); err != nil {
-		return nil, err
-	}
-	return timedReservation, nil
-}
-
-func (m *Model) UpsertTimedReservation(timedReservation *TimedReservation) error {
-	if timedReservation == nil || !timedReservation.Id.Valid() {
-		return errors.New("字段不合法")
-	}
-	collection := m.mongo.C("timetable")
-	timedReservation.UpdateTime = time.Now()
-	_, err := collection.UpsertId(timedReservation.Id, timedReservation)
-	return err
-}
-
-func (m *Model) GetTimedReservationById(timedReservtionId string) (*TimedReservation, error) {
-	if len(timedReservtionId) == 0 || !bson.IsObjectIdHex(timedReservtionId) {
-		return nil, errors.New("字段不合法")
-	}
-	collection := m.mongo.C("timetable")
-	timedReservation := &TimedReservation{}
-	if err := collection.FindId(bson.ObjectIdHex(timedReservtionId)).One(timedReservation); err != nil {
-		return nil, err
-	}
-	return timedReservation, nil
-}
-
-func (m *Model) GetTimedReservationsAll() ([]*TimedReservation, error) {
-	collection := m.mongo.C("timetable")
-	var timedReservations []*TimedReservation
-	if err := collection.Find(bson.M{"status": bson.M{"$ne": DELETED}}).All(&timedReservations); err != nil {
-		return nil, err
-	}
-	return timedReservations, nil
-}
-
-func (m *Model) GetTimedReservationsByWeekday(weekday time.Weekday) ([]*TimedReservation, error) {
-	collection := m.mongo.C("timetable")
-	var timedReservations []*TimedReservation
-	if err := collection.Find(bson.M{"weekday": weekday,
-		"status": bson.M{"$ne": DELETED}}).All(&timedReservations); err != nil {
-		return nil, err
-	}
-	return timedReservations, nil
-}
-
-func (m *Model) GetTimedReservationsByTeacherId(teacherId string) ([]*TimedReservation, error) {
-	if len(teacherId) == 0 || !bson.IsObjectIdHex(teacherId) {
-		return nil, errors.New("字段不合法")
-	}
-	collection := m.mongo.C("timetable")
-	var timedReservations []*TimedReservation
-	if err := collection.Find(bson.M{"teacher_id": teacherId,
-		"status": bson.M{"$ne": DELETED}}).All(&timedReservations); err != nil {
-		return nil, err
-	}
-	return timedReservations, nil
-}
-
-type ReservationSlice []*Reservation
-
-func (rs ReservationSlice) Len() int {
-	return len(rs)
-}
-
-func (rs ReservationSlice) Swap(i, j int) {
-	rs[i], rs[j] = rs[j], rs[i]
-}
-
-func (rs ReservationSlice) Less(i, j int) bool {
-	if rs[i].StartTime.Equal(rs[j].StartTime) {
-		return strings.Compare(rs[i].TeacherId, rs[j].TeacherId) < 0
-	}
-	return rs[i].StartTime.Before(rs[j].StartTime)
+func (m *MongoClient) GetReservationsAfterTime(start time.Time) ([]*Reservation, error) {
+	var reservations []*Reservation
+	err := dbReservation.Find(bson.M{"start_time": bson.M{"$gte": start},
+		"status": bson.M{"$ne": RESERVATION_STATUS_DELETED}}).Sort("start_time").All(&reservations)
+	return reservations, err
 }
 
 var FeedbackFirstCategory = map[string]interface{}{
@@ -473,5 +452,3 @@ var FeedbackAllCategory = map[string]string{
 	"Y4": "Y4 辅导员团体",
 	"Z1": "Z1 个体心理督导",
 }
-
-const CHECK_MESSAGE = "CHECK"

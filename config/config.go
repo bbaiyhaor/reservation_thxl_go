@@ -2,8 +2,8 @@ package config
 
 import (
 	"encoding/json"
+	"github.com/mijia/sweb/log"
 	"io/ioutil"
-	"log"
 )
 
 type Config struct {
@@ -17,9 +17,13 @@ type Config struct {
 	EmailAddressAdmin []string `json:"email_address_admin"`
 	EmailAddressDev   []string `json:"email_address_dev"`
 	MongoHost         string   `json:"mongo_host"`
+	MongoAuthDatabase string   `json:"mongo_auth_database"`
+	MongoAuthUser     string   `json:"mongo_auth_user"`
+	MongoAuthPassword string   `json:"mongo_auth_password"`
 	MongoDatabase     string   `json:"mongo_database"`
-	MongoUser         string   `json:"mongo_user"`
-	MongoPassword     string   `json:"mongo_password"`
+	RedisAddress      string   `json:"redis_address"`
+	RedisPassword     string   `json:"redis_password"`
+	RedisDatabase     int      `json:"redis_database"`
 }
 
 var conf *Config
@@ -34,12 +38,12 @@ func (c *Config) IsSmockServer() bool {
 func Init(path string) *Config {
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Fatalln("load config thxl.conf failed: ", err)
+		log.Fatalf("load config thxl.conf failed: %+v", err)
 	}
 	conf = &Config{}
 	err = json.Unmarshal(buf, conf)
 	if err != nil {
-		log.Fatalln("decode config file failed:", string(buf), err)
+		log.Fatalf("decode config file failed: %s, err: %+v", string(buf), err)
 	}
 	return conf
 }
@@ -54,7 +58,7 @@ func InitWithParams(path string, isSmock bool) *Config {
 
 func Instance() *Config {
 	if conf == nil {
-		Init("/root/thxlfzzx_go/server/thxl.conf")
+		Init("./deploy/thxl.conf")
 	}
 	return conf
 }

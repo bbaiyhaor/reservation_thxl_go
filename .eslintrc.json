@@ -1,0 +1,16 @@
+{
+  "parser": "babel-eslint",
+  "extends": "airbnb",
+  "env": {
+    "browser": true
+  },
+  "rules": {
+    "import/extensions": "off",
+    "react/no-multi-comp": "off",
+    "max-len": "off",
+    "no-unused-expressions": ["error", { "allowShortCircuit": true, "allowTernary": true }]
+  },
+  "settings": {
+    "import/resolver": "webpack"
+  }
+}

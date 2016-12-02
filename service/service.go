@@ -2,21 +2,28 @@ package service
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
-	"log"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
+	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
+	"github.com/mijia/sweb/log"
+	"gopkg.in/redis.v5"
 )
 
-type Service struct {
-	w *buslogic.Workflow
+var wf *buslogic.Workflow
+
+func InitService(confPath string, isSmock bool) {
+	config.InitWithParams(confPath, isSmock)
+	log.Infof("config loaded: %+v", *config.Instance())
+	wf = buslogic.NewWorkflow()
 }
 
-func NewService() *Service {
-	s := &Service{
-		w: buslogic.NewWorkflow(),
-	}
+func Workflow() *buslogic.Workflow {
+	return wf
+}
 
-	if err := s.w.ImportArchiveFromCSVFile(); err != nil {
-		log.Fatalf("初始化档案失败：%v", err)
-	}
+func MongoClient() *model.MongoClient {
+	return wf.MongoClient()
+}
 
-	return s
+func RedisClient() *redis.Client {
+	return wf.RedisClient()
 }

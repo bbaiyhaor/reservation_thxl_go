@@ -157,6 +157,7 @@ func (tf TeacherFeedback) ToStringJson() map[string]interface{} {
 
 func (m *MongoClient) InsertReservation(reservation *Reservation) error {
 	now := time.Now()
+	reservation.Id = bson.NewObjectId()
 	reservation.CreatedAt = now
 	reservation.UpdatedAt = now
 	return dbReservation.Insert(reservation)
@@ -164,6 +165,7 @@ func (m *MongoClient) InsertReservation(reservation *Reservation) error {
 
 func (m *MongoClient) InsertReservationAndUpdateTimedReservationTransactional(reservation *Reservation, timedReservation *TimedReservation) error {
 	now := time.Now()
+	reservation.Id = bson.NewObjectId()
 	reservation.CreatedAt = now
 	reservation.UpdatedAt = now
 	timedReservation.UpdatedAt = now

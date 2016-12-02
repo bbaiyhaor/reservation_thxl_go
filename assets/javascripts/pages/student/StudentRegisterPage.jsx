@@ -29,7 +29,6 @@ export default class StudentRegisterPage extends React.Component {
       this.alert.show('注册成功', '请用学号和密码登录', '好的', () => {
         hashHistory.push('login');
       });
-      hashHistory.push('reservation');
     }, (error) => {
       this.loading.hide();
       setTimeout(() => {

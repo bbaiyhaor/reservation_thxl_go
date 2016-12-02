@@ -18,6 +18,7 @@ type Archive struct {
 
 func (m *MongoClient) InsertArchive(archive *Archive) error {
 	now := time.Now()
+	archive.Id = bson.NewObjectId()
 	archive.CreatedAt = now
 	archive.UpdatedAt = now
 	return dbArchive.Insert(archive)

@@ -58,8 +58,7 @@ func NewMongoClient() *MongoClient {
 func (m *MongoClient) EnsureAllIndexes() error {
 	var err error
 	err = dbStudent.EnsureIndex(mgo.Index{
-		Key:    []string{"username", "user_type"},
-		Unique: true,
+		Key: []string{"username", "user_type"},
 	})
 	if err != nil {
 		return err
@@ -78,8 +77,7 @@ func (m *MongoClient) EnsureAllIndexes() error {
 	}
 
 	err = dbTeacher.EnsureIndex(mgo.Index{
-		Key:    []string{"username", "user_type"},
-		Unique: true,
+		Key: []string{"username", "user_type"},
 	})
 	if err != nil {
 		return err
@@ -98,16 +96,14 @@ func (m *MongoClient) EnsureAllIndexes() error {
 	}
 
 	err = dbAdmin.EnsureIndex(mgo.Index{
-		Key:    []string{"username", "user_type"},
-		Unique: true,
+		Key: []string{"username", "user_type"},
 	})
 	if err != nil {
 		return err
 	}
 
 	err = dbArchive.EnsureIndex(mgo.Index{
-		Key:    []string{"student_username"},
-		Unique: true,
+		Key: []string{"student_username"},
 	})
 	if err != nil {
 		return err

@@ -61,7 +61,7 @@ func (w *Workflow) StudentRegister(username string, password string) (*model.Stu
 	if !utils.IsStudentId(username) {
 		return nil, re.NewRErrorCode("student id format is wrong", nil, re.ERROR_FORMAT_STUDENTID)
 	}
-	if student, _ := w.mongoClient.GetStudentByUsername(username); student != nil {
+	if student, err := w.mongoClient.GetStudentByUsername(username); err == nil && student != nil && student.Id.Valid() {
 		return nil, re.NewRErrorCode("student already exists", nil, re.ERROR_EXIST_USERNAME)
 	}
 	student := &model.Student{
@@ -339,7 +339,7 @@ func (w *Workflow) AddNewAdmin(username string, password string) (*model.Admin, 
 		return nil, re.NewRError("missing parameters", nil)
 	}
 	oldAdmin, err := w.mongoClient.GetAdminByUsername(username)
-	if err == nil && oldAdmin != nil {
+	if err == nil && oldAdmin != nil && oldAdmin.Id.Valid() {
 		return oldAdmin, re.NewRError(fmt.Sprintf("admin already exists: %+v", oldAdmin), nil)
 	}
 	newAdmin := &model.Admin{

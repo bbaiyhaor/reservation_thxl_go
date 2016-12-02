@@ -21,7 +21,7 @@ const (
 	USER_GENDER_FEMALE = "女"
 )
 
-// UniqueIndex: username + user_type
+// Index: username + user_type
 // Index: archive_category + archive_number + user_type
 // Index: binded_teacher_id + user_type
 type Student struct {
@@ -84,6 +84,7 @@ func (student *Student) PreInsert() error {
 func (m *MongoClient) InsertStudent(student *Student) error {
 	student.PreInsert()
 	now := time.Now()
+	student.Id = bson.NewObjectId()
 	student.CreatedAt = now
 	student.UpdatedAt = now
 	return dbStudent.Insert(student)
@@ -125,7 +126,7 @@ func (m *MongoClient) GetStudentsByBindedTeacherId(teacherId string) ([]*Student
 	return students, err
 }
 
-// UniqueIndex: username + user_type
+// Index: username + user_type
 // Index: fullname + user_type
 // Index: mobile + user_type
 type Teacher struct {
@@ -153,6 +154,7 @@ func (teacher *Teacher) PreInsert() error {
 func (m *MongoClient) InsertTeacher(teacher *Teacher) error {
 	teacher.PreInsert()
 	now := time.Now()
+	teacher.Id = bson.NewObjectId()
 	teacher.CreatedAt = now
 	teacher.UpdatedAt = now
 	return dbTeacher.Insert(teacher)
@@ -194,7 +196,7 @@ func (m *MongoClient) GetTeacherByMobile(mobile string) (*Teacher, error) {
 	return &teacher, err
 }
 
-// UniqueIndex: username + user_type
+// Index: username + user_type
 type Admin struct {
 	Id                bson.ObjectId `bson:"_id"`
 	Username          string        `bson:"username"`
@@ -220,6 +222,7 @@ func (admin *Admin) PreInsert() error {
 func (m *MongoClient) InsertAdmin(admin *Admin) error {
 	admin.PreInsert()
 	now := time.Now()
+	admin.Id = bson.NewObjectId()
 	admin.CreatedAt = now
 	admin.UpdatedAt = now
 	return dbAdmin.Insert(admin)

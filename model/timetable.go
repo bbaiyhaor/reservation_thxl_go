@@ -25,6 +25,7 @@ type TimedReservation struct {
 
 func (m *MongoClient) InsertTimedReservation(timedReservation *TimedReservation) error {
 	now := time.Now()
+	timedReservation.Id = bson.NewObjectId()
 	timedReservation.CreatedAt = now
 	timedReservation.UpdatedAt = now
 	return dbTimetable.Insert(timedReservation)

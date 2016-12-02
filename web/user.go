@@ -22,6 +22,9 @@ func (uc *UserController) MuxHandlers(m JsonMuxer) {
 	m.Get("/m/student", "StudentPage", uc.getStudentPage)
 	m.Get("/m/teacher", "TeacherPage", uc.getTeacherPage)
 	// legacy
+	m.Get("/reservation", "LegacyEntryPage", uc.getEntryPage)
+	m.Get("/reservation/student", "LegacyStudentPage", uc.getStudentPage)
+	m.Get("/reservation/teacher", "LegacyTeacherPage", uc.getTeacherPage)
 	m.Get("/reservation/admin/login", "AdminLoginPage", uc.getAdminLoginPageLegacy)
 	m.Get("/reservation/admin", "AdminPage", LegacyAdminPageInjection(uc.getAdminPageLegacy))
 	m.Get("/reservation/admin/timetable", "AdminTimetablePage", LegacyAdminPageInjection(uc.getAdminTimetablePageLegacy))

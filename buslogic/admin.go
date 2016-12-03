@@ -505,7 +505,7 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 			return nil, re.NewRErrorCode("cannot set reservated reservation", nil, re.ERROR_ADMIN_SET_RESERVATED_RESERVATION)
 		}
 		end := utils.ConcatTime(start, timedReservation.EndTime)
-		reservation := &model.Reservation{
+		reservation = &model.Reservation{
 			StartTime:       start,
 			EndTime:         end,
 			Status:          model.RESERVATION_STATUS_AVAILABLE,

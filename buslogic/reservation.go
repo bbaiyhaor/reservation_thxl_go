@@ -67,7 +67,7 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType int) ([]*mod
 		if utils.ConcatTime(date, tr.StartTime).Before(time.Now()) {
 			date = today.AddDate(0, 0, 7)
 		}
-		if !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
+		if utils.ConcatTime(date, tr.StartTime).Before(to) && !tr.Exceptions[date.Format("2006-01-02")] && !tr.Timed[date.Format("2006-01-02")] {
 			result = append(result, tr.ToReservation(date))
 		}
 	}

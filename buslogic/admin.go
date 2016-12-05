@@ -239,10 +239,9 @@ func (w *Workflow) RemoveReservationsByAdmin(reservationIds []string, sourceIds 
 	removed := 0
 	for index, reservationId := range reservationIds {
 		if sourceIds[index] == "" {
-			// Source为ADD，无SourceId：直接置为DELETED（TODO 目前不能删除已预约咨询）
+			// Source为ADD，无SourceId：直接置为DELETED
 			if reservation, err := w.mongoClient.GetReservationById(reservationId); err == nil &&
-				(reservation.Source == model.RESERVATION_SOURCE_ADMIN_ADD || reservation.Source == model.RESERVATION_SOURCE_TEACHER_ADD) &&
-				reservation.Status != model.RESERVATION_STATUS_RESERVATED {
+				(reservation.Source == model.RESERVATION_SOURCE_ADMIN_ADD || reservation.Source == model.RESERVATION_SOURCE_TEACHER_ADD) {
 				reservation.Status = model.RESERVATION_STATUS_DELETED
 				if w.mongoClient.UpdateReservation(reservation) == nil {
 					removed++
@@ -261,7 +260,13 @@ func (w *Workflow) RemoveReservationsByAdmin(reservationIds []string, sourceIds 
 			}
 		} else {
 			// Source为TIMETABLE且已预约，rId!=sourceId
-			// TODO 目前不能删除已预约咨询
+			if reservation, err := w.mongoClient.GetReservationById(reservationId); err == nil &&
+				(reservation.Source == model.RESERVATION_SOURCE_TIMETABLE) {
+				reservation.Status = model.RESERVATION_STATUS_DELETED
+				if w.mongoClient.UpdateReservation(reservation) == nil {
+					removed++
+				}
+			}
 		}
 	}
 	return removed, nil
@@ -508,7 +513,7 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 		reservation = &model.Reservation{
 			StartTime:       start,
 			EndTime:         end,
-			Status:          model.RESERVATION_STATUS_AVAILABLE,
+			Status:          model.RESERVATION_STATUS_RESERVATED,
 			Source:          model.RESERVATION_SOURCE_TIMETABLE,
 			SourceId:        timedReservation.Id.Hex(),
 			TeacherId:       timedReservation.TeacherId,

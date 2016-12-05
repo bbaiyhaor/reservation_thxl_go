@@ -91,7 +91,7 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 			return nil, re.NewRErrorCode("only make binded teacher reservation", nil, re.ERROR_STUDENT_MAKE_NOT_BINDED_TEACHER_RESERVATION)
 		}
 		end := utils.ConcatTime(start, timedReservation.EndTime)
-		reservation := &model.Reservation{
+		reservation = &model.Reservation{
 			StartTime:       start,
 			EndTime:         end,
 			Status:          model.RESERVATION_STATUS_AVAILABLE,

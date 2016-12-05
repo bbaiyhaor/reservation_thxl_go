@@ -239,9 +239,10 @@ func (w *Workflow) RemoveReservationsByAdmin(reservationIds []string, sourceIds 
 	removed := 0
 	for index, reservationId := range reservationIds {
 		if sourceIds[index] == "" {
-			// Source为ADD，无SourceId：直接置为DELETED
+			// Source为ADD，无SourceId：直接置为DELETED（TODO 目前不能删除已预约咨询）
 			if reservation, err := w.mongoClient.GetReservationById(reservationId); err == nil &&
-				(reservation.Source == model.RESERVATION_SOURCE_ADMIN_ADD || reservation.Source == model.RESERVATION_SOURCE_TEACHER_ADD) {
+				(reservation.Source == model.RESERVATION_SOURCE_ADMIN_ADD || reservation.Source == model.RESERVATION_SOURCE_TEACHER_ADD) &&
+				reservation.Status != model.RESERVATION_STATUS_RESERVATED {
 				reservation.Status = model.RESERVATION_STATUS_DELETED
 				if w.mongoClient.UpdateReservation(reservation) == nil {
 					removed++
@@ -260,13 +261,7 @@ func (w *Workflow) RemoveReservationsByAdmin(reservationIds []string, sourceIds 
 			}
 		} else {
 			// Source为TIMETABLE且已预约，rId!=sourceId
-			if reservation, err := w.mongoClient.GetReservationById(reservationId); err == nil &&
-				(reservation.Source == model.RESERVATION_SOURCE_TIMETABLE) {
-				reservation.Status = model.RESERVATION_STATUS_DELETED
-				if w.mongoClient.UpdateReservation(reservation) == nil {
-					removed++
-				}
-			}
+			// TODO 目前不能删除已预约咨询，要改这里的话需要从timedReservation里删除相关timed信息
 		}
 	}
 	return removed, nil
@@ -481,6 +476,7 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_NO_STUDENT)
 	}
 	var reservation *model.Reservation
+	var timedReservation *model.TimedReservation
 	if sourceId == "" {
 		// Source为ADD，无SourceId：直接指定
 		reservation, err = w.mongoClient.GetReservationById(reservationId)
@@ -494,7 +490,7 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 		}
 	} else if reservationId == sourceId {
 		// Source为TIMETABLE且未被预约
-		timedReservation, err := w.mongoClient.GetTimedReservationById(sourceId)
+		timedReservation, err = w.mongoClient.GetTimedReservationById(sourceId)
 		if err != nil || timedReservation.Status == model.RESERVATION_STATUS_DELETED {
 			return nil, re.NewRErrorCode("fail to get timetable", err, re.ERROR_DATABASE)
 		}
@@ -521,9 +517,6 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 			TeacherFeedback: model.TeacherFeedback{},
 		}
 		timedReservation.Timed[start.Format("2006-01-02")] = true
-		if err = w.mongoClient.InsertReservationAndUpdateTimedReservation(reservation, timedReservation); err != nil {
-			return nil, re.NewRErrorCode("fail to insert reservation and update timetable", err, re.ERROR_DATABASE)
-		}
 	} else {
 		return nil, re.NewRErrorCode("cannot set reservated reservation", nil, re.ERROR_ADMIN_SET_RESERVATED_RESERVATION)
 	}
@@ -557,6 +550,12 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 	reservation.IsAdminSet = true
 	reservation.SendSms = sendSms
 	reservation.Status = model.RESERVATION_STATUS_RESERVATED
+	if timedReservation != nil {
+		err = w.mongoClient.UpdateTimedReservation(timedReservation)
+		if err != nil {
+			return nil, re.NewRErrorCode("fail to insert reservation and update timetable", err, re.ERROR_DATABASE)
+		}
+	}
 	if err = w.mongoClient.UpdateReservationAndStudent(reservation, student); err != nil {
 		return nil, re.NewRErrorCode("fail to update reservation and student", err, re.ERROR_DATABASE)
 	}

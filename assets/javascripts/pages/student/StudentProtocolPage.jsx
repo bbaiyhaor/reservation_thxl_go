@@ -36,7 +36,7 @@ export default function StudentProtocolPage() {
           <h2 className="title" style={{ ...styles.h2 }}>3. 咨询原则</h2>
           <section>
             <p>　　本中心尊重来访者的个人隐私，任何个人信息都不会被泄露，除非有你本人的授权。
-              <b>但在你的信息暗示你将危机自己或他人及社会的安全时，咨询师有权和有关方面联系。</b>
+              <b>但在你的信息暗示你将危及自己或他人及社会的安全时，咨询师有权和有关方面联系。</b>
             </p>
           </section>
           <section>

@@ -94,7 +94,7 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 		reservation = &model.Reservation{
 			StartTime:       start,
 			EndTime:         end,
-			Status:          model.RESERVATION_STATUS_AVAILABLE,
+			Status:          model.RESERVATION_STATUS_RESERVATED,
 			Source:          model.RESERVATION_SOURCE_TIMETABLE,
 			SourceId:        timedReservation.Id.Hex(),
 			TeacherId:       timedReservation.TeacherId,

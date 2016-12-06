@@ -196,14 +196,6 @@ func (m *MongoClient) InsertReservationAndUpdateTimedReservation(reservation *Re
 	return m.UpdateTimedReservation(timedReservation)
 }
 
-func (m *MongoClient) InsertReservationAndUpdateStudent(reservation *Reservation, student *Student) error {
-	err := m.InsertReservation(reservation)
-	if err != nil {
-		return err
-	}
-	return m.UpdateStudent(student)
-}
-
 func (m *MongoClient) UpdateReservation(reservation *Reservation) error {
 	reservation.UpdatedAt = time.Now()
 	return dbReservation.UpdateId(reservation.Id, reservation)

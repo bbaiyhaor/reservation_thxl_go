@@ -517,6 +517,9 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 			TeacherFeedback: model.TeacherFeedback{},
 		}
 		timedReservation.Timed[start.Format("2006-01-02")] = true
+		if err = w.mongoClient.InsertReservationAndUpdateTimedReservation(reservation, timedReservation); err != nil {
+			return nil, re.NewRErrorCode("fail to insert reservation and update timetable", err, re.ERROR_DATABASE)
+		}
 	} else {
 		return nil, re.NewRErrorCode("cannot set reservated reservation", nil, re.ERROR_ADMIN_SET_RESERVATED_RESERVATION)
 	}
@@ -550,19 +553,8 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 	reservation.IsAdminSet = true
 	reservation.SendSms = sendSms
 	reservation.Status = model.RESERVATION_STATUS_RESERVATED
-	if timedReservation != nil {
-		err = w.mongoClient.UpdateTimedReservation(timedReservation)
-		if err != nil {
-			return nil, re.NewRErrorCode("fail to update timetable", err, re.ERROR_DATABASE)
-		}
-	}
-	if reservation.Id.Valid() {
-		err = w.mongoClient.UpdateReservationAndStudent(reservation, student)
-	} else {
-		err = w.mongoClient.InsertReservationAndUpdateStudent(reservation, student)
-	}
-	if err != nil {
-		return nil, re.NewRErrorCode("fail to insert/update reservation and update student", err, re.ERROR_DATABASE)
+	if err = w.mongoClient.UpdateReservationAndStudent(reservation, student); err != nil {
+		return nil, re.NewRErrorCode("fail to update reservation and student", err, re.ERROR_DATABASE)
 	}
 	// send success sms
 	if sendSms {

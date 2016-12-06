@@ -553,11 +553,16 @@ func (w *Workflow) SetStudentByAdmin(reservationId string, sourceId string, star
 	if timedReservation != nil {
 		err = w.mongoClient.UpdateTimedReservation(timedReservation)
 		if err != nil {
-			return nil, re.NewRErrorCode("fail to insert reservation and update timetable", err, re.ERROR_DATABASE)
+			return nil, re.NewRErrorCode("fail to update timetable", err, re.ERROR_DATABASE)
 		}
 	}
-	if err = w.mongoClient.UpdateReservationAndStudent(reservation, student); err != nil {
-		return nil, re.NewRErrorCode("fail to update reservation and student", err, re.ERROR_DATABASE)
+	if reservation.Id.Valid() {
+		err = w.mongoClient.UpdateReservationAndStudent(reservation, student)
+	} else {
+		err = w.mongoClient.InsertReservationAndUpdateStudent(reservation, student)
+	}
+	if err != nil {
+		return nil, re.NewRErrorCode("fail to insert/update reservation and update student", err, re.ERROR_DATABASE)
 	}
 	// send success sms
 	if sendSms {

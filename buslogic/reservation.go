@@ -12,21 +12,21 @@ import (
 const CHECK_FORCE_ERROR = "%CHECK%"
 
 // 学生查看前后一周内的所有咨询
-func (w *Workflow) GetReservationsByStudent(userId string, userType int) ([]*model.Reservation, error) {
+func (w *Workflow) GetReservationsByStudent(userId string, userType int) (*model.Student, []*model.Reservation, error) {
 	if userId == "" {
-		return nil, re.NewRErrorCode("student not login", nil, re.ERROR_NO_LOGIN)
+		return nil, nil, re.NewRErrorCode("student not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_STUDENT {
-		return nil, re.NewRErrorCode("user is not student", nil, re.ERROR_NOT_AUTHORIZED)
+		return nil, nil, re.NewRErrorCode("user is not student", nil, re.ERROR_NOT_AUTHORIZED)
 	}
 	student, err := w.mongoClient.GetStudentById(userId)
 	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
-		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
 	}
 	from := time.Now().AddDate(0, 0, -7)
 	to := time.Now().AddDate(0, 0, 7).Add(-90 * time.Minute)
 	reservations, err := w.mongoClient.GetReservationsBetweenTime(from, to)
 	if err != nil {
-		return nil, re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
 	}
 	var result []*model.Reservation
 	for _, r := range reservations {
@@ -49,7 +49,7 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType int) ([]*mod
 	}
 	timedReservations, err := w.mongoClient.GetAllTimedReservations()
 	if err != nil {
-		return result, nil
+		return student, result, nil
 	}
 	today := utils.BeginOfDay(time.Now())
 	for _, tr := range timedReservations {
@@ -72,24 +72,24 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType int) ([]*mod
 		}
 	}
 	sort.Sort(ByStartTimeOfReservation(result))
-	return result, nil
+	return student, result, nil
 }
 
 // 咨询师查看负7天之后的所有咨询
-func (w *Workflow) GetReservationsByTeacher(userId string, userType int) ([]*model.Reservation, error) {
+func (w *Workflow) GetReservationsByTeacher(userId string, userType int) (*model.Teacher, []*model.Reservation, error) {
 	if userId == "" {
-		return nil, re.NewRErrorCode("teacher not login", nil, re.ERROR_NO_LOGIN)
+		return nil, nil, re.NewRErrorCode("teacher not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_TEACHER {
-		return nil, re.NewRErrorCode("user is not teacher", nil, re.ERROR_NOT_AUTHORIZED)
+		return nil, nil, re.NewRErrorCode("user is not teacher", nil, re.ERROR_NOT_AUTHORIZED)
 	}
 	teacher, err := w.mongoClient.GetTeacherById(userId)
 	if err != nil || teacher.UserType != model.USER_TYPE_TEACHER {
-		return nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 	}
 	from := time.Now().AddDate(0, 0, -7)
 	reservations, err := w.mongoClient.GetReservationsAfterTime(from)
 	if err != nil {
-		return nil, re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
 	}
 	var result []*model.Reservation
 	for _, r := range reservations {
@@ -126,24 +126,24 @@ func (w *Workflow) GetReservationsByTeacher(userId string, userType int) ([]*mod
 		}
 	}
 	sort.Sort(ByStartTimeOfReservation(result))
-	return result, nil
+	return teacher, result, nil
 }
 
 // 管理员查看负7天之后的所有咨询
-func (w *Workflow) GetReservationsByAdmin(userId string, userType int) ([]*model.Reservation, error) {
+func (w *Workflow) GetReservationsByAdmin(userId string, userType int) (*model.Admin, []*model.Reservation, error) {
 	if userId == "" {
-		return nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+		return nil, nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_ADMIN {
-		return nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
+		return nil, nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
 	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
-		return nil, re.NewRErrorCode("fail to get admin", nil, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get admin", nil, re.ERROR_DATABASE)
 	}
 	from := time.Now().AddDate(0, 0, -7)
 	reservations, err := w.mongoClient.GetReservationsAfterTime(from)
 	if err != nil {
-		return nil, re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
 	}
 	var result []*model.Reservation
 	for _, r := range reservations {
@@ -179,28 +179,28 @@ func (w *Workflow) GetReservationsByAdmin(userId string, userType int) ([]*model
 		}
 	}
 	sort.Sort(ByStartTimeOfReservation(result))
-	return result, nil
+	return admin, result, nil
 }
 
 // 管理员查看指定日期的所有咨询
-func (w *Workflow) GetReservationsDailyByAdmin(fromDate string, userId string, userType int) ([]*model.Reservation, error) {
+func (w *Workflow) GetReservationsDailyByAdmin(fromDate string, userId string, userType int) (*model.Admin, []*model.Reservation, error) {
 	if userId == "" {
-		return nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+		return nil, nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_ADMIN {
-		return nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
+		return nil, nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
 	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
-		return nil, re.NewRErrorCode("fail to get admin", nil, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get admin", nil, re.ERROR_DATABASE)
 	}
 	from, err := time.ParseInLocation("2006-01-02", fromDate, time.Local)
 	if err != nil {
-		return nil, re.NewRErrorCodeContext("from date is not valid", err, re.ERROR_INVALID_PARAM, "from_date")
+		return nil, nil, re.NewRErrorCodeContext("from date is not valid", err, re.ERROR_INVALID_PARAM, "from_date")
 	}
 	to := from.AddDate(0, 0, 1)
 	reservations, err := w.mongoClient.GetReservationsBetweenTime(from, to)
 	if err != nil {
-		return nil, re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
 	}
 	if timedReservations, err := w.mongoClient.GetTimedReservationsByWeekday(from.Weekday()); err == nil {
 		for _, tr := range timedReservations {
@@ -210,7 +210,7 @@ func (w *Workflow) GetReservationsDailyByAdmin(fromDate string, userId string, u
 		}
 	}
 	sort.Sort(ByStartTimeOfReservation(reservations))
-	return reservations, nil
+	return admin, reservations, nil
 }
 
 // 管理员通过咨询师工号查询咨询

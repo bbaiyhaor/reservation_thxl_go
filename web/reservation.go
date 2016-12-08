@@ -83,16 +83,11 @@ func (rc *ReservationController) getFeedbackCategories(ctx context.Context, w ht
 func (rc *ReservationController) viewReservationsByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	var result = make(map[string]interface{})
 
-	student, err := service.MongoClient().GetStudentById(userId)
+	student, reservations, err := service.Workflow().GetReservationsByStudent(userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
 	result["student"] = service.Workflow().WrapSimpleStudent(student)
-
-	reservations, err := service.Workflow().GetReservationsByStudent(userId, userType)
-	if err != nil {
-		return http.StatusOK, wrapJsonError(err)
-	}
 	var array = make([]interface{}, 0)
 	for _, res := range reservations {
 		resJson := service.Workflow().WrapSimpleReservation(res)
@@ -195,16 +190,11 @@ func (rc *ReservationController) submitFeedbackByStudent(w http.ResponseWriter, 
 func (rc *ReservationController) viewReservationsByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	var result = make(map[string]interface{})
 
-	teacher, err := service.MongoClient().GetTeacherById(userId)
+	teacher, reservations, err := service.Workflow().GetReservationsByTeacher(userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
 	result["teacher"] = service.Workflow().WrapTeacher(teacher)
-
-	reservations, err := service.Workflow().GetReservationsByTeacher(userId, userType)
-	if err != nil {
-		return http.StatusOK, wrapJsonError(err)
-	}
 	var array = make([]interface{}, 0)
 	for _, res := range reservations {
 		resJson := service.Workflow().WrapReservation(res)
@@ -332,10 +322,11 @@ func (rc *ReservationController) queryStudentInfoByTeacher(w http.ResponseWriter
 func (rc *ReservationController) viewReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	var result = make(map[string]interface{})
 
-	reservations, err := service.Workflow().GetReservationsByAdmin(userId, userType)
+	admin, reservations, err := service.Workflow().GetReservationsByAdmin(userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
+	result["admin"] = service.Workflow().WrapAdmin(admin)
 	var array = make([]interface{}, 0)
 	for _, res := range reservations {
 		resJson := service.Workflow().WrapReservation(res)
@@ -358,10 +349,11 @@ func (rc *ReservationController) viewDailyReservationsByAdmin(w http.ResponseWri
 
 	var result = make(map[string]interface{})
 
-	reservations, err := service.Workflow().GetReservationsDailyByAdmin(fromDate, userId, userType)
+	admin, reservations, err := service.Workflow().GetReservationsDailyByAdmin(fromDate, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
+	result["admin"] = service.Workflow().WrapAdmin(admin)
 	var array = make([]interface{}, 0)
 	for _, res := range reservations {
 		resJson := service.Workflow().WrapReservation(res)

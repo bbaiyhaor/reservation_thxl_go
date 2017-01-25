@@ -44,7 +44,7 @@ func (w *Workflow) StudentLogin(username string, password string) (*model.Studen
 			student.PreInsert()
 			w.mongoClient.UpdateStudent(student)
 			return student, nil
-		} else if student.Password == model.EncodePassword(student.Salt, password) {
+		} else if student.Salt != "" && student.Password == model.EncodePassword(student.Salt, password) {
 			return student, nil
 		}
 	}
@@ -94,7 +94,7 @@ func (w *Workflow) TeacherLogin(username string, password string) (*model.Teache
 			teacher.PreInsert()
 			w.mongoClient.UpdateTeacher(teacher)
 			return teacher, nil
-		} else if teacher.Password == model.EncodePassword(teacher.Salt, password) {
+		} else if teacher.Salt != "" && teacher.Password == model.EncodePassword(teacher.Salt, password) {
 			return teacher, nil
 		}
 	}
@@ -204,7 +204,7 @@ func (w *Workflow) AdminLogin(username string, password string) (*model.Admin, e
 			admin.PreInsert()
 			w.mongoClient.UpdateAdmin(admin)
 			return admin, nil
-		} else if admin.Password == model.EncodePassword(admin.Salt, password) {
+		} else if admin.Salt != "" && admin.Password == model.EncodePassword(admin.Salt, password) {
 			return admin, nil
 		}
 	}

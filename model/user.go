@@ -126,6 +126,10 @@ func (m *MongoClient) GetStudentsByBindedTeacherId(teacherId string) ([]*Student
 	return students, err
 }
 
+func (m *MongoClient) ClearAllStudentsBindedTeacher() error {
+	return dbStudent.Update(bson.M{"binded_teacher_id": bson.M{"$ne": ""}}, bson.M{"binded_teacher_id": ""})
+}
+
 // Index: username + user_type
 // Index: fullname + user_type
 // Index: mobile + user_type

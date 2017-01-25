@@ -1026,8 +1026,9 @@ function deleteStudentAccount(studentId) {
 function deleteStudentAccountConfirm(studentId) {
   $('body').append('\
     <div id="pop_delete_student_account_confirm" class="pop_window" style="width: 50%;">\
-      <span style="color: red;"><b>请再次确认删除学生账户</b></span><br>\
-      <button type="button" onclick="$(\'#pop_delete_student_account_confirm\').remove();deleteStudentAccountConfirmCheck(\'' + studentId + '\');">确认</button>\
+      <span style="color: red;"><b>请输入管理员密码删除学生账户</b></span><br>\
+      <input id="delete_student_account_confirm_' + studentId + '" type="password"><br>\
+      <button type="button" onclick="deleteStudentAccountConfirmCheck(\'' + studentId + '\');">确认</button>\
       <button type="button" style="margin-left:20px" onclick="$(\'#pop_delete_student_account_confirm\').remove();">取消</button>\
     </div>\
   ');
@@ -1035,8 +1036,11 @@ function deleteStudentAccountConfirm(studentId) {
 }
 
 function deleteStudentAccountConfirmCheck(studentId) {
+  var adminPassword = $('#delete_student_account_confirm_' + studentId).val();
+  $('#pop_delete_student_account_confirm').remove();
   $.post('/api/admin/student/account/delete', {
     student_id: studentId,
+    password: adminPassword,
   }, function(data, textStatus, xhr) {
     if (data.status === 'OK') {
       deleteStudentAccountSuccess();

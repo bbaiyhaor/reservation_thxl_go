@@ -678,6 +678,9 @@ func (rc *ReservationController) resetStudentPasswordByAdmin(w http.ResponseWrit
 
 func (rc *ReservationController) deleteStudentAccountByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	studentId := form.ParamString(r, "student_id", "")
+	if err := RequestPasswordCheck(r, userId, userType); err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
 
 	var result = make(map[string]interface{})
 

@@ -67,6 +67,7 @@ func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	m.PostJson(kAdminApiBaseUrl+"/teacher/password/reset", "ResetTeacherPasswordByAdmin", RoleCookieInjection(rc.resetTeacherPasswordByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/teacher/search", "SearchTeacherByAdmin", RoleCookieInjection(rc.searchTeacherByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/teacher/workload", "GetTeacherWorkloadByAdmin", RoleCookieInjection(rc.getTeacherWorkloadByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/student/unbind/all", "ClearAllStudentsBindedTeacherByAdmin", RoleCookieInjection(rc.clearAllStudentsBindedTeacherByAdmin))
 }
 
 //==================== category ====================
@@ -944,6 +945,20 @@ func (rc *ReservationController) closeTimedReservationsByAdmin(w http.ResponseWr
 		return http.StatusOK, wrapJsonError(err)
 	}
 	result["closed_count"] = closed
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (rc *ReservationController) clearAllStudentsBindedTeacherByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	var result = make(map[string]interface{})
+	if err := RequestPasswordCheck(r, userId, userType); err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
+
+	err := service.Workflow().AdminClearAllStudentsBindedTeacher(userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
 
 	return http.StatusOK, wrapJsonOk(result)
 }

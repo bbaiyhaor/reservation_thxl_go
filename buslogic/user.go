@@ -157,7 +157,7 @@ func (w *Workflow) TeacherResetPasswordSms(username, fullname, mobile string) er
 	if err != nil {
 		return re.NewRErrorCode("fail to set verify code to redis", err, re.ERROR_SEND_SMS)
 	}
-	if err = w.SendResetPasswordSMS(teacher, verifyCode); err != nil {
+	if err = w.SendTeacherResetPasswordSMS(teacher, verifyCode); err != nil {
 		return re.NewRErrorCode("fail to send sms", err, re.ERROR_SEND_SMS)
 	}
 	return nil

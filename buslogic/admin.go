@@ -5,6 +5,7 @@ import (
 	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"fmt"
+	"github.com/mijia/sweb/log"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -1055,6 +1056,30 @@ func (w *Workflow) ExportReportMonthlyByAdmin(monthlyDate string, userId string,
 	//	return "", "", err
 	//}
 	return reportPath, keyCasePath, nil
+}
+
+// 管理员清除所有学生的绑定咨询师
+func (w *Workflow) AdminClearAllStudentsBindedTeacher(userId string, userType int) error {
+	if userId == "" {
+		return re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_ADMIN {
+		return re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
+	}
+	admin, err := w.mongoClient.GetAdminById(userId)
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+		return re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
+	}
+	students, err := w.mongoClient.GetAllStudents()
+	if err != nil {
+		return re.NewRErrorCode("fail to get all students", err, re.ERROR_DATABASE)
+	}
+	for _, s := range students {
+		s.BindedTeacherId = ""
+		if err = w.mongoClient.UpdateStudent(s); err != nil {
+			log.Errorf("fail to clear student binded teacher: %+v", s)
+		}
+	}
+	return nil
 }
 
 func (w *Workflow) WrapAdmin(admin *model.Admin) map[string]interface{} {

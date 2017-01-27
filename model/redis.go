@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	REDIS_KEY_TEACHER_RESET_PASSWORD_VERIFY_CODE = "thxlfzzx#teacher_reset_password_verify_code_%s"
-	REDIS_KEY_USER_LOGIN                         = "thxlfzzx#user_login_%d_%s_%s"
+	REDIS_KEY_TEACHER_RESET_PASSWORD_VERIFY_CODE                  = "thxlfzzx#teacher_reset_password_verify_code_%s"
+	REDIS_KEY_ADMIN_CLEAR_ALL_STUDENTS_BINDED_TEACHER_VERIFY_CODE = "thxlfzzx#admin_clear_all_students_bind_teacher_verify_code_%s"
+	REDIS_KEY_USER_LOGIN                                          = "thxlfzzx#user_login_%d_%s_%s"
 )
 
 func NewRedisClient() *redis.Client {

@@ -99,6 +99,12 @@ func (m *MongoClient) UpdateStudentWithoutTime(student *Student) error {
 	return dbStudent.UpdateId(student.Id, student)
 }
 
+func (m *MongoClient) GetAllStudents() ([]*Student, error) {
+	var students []*Student
+	err := dbStudent.Find(bson.M{}).All(&students)
+	return students, err
+}
+
 func (m *MongoClient) GetStudentById(id string) (*Student, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, re.NewRErrorCode("id is not valid", nil, re.ERROR_DATABASE)
@@ -124,10 +130,6 @@ func (m *MongoClient) GetStudentsByBindedTeacherId(teacherId string) ([]*Student
 	var students []*Student
 	err := dbStudent.Find(bson.M{"binded_teacher_id": teacherId, "user_type": USER_TYPE_STUDENT}).All(&students)
 	return students, err
-}
-
-func (m *MongoClient) ClearAllStudentsBindedTeacher() error {
-	return dbStudent.Update(bson.M{"binded_teacher_id": bson.M{"$ne": ""}}, bson.M{"binded_teacher_id": ""})
 }
 
 // Index: username + user_type

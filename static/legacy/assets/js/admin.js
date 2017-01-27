@@ -1275,3 +1275,39 @@ function resetTeacherPasswordConfirm() {
     }
   });
 }
+
+function clearAllStudentsBindedTeacher() {
+	$('body').append('\
+    <div id="clear_all_students_binded_teacher" class="pop_window" style="text-align: left; width: 30%">\
+      <p style="color: red;">清除所有学生绑定咨询师</p>\
+      <p>操作不可恢复，请谨慎！！！</p>\
+      <span style="color: red;"><b>请输入管理员密码</b></span><br>\
+      <input id="clear_all_students_binded_teacher_confirm" type="password"><br>\
+      <button onclick="clearAllStudentsBindedTeacherConfirm();">确定</button><button style="margin-left: 20px;" onclick="$(\'#clear_all_students_binded_teacher\').remove();">取消</button>\
+    </div>\
+  ');
+	optimize('#clear_all_students_binded_teacher');
+}
+
+function clearAllStudentsBindedTeacherConfirm() {
+	$.post('/api/admin/student/unbind/all', {
+	  password: $('#clear_all_students_binded_teacher_confirm').val(),
+  }, function(data, textStatus, xhr) {
+	  if (data.status === 'OK') {
+		  clearAllStudentsBindedTeacherSuccess();
+    } else {
+	    alert(data.err_msg);
+    }
+  });
+}
+
+function clearAllStudentsBindedTeacherSuccess() {
+	$('#clear_all_students_binded_teacher').remove();
+  $('body').append('\
+    <div id="pop_clear_all_students_binded_teacher_success" class="pop_window" style="width: 50%;">\
+      所有学生的绑定咨询师已清除！<br>\
+      <button type="button" onclick="$(\'#pop_clear_all_students_binded_teacher_success\').remove();">确定</button>\
+    </div>\
+  ');
+  optimize('#pop_clear_all_students_binded_teacher_success');
+}

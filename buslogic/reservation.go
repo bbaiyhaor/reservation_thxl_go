@@ -283,7 +283,7 @@ func (w *Workflow) ShiftReservationTimeInDays(days int) error {
 	for _, r := range reservations {
 		r.StartTime = r.StartTime.AddDate(0, 0, days)
 		r.EndTime = r.EndTime.AddDate(0, 0, days)
-		err = w.mongoClient.UpdateReservationWithoutTime(r)
+		err = w.mongoClient.UpdateReservationWithoutUpdatedTime(r)
 		if err != nil {
 			log.Errorf("fail to update reservation %+v, err: %+v", r, err)
 		}

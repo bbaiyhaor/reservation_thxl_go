@@ -5,6 +5,7 @@ import (
 	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
 	"strconv"
 	"time"
+	"strings"
 )
 
 // 咨询师拉取反馈
@@ -42,7 +43,7 @@ func (w *Workflow) GetFeedbackByTeacher(reservationId string, sourceId string,
 
 // 咨询师提交反馈
 func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string,
-	category string, participants []int, emphasis string, severity []int, medicalDiagnosis []int, crisis []int,
+	category string, severity []int, medicalDiagnosis []int, crisis []int,
 	record string, crisisLevel string, userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
 		return nil, re.NewRErrorCode("teacher not login", nil, re.ERROR_NO_LOGIN)
@@ -52,10 +53,6 @@ func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string
 		return nil, re.NewRErrorCodeContext("reservation id is empty", nil, re.ERROR_MISSING_PARAM, "reservation_id")
 	} else if category == "" {
 		return nil, re.NewRErrorCodeContext("category is empty", nil, re.ERROR_MISSING_PARAM, "category")
-	} else if len(participants) != len(model.PARTICIPANTS) {
-		return nil, re.NewRErrorCodeContext("participants is not valid", nil, re.ERROR_INVALID_PARAM, "participants")
-	} else if emphasis == "" {
-		return nil, re.NewRErrorCodeContext("emphasis is empty", nil, re.ERROR_MISSING_PARAM, "emphasis")
 	} else if len(severity) != len(model.SEVERITY) {
 		return nil, re.NewRErrorCodeContext("severity is not valid", nil, re.ERROR_INVALID_PARAM, "severity")
 	} else if len(medicalDiagnosis) != len(model.MEDICAL_DIAGNOSIS) {
@@ -68,10 +65,6 @@ func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string
 		return nil, re.NewRErrorCodeContext("crisis_level is empty", nil, re.ERROR_MISSING_PARAM, "crisis_level")
 	} else if reservationId == sourceId {
 		return nil, re.NewRErrorCode("cannot get feedback of available reservation", nil, re.ERROR_FEEDBACK_AVAILABLE_RESERVATION)
-	}
-	emphasisInt, err := strconv.Atoi(emphasis)
-	if err != nil || emphasisInt < 0 {
-		return nil, re.NewRErrorCodeContext("emphasis is not valid", err, re.ERROR_INVALID_PARAM, "emphasis")
 	}
 	crisisLevelInt, err := strconv.Atoi(crisisLevel)
 	if err != nil || crisisLevelInt < 0 {
@@ -94,8 +87,6 @@ func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string
 	sendFeedbackSMS := reservation.TeacherFeedback.IsEmpty() && reservation.StudentFeedback.IsEmpty()
 	reservation.TeacherFeedback = model.TeacherFeedback{
 		Category:         category,
-		Participants:     participants,
-		Emphasis:         emphasisInt,
 		Severity:         severity,
 		MedicalDiagnosis: medicalDiagnosis,
 		Crisis:           crisis,
@@ -109,7 +100,7 @@ func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string
 	if err = w.mongoClient.UpdateReservationAndStudent(reservation, student); err != nil {
 		return nil, re.NewRErrorCode("fail to update reservation and student", err, re.ERROR_DATABASE)
 	}
-	if sendFeedbackSMS && participants[0] > 0 {
+	if sendFeedbackSMS && (!strings.HasPrefix(category, "H") || strings.HasPrefix(category, "H4")) {
 		w.SendFeedbackSMS(reservation)
 	}
 	return reservation, nil

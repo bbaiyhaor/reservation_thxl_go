@@ -34,7 +34,7 @@ func (w *Workflow) ExportReportFormToFile(reservations []*model.Reservation, pat
 		UnderGraduate: make(map[string]int),
 	}
 	for _, r := range reservations {
-		if r.TeacherFeedback.IsEmpty() || len(r.TeacherFeedback.Participants) != len(model.PARTICIPANTS) {
+		if r.TeacherFeedback.IsEmpty() {
 			continue
 		}
 		category := r.TeacherFeedback.Category

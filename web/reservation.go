@@ -234,14 +234,6 @@ func (rc *ReservationController) submitFeedbackByTeacher(w http.ResponseWriter, 
 	reservationId := form.ParamString(r, "reservation_id", "")
 	sourceId := form.ParamString(r, "source_id", "")
 	category := form.ParamString(r, "category", "")
-	participants := []string(r.Form["participants"])
-	participantsInt := make([]int, 0)
-	for _, p := range participants {
-		if pi, err := strconv.Atoi(p); err == nil {
-			participantsInt = append(participantsInt, pi)
-		}
-	}
-	emphasis := form.ParamString(r, "emphasis", "")
 	severity := []string(r.Form["severity"])
 	severityInt := make([]int, 0)
 	for _, s := range severity {
@@ -268,7 +260,7 @@ func (rc *ReservationController) submitFeedbackByTeacher(w http.ResponseWriter, 
 
 	var result = make(map[string]interface{})
 
-	_, err := service.Workflow().SubmitFeedbackByTeacher(reservationId, sourceId, category, participantsInt, emphasis, severityInt,
+	_, err := service.Workflow().SubmitFeedbackByTeacher(reservationId, sourceId, category, severityInt,
 		medicalDiagnosisInt, crisisInt, record, crisisLevel, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
@@ -511,14 +503,6 @@ func (rc *ReservationController) submitFeedbackByAdmin(w http.ResponseWriter, r 
 	reservationId := form.ParamString(r, "reservation_id", "")
 	sourceId := form.ParamString(r, "source_id", "")
 	category := form.ParamString(r, "category", "")
-	participants := []string(r.Form["participants"])
-	participantsInt := make([]int, 0)
-	for _, p := range participants {
-		if pi, err := strconv.Atoi(p); err == nil {
-			participantsInt = append(participantsInt, pi)
-		}
-	}
-	emphasis := form.ParamString(r, "emphasis", "")
 	severity := []string(r.Form["severity"])
 	severityInt := make([]int, 0)
 	for _, s := range severity {
@@ -545,7 +529,7 @@ func (rc *ReservationController) submitFeedbackByAdmin(w http.ResponseWriter, r 
 
 	var result = make(map[string]interface{})
 
-	_, err := service.Workflow().SubmitFeedbackByAdmin(reservationId, sourceId, category, participantsInt, emphasis, severityInt,
+	_, err := service.Workflow().SubmitFeedbackByAdmin(reservationId, sourceId, category, severityInt,
 		medicalDiagnosisInt, crisisInt, record, crisisLevel, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)

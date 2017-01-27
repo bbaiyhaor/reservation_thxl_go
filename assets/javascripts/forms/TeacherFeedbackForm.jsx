@@ -20,12 +20,6 @@ export default class TeacherFeedbackForm extends React.Component {
       secondCategories: null,
       firstCategory: '',
       secondCategory: '',
-      participants_0: false,
-      participants_1: false,
-      participants_2: false,
-      participants_3: false,
-      participants_4: false,
-      emphasis: '0',
       severity_0: false,
       severity_1: false,
       severity_2: false,
@@ -67,12 +61,6 @@ export default class TeacherFeedbackForm extends React.Component {
       this.setState({
         firstCategory: nextProps.feedback.category ? nextProps.feedback.category.substring(0, 1) : '',
         secondCategory: nextProps.feedback.category ? nextProps.feedback.category : '',
-        participants_0: nextProps.feedback.participants && nextProps.feedback.participants[0] === 1,
-        participants_1: nextProps.feedback.participants && nextProps.feedback.participants[1] === 1,
-        participants_2: nextProps.feedback.participants && nextProps.feedback.participants[2] === 1,
-        participants_3: nextProps.feedback.participants && nextProps.feedback.participants[3] === 1,
-        participants_4: nextProps.feedback.participants && nextProps.feedback.participants[4] === 1,
-        emphasis: nextProps.feedback.emphasis ? nextProps.feedback.emphasis.toString() : '0',
         severity_0: nextProps.feedback.severity && nextProps.feedback.severity[0] === 1,
         severity_1: nextProps.feedback.severity && nextProps.feedback.severity[1] === 1,
         severity_2: nextProps.feedback.severity && nextProps.feedback.severity[2] === 1,
@@ -134,10 +122,6 @@ export default class TeacherFeedbackForm extends React.Component {
       this.recordInput.focus();
       return;
     }
-    const participants = [];
-    for (let i = 0; i < 5; i += 1) {
-      participants.push(this.state[`participants_${i}`] ? 1 : 0);
-    }
     const severity = [];
     for (let i = 0; i < 5; i += 1) {
       severity.push(this.state[`severity_${i}`] ? 1 : 0);
@@ -154,8 +138,6 @@ export default class TeacherFeedbackForm extends React.Component {
       reservation_id: this.state.reservation.id,
       source_id: this.state.reservation.source_id,
       category: this.state.secondCategory,
-      participants,
-      emphasis: Number(this.state.emphasis),
       severity,
       medical_diagnosis: medicalDiagnosis,
       crisis,
@@ -192,77 +174,7 @@ export default class TeacherFeedbackForm extends React.Component {
     );
   }
 
-  renderParticipants() {
-    return (
-      <div>
-        <FormCell checkbox>
-          <CellHeader>
-            <Checkbox
-              value="participants_0"
-              checked={this.state.participants_0}
-              onChange={this.handleChange}
-            />
-          </CellHeader>
-          <CellBody>
-            学生
-          </CellBody>
-        </FormCell>
-        <FormCell checkbox>
-          <CellHeader>
-            <Checkbox
-              value="participants_1"
-              checked={this.state.participants_1}
-              onChange={this.handleChange}
-            />
-          </CellHeader>
-          <CellBody>
-            家长
-          </CellBody>
-        </FormCell>
-        <FormCell checkbox>
-          <CellHeader>
-            <Checkbox
-              value="participants_2"
-              checked={this.state.participants_2}
-              onChange={this.handleChange}
-            />
-          </CellHeader>
-          <CellBody>
-            教师
-          </CellBody>
-        </FormCell>
-        <FormCell checkbox>
-          <CellHeader>
-            <Checkbox
-              value="participants_3"
-              checked={this.state.participants_3}
-              onChange={this.handleChange}
-            />
-          </CellHeader>
-          <CellBody>
-            辅导员
-          </CellBody>
-        </FormCell>
-        <FormCell checkbox>
-          <CellHeader>
-            <Checkbox
-              value="participants_4"
-              checked={this.state.participants_4}
-              onChange={this.handleChange}
-            />
-          </CellHeader>
-          <CellBody>
-            其他
-          </CellBody>
-        </FormCell>
-      </div>
-    );
-  }
-
   renderEmphasis() {
-    if (this.state.emphasis === '0') {
-      return null;
-    }
     return (
       <div>
         <CellsTitle>严重程度</CellsTitle>
@@ -560,22 +472,6 @@ export default class TeacherFeedbackForm extends React.Component {
                 <Icon value="warn" />
               </CellFooter>
             }
-          </FormCell>
-          <CellsTitle>出席人员</CellsTitle>
-          {this.renderParticipants()}
-          <FormCell select selectPos="after">
-            <CellHeader>
-              <Label>重点明细</Label>
-            </CellHeader>
-            <CellBody>
-              <Select
-                value={this.state.emphasis}
-                onChange={(e) => { this.handleChange(e, 'emphasis'); }}
-              >
-                <option value="0">否</option>
-                <option value="1">是</option>
-              </Select>
-            </CellBody>
           </FormCell>
           {this.renderEmphasis()}
           <CellsTitle>

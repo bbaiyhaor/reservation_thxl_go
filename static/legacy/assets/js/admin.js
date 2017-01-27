@@ -557,12 +557,7 @@ function showFeedback(index, feedback) {
       评估分类：<br>\
       <select id="category_first_' + index + '" onchange="showSecondCategory(' + index + ')"><option value="">请选择</option></select><br>\
       <select id="category_second_' + index + '"></select><br>\
-      出席人员：<br>\
-      <input id="participant_student_' + index + '" type="checkbox">学生</input><input id="participant_parents_' + index + '" type="checkbox">家长</input>\
-      <input id="participant_teacher_' + index + '" type="checkbox">教师</input><input id="participant_instructor_' + index + '" type="checkbox">辅导员</input>\
-      <input id="participant_other_' + index + '" type="checkbox">其他</input><br>\
-      重点明细：<select id="emphasis_'+ index + '"><option value="0">否</option><option value="1">是</option></select><br>\
-      <div id="div_emphasis_' + index + '" style="display: none">\
+      <div id="div_emphasis_' + index + '">\
         <b>严重程度：</b>\
         <input id="severity_' + index + '_0" type="checkbox">缓考</input>\
         <input id="severity_' + index + '_1" type="checkbox">休学复学</input>\
@@ -604,13 +599,6 @@ function showFeedback(index, feedback) {
       $('#category_first_' + index).change();
       $('#category_second_' + index).val(feedback.category);
     }
-    if (feedback.participants.length > 0) {
-      $('#participant_student_' + index).first().attr('checked', feedback.participants[0] > 0);
-      $('#participant_parents_' + index).first().attr('checked', feedback.participants[1] > 0);
-      $('#participant_teacher_' + index).first().attr('checked', feedback.participants[2] > 0);
-      $('#participant_instructor_' + index).first().attr('checked', feedback.participants[3] > 0);
-      $('#participant_other_' + index).first().attr('checked', feedback.participants[4] > 0);
-    }
     var i = 1;
     for (i = 0; i < 5; i++) {
       $('#severity_' + index + '_' + i).first().attr('checked', feedback.severity[i] > 0);
@@ -622,15 +610,6 @@ function showFeedback(index, feedback) {
       $('#crisis_' + index + "_" + i).first().attr('checked', feedback.crisis[i] > 0);
     }
     $('#record_' + index).val(feedback.record);
-    $('#emphasis_' + index).change(function() {
-      if ($('#emphasis_' + index).val() === "0") {
-        $('#div_emphasis_' + index).hide();
-      } else {
-        $('#div_emphasis_' + index).show();
-      }
-    });
-    $('#emphasis_' + index).val(feedback.emphasis);
-    $('#emphasis_' + index).change();
     $('#crisis_level_' + index).val(feedback.crisis_level);
     optimize('#feedback_table_' + index);
   });
@@ -667,31 +646,21 @@ function showSecondCategory(index) {
 }
 
 function submitFeedback(index) {
-  var participants = [];
-  participants.push($('#participant_student_' + index).first().is(':checked') ? 1 : 0);
-  participants.push($('#participant_parents_' + index).first().is(':checked') ? 1 : 0);
-  participants.push($('#participant_teacher_' + index).first().is(':checked') ? 1 : 0);
-  participants.push($('#participant_instructor_' + index).first().is(':checked') ? 1 : 0);
-  participants.push($('#participant_other_' + index).first().is(':checked') ? 1 : 0);
-  var isEmphasis = $('#emphasis_' + index).val() !== "0"
-  var i = 1;
   var severity = [];
-  for (i = 0; i < 5; i++) {
-    severity.push(isEmphasis ? ($('#severity_' + index + '_' + i).first().is(':checked') ? 1 : 0) : 0);
+  for (var i = 0; i < 5; i++) {
+    severity.push($('#severity_' + index + '_' + i).first().is(':checked') ? 1 : 0);
   }
   var medicalDiagnosis = [];
-  for (i = 0; i < 11; i++) {
-    medicalDiagnosis.push(isEmphasis ? ($('#medical_diagnosis_' + index + '_' + i).first().is(':checked') ? 1 : 0) : 0);
+  for (var i = 0; i < 11; i++) {
+    medicalDiagnosis.push($('#medical_diagnosis_' + index + '_' + i).first().is(':checked') ? 1 : 0);
   }
   var crisis = [];
-  for (i = 0; i < 4; i++) {
-    crisis.push(isEmphasis ? ($('#crisis_' + index + "_" + i).first().is(':checked') ? 1 : 0) : 0);
+  for (var i = 0; i < 4; i++) {
+    crisis.push($('#crisis_' + index + "_" + i).first().is(':checked') ? 1 : 0);
   }
   var payload = {
     reservation_id: reservations[index].id,
     category: $('#category_second_' + index).val(),
-    participants: participants,
-    emphasis: $('#emphasis_' + index).val(),
     severity: severity,
     medical_diagnosis: medicalDiagnosis,
     crisis: crisis,
@@ -915,9 +884,7 @@ function showStudent(student, reservations) {
         <span>' + reservations[i].start_time + ' 至 ' + reservations[i].end_time + '  ' + reservations[i].teacher_fullname + '</span>\
         <p class="children">学生反馈：' + reservations[i].student_feedback.scores + '</p>\
         <p class="children">评估分类：' + reservations[i].teacher_feedback.category + '</p>\
-        <p class="children">出席人员：' + reservations[i].teacher_feedback.participants + '</p>\
-        <p class="children">重点明细：' + (reservations[i].teacher_feedback.emphasis === '0' ? '否' : '是') + '</p>'
-        + (reservations[i].teacher_feedback.severity === '' ? '' : '<p class="children">严重程度：' + reservations[i].teacher_feedback.severity + '</p>')
+        ' + (reservations[i].teacher_feedback.severity === '' ? '' : '<p class="children">严重程度：' + reservations[i].teacher_feedback.severity + '</p>')
         + (reservations[i].teacher_feedback.medical_diagnosis === '' ? '' : '<p class="children">疑似或明确的医疗诊断：' + reservations[i].teacher_feedback.medical_diagnosis + '</p>')
         + (reservations[i].teacher_feedback.crisis === '' ? '' : '<p class="children">危急情况：' + reservations[i].teacher_feedback.crisis + '</p>')
         + '<p class="children">咨询记录：' + reservations[i].teacher_feedback.record + '</p>\

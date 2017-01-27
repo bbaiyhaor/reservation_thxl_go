@@ -3,7 +3,6 @@ package model
 import (
 	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
 	"gopkg.in/mgo.v2/bson"
-	"gopkg.in/mgo.v2/txn"
 	"strconv"
 	"time"
 )
@@ -62,9 +61,9 @@ func (sf StudentFeedback) ToStringJson() map[string]interface{} {
 
 type TeacherFeedback struct {
 	Category         string `bson:"category"`
-	Participants     []int  `bson:"participants"`
+	Participants     []int  `bson:"participants"`      // deprecated
 	Problem          string `bson:"problem"`           // deprecated
-	Emphasis         int    `bson:"emphasis"`          // 重点选项
+	Emphasis         int    `bson:"emphasis"`          // deprecated, 重点选项
 	Severity         []int  `bson:"severity"`          // 严重程度
 	MedicalDiagnosis []int  `bson:"medical_diagnosis"` // 疑似或明确的医疗诊断
 	Crisis           []int  `bson:"crisis"`            // 危急情况
@@ -72,7 +71,6 @@ type TeacherFeedback struct {
 }
 
 var (
-	PARTICIPANTS      = [...]string{"学生", "家长", "教师", "辅导员", "其他"}
 	SEVERITY          = [...]string{"缓考", "休学复学", "家属陪读", "家属不知情", "任何其他需要知会院系关注的原因"}
 	MEDICAL_DIAGNOSIS = [...]string{"服药", "精神分裂", "双相情感障碍", "焦虑症（状态）", "抑郁症（状态）", "强迫症", "进食障碍", "失眠", "其他精神症状", "躯体疾病", "不遵医嘱"}
 	CRISIS            = [...]string{"自伤", "伤害他人", "自杀念头", "自杀未遂"}
@@ -86,12 +84,6 @@ func (tf TeacherFeedback) IsEmpty() bool {
 func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	var feedback = make(map[string]interface{})
 	feedback["category"] = tf.Category
-	if len(tf.Participants) != len(PARTICIPANTS) {
-		feedback["participants"] = make([]int, len(PARTICIPANTS))
-	} else {
-		feedback["participants"] = tf.Participants
-	}
-	feedback["emphasis"] = tf.Emphasis
 	if len(tf.Severity) != len(SEVERITY) {
 		feedback["severity"] = make([]int, len(SEVERITY))
 	} else {
@@ -114,16 +106,6 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 func (tf TeacherFeedback) ToStringJson() map[string]interface{} {
 	var json = make(map[string]interface{})
 	json["category"] = FeedbackAllCategory[tf.Category]
-	var participants string
-	if len(tf.Participants) == len(PARTICIPANTS) {
-		for i := 0; i < len(tf.Participants); i++ {
-			if tf.Participants[i] > 0 {
-				participants += PARTICIPANTS[i] + " "
-			}
-		}
-	}
-	json["participants"] = participants
-	json["emphasis"] = strconv.Itoa(tf.Emphasis)
 	var severity string
 	if len(tf.Severity) == len(SEVERITY) {
 		for i := 0; i < len(tf.Severity); i++ {
@@ -163,31 +145,6 @@ func (m *MongoClient) InsertReservation(reservation *Reservation) error {
 	return dbReservation.Insert(reservation)
 }
 
-func (m *MongoClient) InsertReservationAndUpdateTimedReservationTransactional(reservation *Reservation, timedReservation *TimedReservation) error {
-	now := time.Now()
-	reservation.Id = bson.NewObjectId()
-	reservation.CreatedAt = now
-	reservation.UpdatedAt = now
-	timedReservation.UpdatedAt = now
-	runner := txn.NewRunner(dbTxn)
-	ops := []txn.Op{{
-		C:      "reservation",
-		Assert: txn.DocMissing,
-		Insert: reservation,
-	}, {
-		C:      "timetable",
-		Id:     timedReservation.Id,
-		Assert: txn.DocExists,
-		Update: timedReservation,
-	}}
-	txnId := bson.NewObjectId()
-	if err := runner.Run(ops, txnId, nil); err != nil {
-		runner.Resume(txnId)
-		return err
-	}
-	return nil
-}
-
 func (m *MongoClient) InsertReservationAndUpdateTimedReservation(reservation *Reservation, timedReservation *TimedReservation) error {
 	err := m.InsertReservation(reservation)
 	if err != nil {
@@ -201,32 +158,8 @@ func (m *MongoClient) UpdateReservation(reservation *Reservation) error {
 	return dbReservation.UpdateId(reservation.Id, reservation)
 }
 
-func (m *MongoClient) UpdateReservationWithoutTime(reservation *Reservation) error {
+func (m *MongoClient) UpdateReservationWithoutUpdatedTime(reservation *Reservation) error {
 	return dbReservation.UpdateId(reservation.Id, reservation)
-}
-
-func (m *MongoClient) UpdateReservationAndTimedReservationTransactional(reservation *Reservation, timedReservation *TimedReservation) error {
-	now := time.Now()
-	reservation.UpdatedAt = now
-	timedReservation.UpdatedAt = now
-	runner := txn.NewRunner(dbTxn)
-	ops := []txn.Op{{
-		C:      "reservation",
-		Id:     reservation.Id,
-		Assert: txn.DocExists,
-		Update: reservation,
-	}, {
-		C:      "timetable",
-		Id:     timedReservation.Id,
-		Assert: txn.DocExists,
-		Update: timedReservation,
-	}}
-	txnId := bson.NewObjectId()
-	if err := runner.Run(ops, txnId, nil); err != nil {
-		runner.Resume(txnId)
-		return err
-	}
-	return nil
 }
 
 func (m *MongoClient) UpdateReservationAndTimedReservation(reservation *Reservation, timedReservation *TimedReservation) error {
@@ -235,30 +168,6 @@ func (m *MongoClient) UpdateReservationAndTimedReservation(reservation *Reservat
 		return err
 	}
 	return m.UpdateTimedReservation(timedReservation)
-}
-
-func (m *MongoClient) UpdateReservationAndStudentTransactional(reservation *Reservation, student *Student) error {
-	now := time.Now()
-	reservation.UpdatedAt = now
-	student.UpdatedAt = now
-	runner := txn.NewRunner(dbTxn)
-	ops := []txn.Op{{
-		C:      "reservation",
-		Id:     reservation.Id,
-		Assert: txn.DocExists,
-		Update: reservation,
-	}, {
-		C:      "student",
-		Id:     student.Id,
-		Assert: txn.DocExists,
-		Update: student,
-	}}
-	txnId := bson.NewObjectId()
-	if err := runner.Run(ops, txnId, nil); err != nil {
-		runner.Resume(txnId)
-		return err
-	}
-	return nil
 }
 
 func (m *MongoClient) UpdateReservationAndStudent(reservation *Reservation, student *Student) error {

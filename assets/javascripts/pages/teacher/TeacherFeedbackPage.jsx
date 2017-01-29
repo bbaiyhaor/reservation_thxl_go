@@ -26,8 +26,6 @@ export default class TeacherFeedbackPage extends React.Component {
       reservation: null,
       feedback: null,
       crisisLevel: 0,
-      firstCategories: null,
-      secondCategories: null,
     };
     this.handleSubmit = this.handleSubmit.bind(this);
   }
@@ -51,17 +49,6 @@ export default class TeacherFeedbackPage extends React.Component {
       return;
     }
     this.loading.show('正在加载中');
-    Application.getFeedbackCategories((data) => {
-      this.setState({
-        firstCategories: data.first_category,
-        secondCategories: data.second_category,
-      });
-    }, (error) => {
-      this.loading.hide();
-      this.alert.show('', error, '好的', () => {
-        hashHistory.push('reservation');
-      });
-    });
     setTimeout(() => {
       Application.getFeedbackByTeacher(reservation.id, reservation.source_id, (data) => {
         this.loading.hide();
@@ -101,8 +88,6 @@ export default class TeacherFeedbackPage extends React.Component {
           <TeacherFeedbackForm
             reservation={this.state.reservation}
             feedback={this.state.feedback}
-            firstCategories={this.state.firstCategories}
-            secondCategories={this.state.secondCategories}
             handleSubmit={this.handleSubmit}
             handleCancel={TeacherFeedbackPage.handleCancel}
           />

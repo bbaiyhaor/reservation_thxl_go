@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/service"
 	"github.com/mijia/sweb/form"
-	"golang.org/x/net/context"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,15 +14,12 @@ type ReservationController struct {
 }
 
 const (
-	kCategoryApiBaseUrl = "/api/category"
 	kStudentApiBaseUrl  = "/api/student"
 	kTeacherApiBaseUrl  = "/api/teacher"
 	kAdminApiBaseUrl    = "/api/admin"
 )
 
 func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
-	m.GetJson(kCategoryApiBaseUrl+"/feedback", "GetFeedbackCategories", rc.getFeedbackCategories)
-
 	m.GetJson(kStudentApiBaseUrl+"/reservation/view", "ViewReservationsByStudent", RoleCookieInjection(rc.viewReservationsByStudent))
 	m.PostJson(kStudentApiBaseUrl+"/reservation/make", "MakeReservationByStudent", RoleCookieInjection(rc.makeReservationByStudent))
 	m.PostJson(kStudentApiBaseUrl+"/reservation/feedback/get", "GetFeedbackByStudent", RoleCookieInjection(rc.getFeedbackByStudent))
@@ -68,16 +64,6 @@ func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	m.PostJson(kAdminApiBaseUrl+"/teacher/search", "SearchTeacherByAdmin", RoleCookieInjection(rc.searchTeacherByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/teacher/workload", "GetTeacherWorkloadByAdmin", RoleCookieInjection(rc.getTeacherWorkloadByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/student/unbind/all", "ClearAllStudentsBindedTeacherByAdmin", RoleCookieInjection(rc.clearAllStudentsBindedTeacherByAdmin))
-}
-
-//==================== category ====================
-func (rc *ReservationController) getFeedbackCategories(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
-	var result = make(map[string]interface{})
-
-	result["first_category"] = model.FeedbackFirstCategory
-	result["second_category"] = model.FeedbackSecondCategory
-
-	return http.StatusOK, wrapJsonOk(result)
 }
 
 //==================== student ====================
@@ -225,6 +211,8 @@ func (rc *ReservationController) getFeedbackByTeacher(w http.ResponseWriter, r *
 	}
 	feedback := reservation.TeacherFeedback.ToJson()
 	feedback["crisis_level"] = student.CrisisLevel
+	feedback["first_category"] = model.FeedbackFirstCategory
+	feedback["second_category"] = model.FeedbackSecondCategory
 	result["feedback"] = feedback
 
 	return http.StatusOK, wrapJsonOk(result)
@@ -494,6 +482,8 @@ func (rc *ReservationController) getFeedbackByAdmin(w http.ResponseWriter, r *ht
 	}
 	feedback := reservation.TeacherFeedback.ToJson()
 	feedback["crisis_level"] = student.CrisisLevel
+	feedback["first_category"] = model.FeedbackFirstCategory
+	feedback["second_category"] = model.FeedbackSecondCategory
 	result["feedback"] = feedback
 
 	return http.StatusOK, wrapJsonOk(result)

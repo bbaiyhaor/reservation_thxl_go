@@ -54,8 +54,8 @@ export default class TeacherFeedbackForm extends React.Component {
     this.setState({
       reservation: nextProps.reservation,
       feedback: nextProps.feedback,
-      firstCategories: nextProps.firstCategories,
-      secondCategories: nextProps.secondCategories,
+      firstCategories: nextProps.feedback.first_category,
+      secondCategories: nextProps.feedback.second_category,
     });
     if (nextProps.feedback) {
       this.setState({
@@ -159,7 +159,6 @@ export default class TeacherFeedbackForm extends React.Component {
         value={this.state.secondCategory}
         onChange={(e) => { this.handleChange(e, 'secondCategory'); }}
       >
-        <option value="">请选择</option>
         {this.state.secondCategories && this.state.secondCategories[this.state.firstCategory] &&
           Object.keys(this.state.secondCategories[this.state.firstCategory]).map(name =>
             <option
@@ -443,7 +442,6 @@ export default class TeacherFeedbackForm extends React.Component {
                 value={this.state.firstCategory}
                 onChange={(e) => { this.handleChange(e, 'firstCategory'); }}
               >
-                <option value="">请选择</option>
                 {this.state.firstCategories && Object.keys(this.state.firstCategories).map(name =>
                   <option
                     key={`first_category_option_${name}`}

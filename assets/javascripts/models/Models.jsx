@@ -20,9 +20,6 @@ const apiTeacherPasswordResetVerify = `${apiServer}/user/teacher/password/reset/
 // const apiAdminLogin = `${apiServer}/user/admin/login`;
 const apiLogout = `${apiServer}/user/logout`;
 
-// Category API
-const apiGetFeedbackCategories = `${apiServer}/category/feedback`;
-
 // Student API
 const apiViewReservationsByStudent = `${apiServer}/student/reservation/view`;
 const apiMakeReservationByStudent = `${apiServer}/student/reservation/make`;
@@ -209,17 +206,6 @@ export const Application = {
 
   clearApplication() {
     this.reservations = null;
-  },
-
-  getFeedbackCategories(succCallback, errCallback) {
-    const succ = (data) => {
-      if (data.status === 'OK') {
-        succCallback && succCallback(data.payload);
-      } else {
-        errCallback && errCallback(data.err_msg, data.payload);
-      }
-    };
-    fetch(apiGetFeedbackCategories, 'GET', {}, succ, errCallback);
   },
 
   viewReservationsByStudent(succCallback, errCallback) {

@@ -5,7 +5,6 @@ var firstCategory;
 var secondCategory;
 
 function viewReservations() {
-  getFeedbackCategories();
   if ($('#query_date').val() !== '') {
     queryReservations();
     return;
@@ -70,15 +69,6 @@ function queryStudent() {
       showStudent(data.payload.student, data.payload.reservations);
     } else {
       alert(data.err_msg);
-    }
-  });
-}
-
-function getFeedbackCategories() {
-  $.getJSON('/api/category/feedback', function(json, textStatus) {
-    if (json.status === 'OK') {
-      firstCategory = json.payload.first_category;
-      secondCategory = json.payload.second_category;
     }
   });
 }
@@ -543,6 +533,8 @@ function getFeedback(index) {
     source_id: reservations[index].source_id,
   }, function(data, textStatus, xhr) {
     if (data.status === 'OK') {
+      firstCategory = data.payload.feedback.first_category;
+      secondCategory = data.payload.feedback.second_category;
       showFeedback(index, data.payload.feedback);
     } else {
       alert(data.err_msg);
@@ -555,7 +547,7 @@ function showFeedback(index, feedback) {
     <div class="pop_window" id="feedback_table_' + index + '" style="text-align: left; width: 50%">\
       咨询师反馈表<br>\
       评估分类：<br>\
-      <select id="category_first_' + index + '" onchange="showSecondCategory(' + index + ')"><option value="">请选择</option></select><br>\
+      <select id="category_first_' + index + '" onchange="showSecondCategory(' + index + ')"></select><br>\
       <select id="category_second_' + index + '"></select><br>\
       <div id="div_emphasis_' + index + '">\
         <b>严重程度：</b>\
@@ -599,14 +591,13 @@ function showFeedback(index, feedback) {
       $('#category_first_' + index).change();
       $('#category_second_' + index).val(feedback.category);
     }
-    var i = 1;
-    for (i = 0; i < 5; i++) {
+    for (var i = 0; i < 5; i++) {
       $('#severity_' + index + '_' + i).first().attr('checked', feedback.severity[i] > 0);
     }
-    for (i = 0; i < 11; i++) {
+    for (var i = 0; i < 11; i++) {
       $('#medical_diagnosis_' + index + '_' + i).first().attr('checked', feedback.medical_diagnosis[i] > 0);
     }
-    for (i = 0; i < 4; i++) {
+    for (var i = 0; i < 4; i++) {
       $('#crisis_' + index + "_" + i).first().attr('checked', feedback.crisis[i] > 0);
     }
     $('#record_' + index).val(feedback.record);
@@ -628,10 +619,7 @@ function showFirstCategory(index) {
 
 function showSecondCategory(index) {
   var first = $('#category_first_' + index).val();
-  $('#category_second_' + index).find("option").remove().end().append('<option value="">请选择</option>').val('');
-  if ($('#category_first_' + index).selectedIndex === 0) {
-    return;
-  }
+  $('#category_second_' + index).find("option").remove().end();
   if (secondCategory.hasOwnProperty(first)) {
     for (var name in secondCategory[first]) {
       if (secondCategory[first].hasOwnProperty(name)) {
@@ -643,6 +631,7 @@ function showSecondCategory(index) {
       }
     }
   }
+	$('#category_second_' + index).val('');
 }
 
 function submitFeedback(index) {

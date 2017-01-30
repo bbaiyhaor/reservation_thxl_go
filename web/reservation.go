@@ -14,9 +14,9 @@ type ReservationController struct {
 }
 
 const (
-	kStudentApiBaseUrl  = "/api/student"
-	kTeacherApiBaseUrl  = "/api/teacher"
-	kAdminApiBaseUrl    = "/api/admin"
+	kStudentApiBaseUrl = "/api/student"
+	kTeacherApiBaseUrl = "/api/teacher"
+	kAdminApiBaseUrl   = "/api/admin"
 )
 
 func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
@@ -211,8 +211,11 @@ func (rc *ReservationController) GetFeedbackByTeacher(w http.ResponseWriter, r *
 	}
 	feedback := reservation.TeacherFeedback.ToJson()
 	feedback["crisis_level"] = student.CrisisLevel
-	feedback["first_category"] = model.FeedbackFirstCategory
-	feedback["second_category"] = model.FeedbackSecondCategory
+	feedback["var_first_category"] = model.FeedbackFirstCategory
+	feedback["var_second_category"] = model.FeedbackSecondCategory
+	feedback["var_severity"] = model.FeedbackSeverity
+	feedback["var_medical_diagnosis"] = model.FeedbackMedicalDiagnosis
+	feedback["var_crisis"] = model.FeedbackCrisis
 	result["feedback"] = feedback
 
 	return http.StatusOK, wrapJsonOk(result)
@@ -482,8 +485,11 @@ func (rc *ReservationController) GetFeedbackByAdmin(w http.ResponseWriter, r *ht
 	}
 	feedback := reservation.TeacherFeedback.ToJson()
 	feedback["crisis_level"] = student.CrisisLevel
-	feedback["first_category"] = model.FeedbackFirstCategory
-	feedback["second_category"] = model.FeedbackSecondCategory
+	feedback["var_first_category"] = model.FeedbackFirstCategory
+	feedback["var_second_category"] = model.FeedbackSecondCategory
+	feedback["var_severity"] = model.FeedbackSeverity
+	feedback["var_medical_diagnosis"] = model.FeedbackMedicalDiagnosis
+	feedback["var_crisis"] = model.FeedbackCrisis
 	result["feedback"] = feedback
 
 	return http.StatusOK, wrapJsonOk(result)

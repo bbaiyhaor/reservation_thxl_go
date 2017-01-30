@@ -28,6 +28,7 @@ export default class TeacherFeedbackPage extends React.Component {
       crisisLevel: 0,
     };
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.showAlert = this.showAlert.bind(this);
   }
 
   componentDidMount() {
@@ -80,6 +81,10 @@ export default class TeacherFeedbackPage extends React.Component {
     }, 500);
   }
 
+  showAlert(title, msg, label, click) {
+    this.alert.show(title, msg, label, click);
+  }
+
   render() {
     return (
       <div>
@@ -90,6 +95,7 @@ export default class TeacherFeedbackPage extends React.Component {
             feedback={this.state.feedback}
             handleSubmit={this.handleSubmit}
             handleCancel={TeacherFeedbackPage.handleCancel}
+            showAlert={this.showAlert}
           />
           <LoadingHud ref={(loading) => { this.loading = loading; }} />
           <AlertDialog ref={(alert) => { this.alert = alert; }} />

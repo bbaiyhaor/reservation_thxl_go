@@ -53,11 +53,11 @@ func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string
 		return nil, re.NewRErrorCodeContext("reservation id is empty", nil, re.ERROR_MISSING_PARAM, "reservation_id")
 	} else if category == "" {
 		return nil, re.NewRErrorCodeContext("category is empty", nil, re.ERROR_MISSING_PARAM, "category")
-	} else if len(severity) != len(model.SEVERITY) {
+	} else if len(severity) != len(model.FeedbackSeverity) {
 		return nil, re.NewRErrorCodeContext("severity is not valid", nil, re.ERROR_INVALID_PARAM, "severity")
-	} else if len(medicalDiagnosis) != len(model.MEDICAL_DIAGNOSIS) {
+	} else if len(medicalDiagnosis) != len(model.FeedbackMedicalDiagnosis) {
 		return nil, re.NewRErrorCodeContext("medical_diagnosis is not valid", nil, re.ERROR_INVALID_PARAM, "medical_diagnosis")
-	} else if len(crisis) != len(model.CRISIS) {
+	} else if len(crisis) != len(model.FeedbackCrisis) {
 		return nil, re.NewRErrorCodeContext("crisis is not valid", nil, re.ERROR_INVALID_PARAM, "crisis")
 	} else if record == "" {
 		return nil, re.NewRErrorCodeContext("record is empty", nil, re.ERROR_MISSING_PARAM, "record")

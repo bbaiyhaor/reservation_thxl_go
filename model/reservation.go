@@ -71,34 +71,21 @@ type TeacherFeedback struct {
 }
 
 var (
-	SEVERITY          = [...]string{"缓考", "休学复学", "家属陪读", "家属不知情", "任何其他需要知会院系关注的原因"}
-	MEDICAL_DIAGNOSIS = [...]string{"服药", "精神分裂", "双相情感障碍", "焦虑症（状态）", "抑郁症（状态）", "强迫症", "进食障碍", "失眠", "其他精神症状", "躯体疾病", "不遵医嘱"}
-	CRISIS            = [...]string{"自伤", "伤害他人", "自杀念头", "自杀未遂"}
+	FeedbackSeverity         = [...]string{"缓考", "休学复学", "家属陪读", "家属不知情", "任何其他需要知会院系关注的原因", "试读期"}
+	FeedbackMedicalDiagnosis = [...]string{"服药", "精神分裂", "双相情感障碍", "焦虑症（状态）", "抑郁症（状态）", "强迫症", "进食障碍", "失眠", "其他精神症状", "躯体疾病", "不遵医嘱"}
+	FeedbackCrisis           = [...]string{"自伤", "伤害他人", "自杀念头", "自杀未遂"}
 )
 
 func (tf TeacherFeedback) IsEmpty() bool {
-	return tf.Category == "" || len(tf.Participants) == 0 || len(tf.Severity) == 0 ||
-		len(tf.MedicalDiagnosis) == 0 || len(tf.Crisis) == 0 || tf.Record == ""
+	return tf.Category == "" || len(tf.Severity) == 0 || len(tf.MedicalDiagnosis) == 0 || len(tf.Crisis) == 0 || tf.Record == ""
 }
 
 func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	var feedback = make(map[string]interface{})
 	feedback["category"] = tf.Category
-	if len(tf.Severity) != len(SEVERITY) {
-		feedback["severity"] = make([]int, len(SEVERITY))
-	} else {
-		feedback["severity"] = tf.Severity
-	}
-	if len(tf.MedicalDiagnosis) != len(MEDICAL_DIAGNOSIS) {
-		feedback["medical_diagnosis"] = make([]int, len(MEDICAL_DIAGNOSIS))
-	} else {
-		feedback["medical_diagnosis"] = tf.MedicalDiagnosis
-	}
-	if len(tf.Crisis) != len(CRISIS) {
-		feedback["crisis"] = make([]int, len(CRISIS))
-	} else {
-		feedback["crisis"] = tf.Crisis
-	}
+	feedback["severity"] = tf.Severity
+	feedback["medical_diagnosis"] = tf.MedicalDiagnosis
+	feedback["crisis"] = tf.Crisis
 	feedback["record"] = tf.Record
 	return feedback
 }
@@ -107,29 +94,23 @@ func (tf TeacherFeedback) ToStringJson() map[string]interface{} {
 	var json = make(map[string]interface{})
 	json["category"] = FeedbackAllCategory[tf.Category]
 	var severity string
-	if len(tf.Severity) == len(SEVERITY) {
-		for i := 0; i < len(tf.Severity); i++ {
-			if tf.Severity[i] > 0 {
-				severity += SEVERITY[i] + " "
-			}
+	for i := 0; i < len(tf.Severity); i++ {
+		if tf.Severity[i] > 0 {
+			severity += FeedbackSeverity[i] + " "
 		}
 	}
 	json["severity"] = severity
 	var medicalDiagnosis string
-	if len(tf.MedicalDiagnosis) == len(MEDICAL_DIAGNOSIS) {
-		for i := 0; i < len(tf.MedicalDiagnosis); i++ {
-			if tf.MedicalDiagnosis[i] > 0 {
-				medicalDiagnosis += MEDICAL_DIAGNOSIS[i] + " "
-			}
+	for i := 0; i < len(tf.MedicalDiagnosis); i++ {
+		if tf.MedicalDiagnosis[i] > 0 {
+			medicalDiagnosis += FeedbackMedicalDiagnosis[i] + " "
 		}
 	}
 	json["medical_diagnosis"] = medicalDiagnosis
 	var crisis string
-	if len(tf.Crisis) == len(CRISIS) {
-		for i := 0; i < len(tf.Crisis); i++ {
-			if tf.Crisis[i] > 0 {
-				crisis += CRISIS[i] + " "
-			}
+	for i := 0; i < len(tf.Crisis); i++ {
+		if tf.Crisis[i] > 0 {
+			crisis += FeedbackCrisis[i] + " "
 		}
 	}
 	json["crisis"] = crisis

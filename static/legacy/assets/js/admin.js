@@ -533,8 +533,8 @@ function getFeedback(index) {
     source_id: reservations[index].source_id,
   }, function(data, textStatus, xhr) {
     if (data.status === 'OK') {
-      firstCategory = data.payload.feedback.first_category;
-      secondCategory = data.payload.feedback.second_category;
+      firstCategory = data.payload.feedback.var_first_category;
+      secondCategory = data.payload.feedback.var_second_category;
       showFeedback(index, data.payload.feedback);
     } else {
       alert(data.err_msg);
@@ -547,40 +547,22 @@ function showFeedback(index, feedback) {
     <div class="pop_window" id="feedback_table_' + index + '" style="text-align: left; width: 50%">\
       咨询师反馈表<br>\
       评估分类：<br>\
-      <select id="category_first_' + index + '" onchange="showSecondCategory(' + index + ')"></select><br>\
-      <select id="category_second_' + index + '"></select><br>\
+      <select id="category_first_' + index + '" onchange="selectFirstCategory(' + index + ')"></select><br>\
+      <select id="category_second_' + index + '" onchange="selectSecondCategory(' + index + ')"></select>\
+      <span id="category_show_tips_' + index + '" style="color: red;"></span>\
+      <br>\
       <div id="div_emphasis_' + index + '">\
         <b>严重程度：</b>\
-        <input id="severity_' + index + '_0" type="checkbox">缓考</input>\
-        <input id="severity_' + index + '_1" type="checkbox">休学复学</input>\
-        <input id="severity_' + index + '_2" type="checkbox">家属陪读</input>\
-        <input id="severity_' + index + '_3" type="checkbox">家属不知情</input>\
-        <input id="severity_' + index + '_4" type="checkbox">任何其他需要知会院系关注的原因</input>\
-        <br>\
+        <div id="div_feedback_severity_' + index + '"></div>\
         <b>疑似或明确的医疗诊断：</b>\
-        <input id="medical_diagnosis_' + index + '_0" type="checkbox">服药</input>\
-        <input id="medical_diagnosis_' + index + '_1" type="checkbox">精神分裂</input>\
-        <input id="medical_diagnosis_' + index + '_2" type="checkbox">双相情感障碍</input>\
-        <input id="medical_diagnosis_' + index + '_3" type="checkbox">焦虑症（状态）</input>\
-        <input id="medical_diagnosis_' + index + '_4" type="checkbox">抑郁症（状态）</input>\
-        <br>　　　　　　　　　\
-        <input id="medical_diagnosis_' + index + '_5" type="checkbox">强迫症</input>\
-        <input id="medical_diagnosis_' + index + '_6" type="checkbox">进食障碍</input>\
-        <input id="medical_diagnosis_' + index + '_7" type="checkbox">失眠</input>\
-        <input id="medical_diagnosis_' + index + '_8" type="checkbox">其他精神症状</input>\
-        <input id="medical_diagnosis_' + index + '_9" type="checkbox">躯体疾病</input>\
-        <input id="medical_diagnosis_' + index + '_10" type="checkbox">不遵医嘱</input>\
-        <br>\
+        <div id="div_feedback_medical_diagnosis_' + index + '"></div>\
         <b>危急情况：</b>\
-        <input id="crisis_' + index + '_0" type="checkbox">自伤</input>\
-        <input id="crisis_' + index + '_1" type="checkbox">伤害他人</input>\
-        <input id="crisis_' + index + '_2" type="checkbox">自杀念头</input>\
-        <input id="crisis_' + index + '_3" type="checkbox">自杀未遂</input>\
+        <div id="div_feedback_crisis_' + index + '"></div>\
       </div>\
       咨询记录：<br>\
       <textarea id="record_' + index + '" style="width: 100%; height:80px"></textarea><br>\
       是否危机个案：<select id="crisis_level_'+ index + '"><option value="0">否</option><option value="3">三星</option><option value="4">四星</option><option value="5">五星</option></select><br>\
-      <button type="button" onclick="submitFeedback(' + index + ');">提交</button>\
+      <button type="button" onclick="submitFeedback(' + index + ',' + feedback.var_severity.length + ',' + feedback.var_medical_diagnosis.length + ',' + feedback.var_crisis.length + ');">提交</button>\
       <button type="button" onclick="$(\'#feedback_table_' + index + '\').remove();">取消</button>\
     </div>\
   ');
@@ -591,14 +573,38 @@ function showFeedback(index, feedback) {
       $('#category_first_' + index).change();
       $('#category_second_' + index).val(feedback.category);
     }
-    for (var i = 0; i < 5; i++) {
-      $('#severity_' + index + '_' + i).first().attr('checked', feedback.severity[i] > 0);
+    for (var i = 0; i < feedback.var_severity.length; i++) {
+      $('#div_feedback_severity_' + index).append($('<input>', {
+        id: 'feedback_severity_' + index + '_' + i,
+        type: 'checkbox',
+      })).append($('<span>', {
+        text: feedback.var_severity[i],
+      }));
+      if (i < feedback.severity.length) {
+	      $('#feedback_severity_' + index + '_' + i).first().attr('checked', feedback.severity[i] > 0);
+      }
     }
-    for (var i = 0; i < 11; i++) {
-      $('#medical_diagnosis_' + index + '_' + i).first().attr('checked', feedback.medical_diagnosis[i] > 0);
+    for (var i = 0; i < feedback.var_medical_diagnosis.length; i++) {
+      $('#div_feedback_medical_diagnosis_' + index).append($('<input>', {
+        id: 'feedback_medical_diagnosis_' + index + '_' + i,
+        type: 'checkbox',
+      })).append($('<span>', {
+        text: feedback.var_medical_diagnosis[i],
+      }));
+      if (i < feedback.medical_diagnosis.length) {
+        $('#feedback_medical_diagnosis_' + index + '_' + i).first().attr('checked', feedback.medical_diagnosis[i] > 0);
+      }
     }
-    for (var i = 0; i < 4; i++) {
-      $('#crisis_' + index + "_" + i).first().attr('checked', feedback.crisis[i] > 0);
+    for (var i = 0; i < feedback.var_crisis.length; i++) {
+	    $('#div_feedback_crisis_' + index).append($('<input>', {
+		    id: 'feedback_crisis_' + index + '_' + i,
+		    type: 'checkbox',
+	    })).append($('<span>', {
+		    text: feedback.var_crisis[i],
+	    }));
+	    if (i < feedback.crisis.length) {
+		    $('#feedback_crisis_' + index + '_' + i).first().attr('checked', feedback.crisis[i] > 0);
+	    }
     }
     $('#record_' + index).val(feedback.record);
     $('#crisis_level_' + index).val(feedback.crisis_level);
@@ -617,7 +623,7 @@ function showFirstCategory(index) {
   }
 }
 
-function showSecondCategory(index) {
+function selectFirstCategory(index) {
   var first = $('#category_first_' + index).val();
   $('#category_second_' + index).find("option").remove().end();
   if (secondCategory.hasOwnProperty(first)) {
@@ -634,22 +640,56 @@ function showSecondCategory(index) {
 	$('#category_second_' + index).val('');
 }
 
-function submitFeedback(index) {
+var feedbackShowCheckTips = ['A1', 'A2', 'E1', 'E2', 'E3', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'];
+var feedbackShowNeedTips = ['G1', 'G2', 'G3', 'G4', 'J1', 'J2'];
+function selectSecondCategory(index) {
+	$('#category_show_tips_' + index).text('');
+	var second = $('#category_second_' + index).val();
+  if (second === 'A3') {
+    $('#feedback_severity_' + index + '_0').first().attr('checked', true);
+  } else if (second === 'A4') {
+	  $('#feedback_severity_' + index + '_1').first().attr('checked', true);
+  } else {
+    for (var i in feedbackShowCheckTips) {
+      if (second === feedbackShowCheckTips[i]) {
+        $('#category_show_tips_' + index).text('请核查是否需要重点标记');
+      }
+    }
+    for (var i in feedbackShowNeedTips) {
+      if (second === feedbackShowNeedTips[i]) {
+        $('#category_show_tips_' + index).text('请选择合适的重点标记，否则不能够成功提交反馈表');
+      }
+    }
+  }
+}
+
+function submitFeedback(index, varSeverityLen, varMedicalDiagnosisLen, varCrisisLen) {
+  var hasEmphasis = false;
   var severity = [];
-  for (var i = 0; i < 5; i++) {
-    severity.push($('#severity_' + index + '_' + i).first().is(':checked') ? 1 : 0);
+  for (var i = 0; i < varSeverityLen; i++) {
+    severity.push($('#feedback_severity_' + index + '_' + i).first().is(':checked') ? 1 : 0);
+    hasEmphasis = hasEmphasis || $('#feedback_severity_' + index + '_' + i).first().is(':checked');
   }
   var medicalDiagnosis = [];
-  for (var i = 0; i < 11; i++) {
-    medicalDiagnosis.push($('#medical_diagnosis_' + index + '_' + i).first().is(':checked') ? 1 : 0);
+  for (var i = 0; i < varMedicalDiagnosisLen; i++) {
+    medicalDiagnosis.push($('#feedback_medical_diagnosis_' + index + '_' + i).first().is(':checked') ? 1 : 0);
+    hasEmphasis = hasEmphasis || $('#feedback_medical_diagnosis_' + index + '_' + i).first().is(':checked');
   }
   var crisis = [];
-  for (var i = 0; i < 4; i++) {
-    crisis.push($('#crisis_' + index + "_" + i).first().is(':checked') ? 1 : 0);
+  for (var i = 0; i < varCrisisLen; i++) {
+    crisis.push($('#feedback_crisis_' + index + "_" + i).first().is(':checked') ? 1 : 0);
+    hasEmphasis = hasEmphasis || $('#feedback_crisis_' + index + "_" + i).first().is(':checked');
+  }
+  var secondCategory = $('#category_second_' + index).val();
+  for (var i in feedbackShowNeedTips) {
+    if (secondCategory === feedbackShowNeedTips[i] && !hasEmphasis) {
+      alert('请选择合适的重点标记，否则不能够成功提交反馈表');
+      return;
+    }
   }
   var payload = {
     reservation_id: reservations[index].id,
-    category: $('#category_second_' + index).val(),
+    category: secondCategory,
     severity: severity,
     medical_diagnosis: medicalDiagnosis,
     crisis: crisis,

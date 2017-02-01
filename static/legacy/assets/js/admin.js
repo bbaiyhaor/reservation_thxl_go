@@ -207,6 +207,10 @@ function optimize(t) {
     if (reservations[i].student_crisis_level && reservations[i].student_crisis_level !== 0) {
       $('#cell_student_' + i).css('background-color', 'rgba(255, 0, 0, ' + parseInt(reservations[i].student_crisis_level) / 1 +')');
     }
+
+    if (reservations[i].status === 3 && !reservations[i].has_teacher_feedback) {
+      $('#cell_status_' + i).css('background-color', '#ff9900');
+    }
   }
   $('#cell_select_add').height(28);
   $('#cell_time_add').height(28);

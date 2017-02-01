@@ -351,7 +351,9 @@ func (w *Workflow) WrapReservation(reservation *model.Reservation) map[string]in
 			result["student_crisis_level"] = student.CrisisLevel
 		}
 	}
+	result["has_student_feedback"] = !reservation.StudentFeedback.IsEmpty()
 	result["student_feedback"] = reservation.StudentFeedback.ToStringJson()
+	result["has_teacher_feedback"] = !reservation.TeacherFeedback.IsEmpty()
 	result["teacher_feedback"] = reservation.TeacherFeedback.ToStringJson()
 	return result
 }

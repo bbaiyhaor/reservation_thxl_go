@@ -165,7 +165,7 @@ class TeacherReservationList extends React.Component {
         >已预约</Button>
       );
     } else if (reservation.status === 3) {
-      const type = reservation.student_crisis_level > 0 ? 'warn' : 'primary';
+      const type = reservation.has_teacher_feedback ? 'default' : 'primary';
       return (
         <Button
           style={{ ...style }}

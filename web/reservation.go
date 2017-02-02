@@ -41,7 +41,6 @@ func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view/daily", "ViewDailyReservationsByAdmin", RoleCookieInjection(rc.ViewDailyReservationsByAdmin))
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view/teacher/username", "ViewReservationsWithTeacherUsernameByAdmin", RoleCookieInjection(rc.ViewReservationsWithTeacherUsernameByAdmin))
 	m.GetJson(kAdminApiBaseUrl+"/reservation/export/today", "ExportTodayReservationsByAdmin", RoleCookieInjection(rc.ExportTodayReservationsByAdmin))
-	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report", "ExportReportFormByAdmin", RoleCookieInjection(rc.ExportReportFormByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report/monthly", "ExportReportMonthlyByAdmin", RoleCookieInjection(rc.ExportReportMonthlyByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/add", "AddReservationByAdmin", RoleCookieInjection(rc.AddReservationByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/edit", "EditReservationByAdmin", RoleCookieInjection(rc.EditReservationByAdmin))
@@ -786,32 +785,16 @@ func (rc *ReservationController) GetTeacherWorkloadByAdmin(w http.ResponseWriter
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ExportReportFormByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
-	fromDate := form.ParamString(r, "from_date", "")
-	toDate := form.ParamString(r, "to_date", "")
-
-	var result = make(map[string]interface{})
-
-	url, err := service.Workflow().ExportReportFormByAdmin(fromDate, toDate, userId, userType)
-	if err != nil {
-		return http.StatusOK, wrapJsonError(err)
-	}
-	result["url"] = "/" + url
-
-	return http.StatusOK, wrapJsonOk(result)
-}
-
 func (rc *ReservationController) ExportReportMonthlyByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	monthlyDate := form.ParamString(r, "monthly_date", "")
 
 	var result = make(map[string]interface{})
 
-	reportUrl, keyCaseUrl, err := service.Workflow().ExportReportMonthlyByAdmin(monthlyDate, userId, userType)
+	reportUrl, err := service.Workflow().ExportReportMonthlyByAdmin(monthlyDate, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
 	result["report_url"] = "/" + reportUrl
-	result["key_case_url"] = "/" + keyCaseUrl
 
 	return http.StatusOK, wrapJsonOk(result)
 }

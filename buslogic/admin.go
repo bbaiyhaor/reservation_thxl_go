@@ -1006,47 +1006,43 @@ func (w *Workflow) ExportReportFormByAdmin(fromDate string, toDate string, userI
 		return "", nil
 	}
 	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_report_%s_%s%s", fromDate, toDate, utils.CSV_FILE_SUFFIX))
-	if err = w.ExportReportFormToFile(reservations, path); err != nil {
+	if err = w.ExportReportToFile(reservations, path); err != nil {
 		return "", err
 	}
 	return path, nil
 }
 
 // 管理员导出报表
-func (w *Workflow) ExportReportMonthlyByAdmin(monthlyDate string, userId string, userType int) (string, string, error) {
+func (w *Workflow) ExportReportMonthlyByAdmin(monthlyDate string, userId string, userType int) (string, error) {
 	if userId == "" {
-		return "", "", re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+		return "", re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_ADMIN {
-		return "", "", re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
+		return "", re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	} else if monthlyDate == "" {
-		return "", "", re.NewRErrorCodeContext("monthly_date is empty", nil, re.ERROR_MISSING_PARAM, "monthly_date")
+		return "", re.NewRErrorCodeContext("monthly_date is empty", nil, re.ERROR_MISSING_PARAM, "monthly_date")
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
 	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
-		return "", "", re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
+		return "", re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	date, err := time.ParseInLocation("2006-01-02", monthlyDate, time.Local)
 	if err != nil {
-		return "", "", re.NewRErrorCodeContext("date is not valid", err, re.ERROR_INVALID_PARAM, "date")
+		return "", re.NewRErrorCodeContext("date is not valid", err, re.ERROR_INVALID_PARAM, "date")
 	}
 	from := time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, time.Local)
 	to := from.AddDate(0, 1, 0)
 	reservations, err := w.mongoClient.GetReservatedReservationsBetweenTime(from, to)
 	if err != nil {
-		return "", "", re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
+		return "", re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
 	}
 	if len(reservations) == 0 {
-		return "", "", nil
+		return "", nil
 	}
-	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), utils.CSV_FILE_SUFFIX))
-	keyCasePath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_key_case_%d_%d%s", date.Year(), date.Month(), utils.CSV_FILE_SUFFIX))
-	if err = w.ExportReportFormToFile(reservations, reportPath); err != nil {
-		return "", "", err
+	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), utils.EXCEL_FILE_SUFFIX))
+	if err = w.ExportReportToFile(reservations, reportPath); err != nil {
+		return "", err
 	}
-	//if err = workflow.ExportKeyCaseReport(reservations, keyCasePath); err != nil {
-	//	return "", "", err
-	//}
-	return reportPath, keyCasePath, nil
+	return reportPath, nil
 }
 
 // 管理员清除所有学生的绑定咨询师

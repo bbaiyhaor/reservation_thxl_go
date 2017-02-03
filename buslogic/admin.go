@@ -413,7 +413,7 @@ func (w *Workflow) SubmitFeedbackByAdmin(reservationId string, sourceId string,
 	if err = w.mongoClient.UpdateReservationAndStudent(reservation, student); err != nil {
 		return nil, re.NewRErrorCode("fail to update reservation and student", err, re.ERROR_DATABASE)
 	}
-	if sendFeedbackSMS && (!strings.HasPrefix(category, "H") || strings.HasPrefix(category, "H4")) {
+	if sendFeedbackSMS && !strings.HasPrefix(category, "H") {
 		w.SendFeedbackSMS(reservation)
 	}
 	return reservation, nil

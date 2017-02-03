@@ -6,6 +6,7 @@ import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"github.com/mijia/sweb/log"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -33,7 +34,7 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType int) (*model
 		if r.Status == model.RESERVATION_STATUS_AVAILABLE && r.StartTime.Before(time.Now()) {
 			continue
 		} else if r.StudentId == student.Id.Hex() {
-			if !r.TeacherFeedback.IsEmpty() && r.TeacherFeedback.Participants[0] == 0 {
+			if !r.TeacherFeedback.IsEmpty() && strings.HasPrefix(r.TeacherFeedback.Category, "H") {
 				// 学生未参与的咨询不展示给学生（家长、老师或者辅导员参加）
 				continue
 			}

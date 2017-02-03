@@ -302,14 +302,6 @@ function StudentReservationCell({ reservation }) {
         <CellBody>评估分类</CellBody>
         <CellFooter>{reservation.teacher_feedback.category}</CellFooter>
       </Cell>
-      <Cell>
-        <CellBody>出席人员</CellBody>
-        <CellFooter>{reservation.teacher_feedback.participants}</CellFooter>
-      </Cell>
-      <Cell>
-        <CellBody>重点明细</CellBody>
-        <CellFooter>{reservation.teacher_feedback.emphasis === 0 ? '否' : '是'}</CellFooter>
-      </Cell>
       {reservation.teacher_feedback.severity !== '' &&
       <div>
         <CellsTitle>

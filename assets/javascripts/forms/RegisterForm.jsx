@@ -3,7 +3,7 @@
  */
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
-import { CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, ButtonArea, Button, Checkbox } from '#react-weui';
+import { CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, Select, ButtonArea, Button, Checkbox } from '#react-weui';
 import 'weui';
 
 const propTypes = {
@@ -32,25 +32,48 @@ export default class RegisterForm extends React.Component {
       username: '',
       password: '',
       confirmPassword: '',
+      fullname: '',
+      gender: '',
+      birthday: '',
+      school: '',
+      grade: '',
+      currentAddress: '',
+      familyAddress: '',
+      mobile: '',
+      email: '',
+      experienceTime: '',
+      experienceLocation: '',
+      experienceTeacher: '',
+      fatherAge: '',
+      fatherJob: '',
+      fatherEdu: '',
+      motherAge: '',
+      motherJob: '',
+      motherEdu: '',
+      parentMarriage: '',
       protocolChecked: true,
       usernameWarn: false,
       passwordWarn: false,
       confirmPasswordWarn: false,
+      fullnameWarn: false,
+      genderWarn: false,
+      birthdayWarn: false,
+      schoolWarn: false,
+      gradeWarn: false,
+      currentAddressWarn: false,
+      familyAddressWarn: false,
+      mobileWarn: false,
+      emailWarn: false,
       protocolWarn: false,
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  handleChange(e, name) {
-    const value = e.target.value;
-    if (name && name !== '') {
-      this.setState({ [name]: value });
-    } else {
-      this.setState(prevState => ({
-        [value]: !prevState[value],
-      }));
-    }
+  handleChange(e) {
+    const name = e.target.name;
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    this.setState({ [name]: value });
   }
 
   handleSubmit() {
@@ -58,6 +81,15 @@ export default class RegisterForm extends React.Component {
       usernameWarn: false,
       passwordWarn: false,
       confirmPasswordWarn: false,
+      fullnameWarn: false,
+      genderWarn: false,
+      birthdayWarn: false,
+      schoolWarn: false,
+      gradeWarn: false,
+      currentAddressWarn: false,
+      familyAddressWarn: false,
+      mobileWarn: false,
+      emailWarn: false,
       protocolWarn: false,
     });
     if (this.state.username === '') {
@@ -73,6 +105,51 @@ export default class RegisterForm extends React.Component {
     if (this.state.confirmPassword === '') {
       this.setState({ confirmPasswordWarn: true });
       this.confirmPasswordInput.focus();
+      return;
+    }
+    if (this.state.fullname === '') {
+      this.setState({ fullnameWarn: true });
+      this.fullnameInput.focus();
+      return;
+    }
+    if (this.state.gender === '') {
+      this.setState({ genderWarn: true });
+      this.gradeInput.focus();
+      return;
+    }
+    if (this.state.birthday === '') {
+      this.setState({ birthdayWarn: true });
+      this.birthdayInput.focus();
+      return;
+    }
+    if (this.state.school === '') {
+      this.setState({ schoolWarn: true });
+      this.schoolInput.focus();
+      return;
+    }
+    if (this.state.grade === '') {
+      this.setState({ gradeWarn: true });
+      this.gradeInput.focus();
+      return;
+    }
+    if (this.state.currentAddress === '') {
+      this.setState({ currentAddressWarn: true });
+      this.currentAddressInput.focus();
+      return;
+    }
+    if (this.state.familyAddress === '') {
+      this.setState({ familyAddressWarn: true });
+      this.familyAddressInput.focus();
+      return;
+    }
+    if (this.state.mobile === '') {
+      this.setState({ mobileWarn: true });
+      this.mobileInput.focus();
+      return;
+    }
+    if (this.state.email === '') {
+      this.setState({ emailWarn: true });
+      this.emailInput.focus();
       return;
     }
     if (!this.state.protocolChecked) {
@@ -91,7 +168,7 @@ export default class RegisterForm extends React.Component {
       });
       return;
     }
-    this.props.handleSubmit(this.state.username, this.state.password);
+    this.props.handleSubmit(this.state.username, this.state.password, this.state.fullname, this.state.gender, this.state.birthday, this.state.school, this.state.grade, this.state.currentAddress, this.state.familyAddress, this.state.mobile, this.state.email, this.state.experienceTime, this.state.experienceLocation, this.state.experienceTeacher, this.state.fatherAge, this.state.fatherJob, this.state.fatherEdu, this.state.motherAge, this.state.motherJob, this.state.motherEdu, this.state.parentMarriage);
   }
 
   render() {
@@ -103,15 +180,16 @@ export default class RegisterForm extends React.Component {
         <Form checkbox={this.props.protocol && true} className="weui_cells_form">
           <FormCell warn={this.state.usernameWarn}>
             <CellHeader>
-              <Label>{this.props.usernameLabel}</Label>
+              <Label>{this.props.usernameLabel}<span style={{ color: 'red' }}>*</span></Label>
             </CellHeader>
             <CellBody>
               <Input
+                name="username"
                 ref={(usernameInput) => { this.usernameInput = usernameInput; }}
                 type="tel"
                 placeholder={this.props.usernamePlaceholder}
                 value={this.state.username}
-                onChange={(e) => { this.handleChange(e, 'username'); }}
+                onChange={this.handleChange}
               />
             </CellBody>
             {this.state.usernameWarn &&
@@ -122,15 +200,16 @@ export default class RegisterForm extends React.Component {
           </FormCell>
           <FormCell warn={this.state.passwordWarn}>
             <CellHeader>
-              <Label>{this.props.passwordLabel}</Label>
+              <Label>{this.props.passwordLabel}<span style={{ color: 'red' }}>*</span></Label>
             </CellHeader>
             <CellBody>
               <Input
+                name="password"
                 ref={(passwordInput) => { this.passwordInput = passwordInput; }}
                 type="password"
                 placeholder={this.props.passwordPlaceholder}
                 value={this.state.password}
-                onChange={(e) => { this.handleChange(e, 'password'); }}
+                onChange={this.handleChange}
               />
             </CellBody>
             {this.state.passwordWarn &&
@@ -141,15 +220,16 @@ export default class RegisterForm extends React.Component {
           </FormCell>
           <FormCell warn={this.state.confirmPasswordWarn}>
             <CellHeader>
-              <Label>{this.props.confirmPasswordLabel}</Label>
+              <Label>{this.props.confirmPasswordLabel}<span style={{ color: 'red' }}>*</span></Label>
             </CellHeader>
             <CellBody>
               <Input
+                name="confirmPassword"
                 ref={(confirmPasswordInput) => { this.confirmPasswordInput = confirmPasswordInput; }}
                 type="password"
                 placeholder={this.props.confirmPasswordPlaceholder}
                 value={this.state.confirmPassword}
-                onChange={(e) => { this.handleChange(e, 'confirmPassword'); }}
+                onChange={this.handleChange}
               />
             </CellBody>
             {this.state.confirmPasswordWarn &&
@@ -158,10 +238,338 @@ export default class RegisterForm extends React.Component {
               </CellFooter>
             }
           </FormCell>
+          <FormCell warn={this.state.fullnameWarn}>
+            <CellHeader>
+              <Label>姓名<span style={{ color: 'red' }}>*</span></Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="fullname"
+                ref={(fullnameInput) => { this.fullnameInput = fullnameInput; }}
+                type="input"
+                placeholder="请输入姓名"
+                value={this.state.fullname}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+            {this.state.fullnameWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
+            }
+          </FormCell>
+          <FormCell warn={this.state.genderWarn} select selectPos="after">
+            <CellHeader>
+              <Label>性别<span style={{ color: 'red' }}>*</span></Label>
+            </CellHeader>
+            <CellBody>
+              <Select
+                name="gender"
+                value={this.state.gender}
+                onChange={this.handleChange}
+              >
+                <option value="">请选择</option>
+                <option value="男">男</option>
+                <option value="女">女</option>
+              </Select>
+            </CellBody>
+            {this.state.genderWarn &&
+              <CellFooter style={{ marginRight: '25px' }}>
+                <Icon value="warn" />
+              </CellFooter>
+            }
+          </FormCell>
+          <FormCell warn={this.state.birthdayWarn}>
+            <CellHeader>
+              <Label>出生日期<span style={{ color: 'red' }}>*</span></Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="birthday"
+                ref={(birthdayInput) => { this.birthdayInput = birthdayInput; }}
+                type="input"
+                placeholder="请输入出生日期"
+                value={this.state.birthday}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+            {this.state.birthdayWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
+            }
+          </FormCell>
+          <FormCell warn={this.state.schoolWarn}>
+            <CellHeader>
+              <Label>院系<span style={{ color: 'red' }}>*</span></Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="school"
+                ref={(schoolInput) => { this.schoolInput = schoolInput; }}
+                type="input"
+                placeholder="请输入院系"
+                value={this.state.school}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+            {this.state.schoolWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
+            }
+          </FormCell>
+          <FormCell warn={this.state.gradeWarn}>
+            <CellHeader>
+              <Label>年级<span style={{ color: 'red' }}>*</span></Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="grade"
+                ref={(gradeInput) => { this.gradeInput = gradeInput; }}
+                type="input"
+                placeholder="请输入年级"
+                value={this.state.grade}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+            {this.state.gradeWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
+            }
+          </FormCell>
+          <FormCell warn={this.state.currentAddressWarn}>
+            <CellHeader>
+              <Label>现在住址<span style={{ color: 'red' }}>*</span></Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="currentAddress"
+                ref={(currentAddressInput) => { this.currentAddressInput = currentAddressInput; }}
+                type="input"
+                placeholder="请输入现在住址"
+                value={this.state.currentAddress}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+            {this.state.currentAddressWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
+            }
+          </FormCell>
+          <FormCell warn={this.state.familyAddressWarn}>
+            <CellHeader>
+              <Label>家庭住址<span style={{ color: 'red' }}>*</span></Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="familyAddress"
+                ref={(familyAddressInput) => { this.familyAddressInput = familyAddressInput; }}
+                type="input"
+                placeholder="请输入家庭住址"
+                value={this.state.familyAddress}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+            {this.state.familyAddressWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
+            }
+          </FormCell>
+          <FormCell warn={this.state.mobileWarn}>
+            <CellHeader>
+              <Label>联系电话<span style={{ color: 'red' }}>*</span></Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="mobile"
+                ref={(mobileInput) => { this.mobileInput = mobileInput; }}
+                type="tel"
+                placeholder="请输入联系电话"
+                value={this.state.mobile}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+            {this.state.mobileWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
+            }
+          </FormCell>
+          <FormCell warn={this.state.emailWarn}>
+            <CellHeader>
+              <Label>邮箱<span style={{ color: 'red' }}>*</span></Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="email"
+                ref={(emailInput) => { this.emailInput = emailInput; }}
+                type="input"
+                placeholder="请输入邮箱"
+                value={this.state.email}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+            {this.state.emailWarn &&
+              <CellFooter>
+                <Icon value="warn" />
+              </CellFooter>
+            }
+          </FormCell>
+          <CellsTitle>过往咨询经历</CellsTitle>
+          <FormCell>
+            <CellHeader>
+              <Label>时间</Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="experienceTime"
+                type="input"
+                placeholder="请输入咨询时间"
+                value={this.state.experienceTime}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+          </FormCell>
+          <FormCell>
+            <CellHeader>
+              <Label>地点</Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="experienceLocation"
+                type="input"
+                placeholder="请输入咨询地点"
+                value={this.state.experienceLocation}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+          </FormCell>
+          <FormCell>
+            <CellHeader>
+              <Label>咨询师姓名</Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="experienceTeacher"
+                type="input"
+                placeholder="请输入咨询师姓名"
+                value={this.state.experienceTeacher}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+          </FormCell>
+          <CellsTitle>家庭情况</CellsTitle>
+          <FormCell>
+            <CellHeader>
+              <Label>父亲年龄</Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="fatherAge"
+                type="input"
+                placeholder="请输入父亲年龄"
+                value={this.state.fatherAge}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+          </FormCell>
+          <FormCell>
+            <CellHeader>
+              <Label>父亲职业</Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="fatherJob"
+                type="input"
+                placeholder="请输入父亲职业"
+                value={this.state.fatherJob}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+          </FormCell>
+          <FormCell>
+            <CellHeader>
+              <Label>父亲学历</Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="fatherEdu"
+                type="input"
+                placeholder="请输入父亲学历"
+                value={this.state.fatherEdu}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+          </FormCell>
+          <FormCell>
+            <CellHeader>
+              <Label>母亲年龄</Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="motherAge"
+                type="input"
+                placeholder="请输入母亲年龄"
+                value={this.state.motherAge}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+          </FormCell>
+          <FormCell>
+            <CellHeader>
+              <Label>母亲职业</Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="motherJob"
+                type="input"
+                placeholder="请输入母亲职业"
+                value={this.state.motherJob}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+          </FormCell>
+          <FormCell>
+            <CellHeader>
+              <Label>母亲学历</Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="motherEdu"
+                type="input"
+                placeholder="请输入母亲学历"
+                value={this.state.motherEdu}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+          </FormCell>
+          <FormCell select selectPos="after">
+            <CellHeader>
+              <Label>父母婚姻状况</Label>
+            </CellHeader>
+            <CellBody>
+              <Select
+                name="parentMarriage"
+                value={this.state.parentMarriage}
+                onChange={this.handleChange}
+              >
+                <option value="">请选择</option>
+                <option value="良好">良好</option>
+                <option value="一般">一般</option>
+                <option value="离婚">离婚</option>
+                <option value="再婚">再婚</option>
+              </Select>
+            </CellBody>
+          </FormCell>
           {this.props.protocol ?
             <FormCell checkbox warn={this.state.protocolWarn}>
               <CellHeader>
                 <Checkbox
+                  name="protocolChecked"
                   defaultChecked
                   value="protocolChecked"
                   onChange={this.handleChange}
@@ -184,6 +592,7 @@ export default class RegisterForm extends React.Component {
           <Button onClick={this.handleSubmit}>{this.props.submitText}</Button>
           <Button type="default" onClick={this.props.handleCancel}>{this.props.cancelText}</Button>
         </ButtonArea>
+        <div style={{ height: '10px' }} />
       </div>
     );
   }

@@ -5,7 +5,6 @@ var firstCategory;
 var secondCategory;
 
 function viewReservations() {
-  getFeedbackCategories();
   if ($('#query_date').val() !== '') {
     queryReservations();
     return;
@@ -70,15 +69,6 @@ function queryStudent() {
       showStudent(data.payload.student, data.payload.reservations);
     } else {
       alert(data.err_msg);
-    }
-  });
-}
-
-function getFeedbackCategories() {
-  $.getJSON('/api/category/feedback', function(json, textStatus) {
-    if (json.status === 'OK') {
-      firstCategory = json.payload.first_category;
-      secondCategory = json.payload.second_category;
     }
   });
 }
@@ -216,6 +206,10 @@ function optimize(t) {
 
     if (reservations[i].student_crisis_level && reservations[i].student_crisis_level !== 0) {
       $('#cell_student_' + i).css('background-color', 'rgba(255, 0, 0, ' + parseInt(reservations[i].student_crisis_level) / 1 +')');
+    }
+
+    if (reservations[i].status === 3 && !reservations[i].has_teacher_feedback) {
+      $('#cell_status_' + i).css('background-color', '#ff9900');
     }
   }
   $('#cell_select_add').height(28);
@@ -543,6 +537,8 @@ function getFeedback(index) {
     source_id: reservations[index].source_id,
   }, function(data, textStatus, xhr) {
     if (data.status === 'OK') {
+      firstCategory = data.payload.feedback.var_first_category;
+      secondCategory = data.payload.feedback.var_second_category;
       showFeedback(index, data.payload.feedback);
     } else {
       alert(data.err_msg);
@@ -555,45 +551,22 @@ function showFeedback(index, feedback) {
     <div class="pop_window" id="feedback_table_' + index + '" style="text-align: left; width: 50%">\
       咨询师反馈表<br>\
       评估分类：<br>\
-      <select id="category_first_' + index + '" onchange="showSecondCategory(' + index + ')"><option value="">请选择</option></select><br>\
-      <select id="category_second_' + index + '"></select><br>\
-      出席人员：<br>\
-      <input id="participant_student_' + index + '" type="checkbox">学生</input><input id="participant_parents_' + index + '" type="checkbox">家长</input>\
-      <input id="participant_teacher_' + index + '" type="checkbox">教师</input><input id="participant_instructor_' + index + '" type="checkbox">辅导员</input>\
-      <input id="participant_other_' + index + '" type="checkbox">其他</input><br>\
-      重点明细：<select id="emphasis_'+ index + '"><option value="0">否</option><option value="1">是</option></select><br>\
-      <div id="div_emphasis_' + index + '" style="display: none">\
+      <select id="category_first_' + index + '" onchange="selectFirstCategory(' + index + ')"></select><br>\
+      <select id="category_second_' + index + '" onchange="selectSecondCategory(' + index + ')"></select>\
+      <span id="category_show_tips_' + index + '" style="color: red;"></span>\
+      <br>\
+      <div id="div_emphasis_' + index + '">\
         <b>严重程度：</b>\
-        <input id="severity_' + index + '_0" type="checkbox">缓考</input>\
-        <input id="severity_' + index + '_1" type="checkbox">休学复学</input>\
-        <input id="severity_' + index + '_2" type="checkbox">家属陪读</input>\
-        <input id="severity_' + index + '_3" type="checkbox">家属不知情</input>\
-        <input id="severity_' + index + '_4" type="checkbox">任何其他需要知会院系关注的原因</input>\
-        <br>\
+        <div id="div_feedback_severity_' + index + '"></div>\
         <b>疑似或明确的医疗诊断：</b>\
-        <input id="medical_diagnosis_' + index + '_0" type="checkbox">服药</input>\
-        <input id="medical_diagnosis_' + index + '_1" type="checkbox">精神分裂</input>\
-        <input id="medical_diagnosis_' + index + '_2" type="checkbox">双相情感障碍</input>\
-        <input id="medical_diagnosis_' + index + '_3" type="checkbox">焦虑症（状态）</input>\
-        <input id="medical_diagnosis_' + index + '_4" type="checkbox">抑郁症（状态）</input>\
-        <br>　　　　　　　　　\
-        <input id="medical_diagnosis_' + index + '_5" type="checkbox">强迫症</input>\
-        <input id="medical_diagnosis_' + index + '_6" type="checkbox">进食障碍</input>\
-        <input id="medical_diagnosis_' + index + '_7" type="checkbox">失眠</input>\
-        <input id="medical_diagnosis_' + index + '_8" type="checkbox">其他精神症状</input>\
-        <input id="medical_diagnosis_' + index + '_9" type="checkbox">躯体疾病</input>\
-        <input id="medical_diagnosis_' + index + '_10" type="checkbox">不遵医嘱</input>\
-        <br>\
+        <div id="div_feedback_medical_diagnosis_' + index + '"></div>\
         <b>危急情况：</b>\
-        <input id="crisis_' + index + '_0" type="checkbox">自伤</input>\
-        <input id="crisis_' + index + '_1" type="checkbox">伤害他人</input>\
-        <input id="crisis_' + index + '_2" type="checkbox">自杀念头</input>\
-        <input id="crisis_' + index + '_3" type="checkbox">自杀未遂</input>\
+        <div id="div_feedback_crisis_' + index + '"></div>\
       </div>\
       咨询记录：<br>\
       <textarea id="record_' + index + '" style="width: 100%; height:80px"></textarea><br>\
       是否危机个案：<select id="crisis_level_'+ index + '"><option value="0">否</option><option value="3">三星</option><option value="4">四星</option><option value="5">五星</option></select><br>\
-      <button type="button" onclick="submitFeedback(' + index + ');">提交</button>\
+      <button type="button" onclick="submitFeedback(' + index + ',' + feedback.var_severity.length + ',' + feedback.var_medical_diagnosis.length + ',' + feedback.var_crisis.length + ');">提交</button>\
       <button type="button" onclick="$(\'#feedback_table_' + index + '\').remove();">取消</button>\
     </div>\
   ');
@@ -604,33 +577,40 @@ function showFeedback(index, feedback) {
       $('#category_first_' + index).change();
       $('#category_second_' + index).val(feedback.category);
     }
-    if (feedback.participants.length > 0) {
-      $('#participant_student_' + index).first().attr('checked', feedback.participants[0] > 0);
-      $('#participant_parents_' + index).first().attr('checked', feedback.participants[1] > 0);
-      $('#participant_teacher_' + index).first().attr('checked', feedback.participants[2] > 0);
-      $('#participant_instructor_' + index).first().attr('checked', feedback.participants[3] > 0);
-      $('#participant_other_' + index).first().attr('checked', feedback.participants[4] > 0);
+    for (var i = 0; i < feedback.var_severity.length; i++) {
+      $('#div_feedback_severity_' + index).append($('<input>', {
+        id: 'feedback_severity_' + index + '_' + i,
+        type: 'checkbox',
+      })).append($('<span>', {
+        text: feedback.var_severity[i],
+      }));
+      if (i < feedback.severity.length) {
+	      $('#feedback_severity_' + index + '_' + i).first().attr('checked', feedback.severity[i] > 0);
+      }
     }
-    var i = 1;
-    for (i = 0; i < 5; i++) {
-      $('#severity_' + index + '_' + i).first().attr('checked', feedback.severity[i] > 0);
+    for (var i = 0; i < feedback.var_medical_diagnosis.length; i++) {
+      $('#div_feedback_medical_diagnosis_' + index).append($('<input>', {
+        id: 'feedback_medical_diagnosis_' + index + '_' + i,
+        type: 'checkbox',
+      })).append($('<span>', {
+        text: feedback.var_medical_diagnosis[i],
+      }));
+      if (i < feedback.medical_diagnosis.length) {
+        $('#feedback_medical_diagnosis_' + index + '_' + i).first().attr('checked', feedback.medical_diagnosis[i] > 0);
+      }
     }
-    for (i = 0; i < 11; i++) {
-      $('#medical_diagnosis_' + index + '_' + i).first().attr('checked', feedback.medical_diagnosis[i] > 0);
-    }
-    for (i = 0; i < 4; i++) {
-      $('#crisis_' + index + "_" + i).first().attr('checked', feedback.crisis[i] > 0);
+    for (var i = 0; i < feedback.var_crisis.length; i++) {
+	    $('#div_feedback_crisis_' + index).append($('<input>', {
+		    id: 'feedback_crisis_' + index + '_' + i,
+		    type: 'checkbox',
+	    })).append($('<span>', {
+		    text: feedback.var_crisis[i],
+	    }));
+	    if (i < feedback.crisis.length) {
+		    $('#feedback_crisis_' + index + '_' + i).first().attr('checked', feedback.crisis[i] > 0);
+	    }
     }
     $('#record_' + index).val(feedback.record);
-    $('#emphasis_' + index).change(function() {
-      if ($('#emphasis_' + index).val() === "0") {
-        $('#div_emphasis_' + index).hide();
-      } else {
-        $('#div_emphasis_' + index).show();
-      }
-    });
-    $('#emphasis_' + index).val(feedback.emphasis);
-    $('#emphasis_' + index).change();
     $('#crisis_level_' + index).val(feedback.crisis_level);
     optimize('#feedback_table_' + index);
   });
@@ -647,12 +627,9 @@ function showFirstCategory(index) {
   }
 }
 
-function showSecondCategory(index) {
+function selectFirstCategory(index) {
   var first = $('#category_first_' + index).val();
-  $('#category_second_' + index).find("option").remove().end().append('<option value="">请选择</option>').val('');
-  if ($('#category_first_' + index).selectedIndex === 0) {
-    return;
-  }
+  $('#category_second_' + index).find("option").remove().end();
   if (secondCategory.hasOwnProperty(first)) {
     for (var name in secondCategory[first]) {
       if (secondCategory[first].hasOwnProperty(name)) {
@@ -664,34 +641,59 @@ function showSecondCategory(index) {
       }
     }
   }
+	$('#category_second_' + index).val('');
 }
 
-function submitFeedback(index) {
-  var participants = [];
-  participants.push($('#participant_student_' + index).first().is(':checked') ? 1 : 0);
-  participants.push($('#participant_parents_' + index).first().is(':checked') ? 1 : 0);
-  participants.push($('#participant_teacher_' + index).first().is(':checked') ? 1 : 0);
-  participants.push($('#participant_instructor_' + index).first().is(':checked') ? 1 : 0);
-  participants.push($('#participant_other_' + index).first().is(':checked') ? 1 : 0);
-  var isEmphasis = $('#emphasis_' + index).val() !== "0"
-  var i = 1;
+var feedbackShowCheckTips = ['A1', 'A2', 'E1', 'E2', 'E3', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'];
+var feedbackShowNeedTips = ['G1', 'G2', 'G3', 'G4', 'J1', 'J2'];
+function selectSecondCategory(index) {
+	$('#category_show_tips_' + index).text('');
+	var second = $('#category_second_' + index).val();
+  if (second === 'A3') {
+    $('#feedback_severity_' + index + '_0').first().attr('checked', true);
+  } else if (second === 'A4') {
+	  $('#feedback_severity_' + index + '_1').first().attr('checked', true);
+  } else {
+    for (var i in feedbackShowCheckTips) {
+      if (second === feedbackShowCheckTips[i]) {
+        $('#category_show_tips_' + index).text('请核查是否需要重点标记');
+      }
+    }
+    for (var i in feedbackShowNeedTips) {
+      if (second === feedbackShowNeedTips[i]) {
+        $('#category_show_tips_' + index).text('请选择合适的重点标记，否则不能够成功提交反馈表');
+      }
+    }
+  }
+}
+
+function submitFeedback(index, varSeverityLen, varMedicalDiagnosisLen, varCrisisLen) {
+  var hasEmphasis = false;
   var severity = [];
-  for (i = 0; i < 5; i++) {
-    severity.push(isEmphasis ? ($('#severity_' + index + '_' + i).first().is(':checked') ? 1 : 0) : 0);
+  for (var i = 0; i < varSeverityLen; i++) {
+    severity.push($('#feedback_severity_' + index + '_' + i).first().is(':checked') ? 1 : 0);
+    hasEmphasis = hasEmphasis || $('#feedback_severity_' + index + '_' + i).first().is(':checked');
   }
   var medicalDiagnosis = [];
-  for (i = 0; i < 11; i++) {
-    medicalDiagnosis.push(isEmphasis ? ($('#medical_diagnosis_' + index + '_' + i).first().is(':checked') ? 1 : 0) : 0);
+  for (var i = 0; i < varMedicalDiagnosisLen; i++) {
+    medicalDiagnosis.push($('#feedback_medical_diagnosis_' + index + '_' + i).first().is(':checked') ? 1 : 0);
+    hasEmphasis = hasEmphasis || $('#feedback_medical_diagnosis_' + index + '_' + i).first().is(':checked');
   }
   var crisis = [];
-  for (i = 0; i < 4; i++) {
-    crisis.push(isEmphasis ? ($('#crisis_' + index + "_" + i).first().is(':checked') ? 1 : 0) : 0);
+  for (var i = 0; i < varCrisisLen; i++) {
+    crisis.push($('#feedback_crisis_' + index + "_" + i).first().is(':checked') ? 1 : 0);
+    hasEmphasis = hasEmphasis || $('#feedback_crisis_' + index + "_" + i).first().is(':checked');
+  }
+  var secondCategory = $('#category_second_' + index).val();
+  for (var i in feedbackShowNeedTips) {
+    if (secondCategory === feedbackShowNeedTips[i] && !hasEmphasis) {
+      alert('请选择合适的重点标记，否则不能够成功提交反馈表');
+      return;
+    }
   }
   var payload = {
     reservation_id: reservations[index].id,
-    category: $('#category_second_' + index).val(),
-    participants: participants,
-    emphasis: $('#emphasis_' + index).val(),
+    category: secondCategory,
     severity: severity,
     medical_diagnosis: medicalDiagnosis,
     crisis: crisis,
@@ -915,9 +917,7 @@ function showStudent(student, reservations) {
         <span>' + reservations[i].start_time + ' 至 ' + reservations[i].end_time + '  ' + reservations[i].teacher_fullname + '</span>\
         <p class="children">学生反馈：' + reservations[i].student_feedback.scores + '</p>\
         <p class="children">评估分类：' + reservations[i].teacher_feedback.category + '</p>\
-        <p class="children">出席人员：' + reservations[i].teacher_feedback.participants + '</p>\
-        <p class="children">重点明细：' + (reservations[i].teacher_feedback.emphasis === '0' ? '否' : '是') + '</p>'
-        + (reservations[i].teacher_feedback.severity === '' ? '' : '<p class="children">严重程度：' + reservations[i].teacher_feedback.severity + '</p>')
+        ' + (reservations[i].teacher_feedback.severity === '' ? '' : '<p class="children">严重程度：' + reservations[i].teacher_feedback.severity + '</p>')
         + (reservations[i].teacher_feedback.medical_diagnosis === '' ? '' : '<p class="children">疑似或明确的医疗诊断：' + reservations[i].teacher_feedback.medical_diagnosis + '</p>')
         + (reservations[i].teacher_feedback.crisis === '' ? '' : '<p class="children">危急情况：' + reservations[i].teacher_feedback.crisis + '</p>')
         + '<p class="children">咨询记录：' + reservations[i].teacher_feedback.record + '</p>\
@@ -1026,8 +1026,9 @@ function deleteStudentAccount(studentId) {
 function deleteStudentAccountConfirm(studentId) {
   $('body').append('\
     <div id="pop_delete_student_account_confirm" class="pop_window" style="width: 50%;">\
-      <span style="color: red;"><b>请再次确认删除学生账户</b></span><br>\
-      <button type="button" onclick="$(\'#pop_delete_student_account_confirm\').remove();deleteStudentAccountConfirmCheck(\'' + studentId + '\');">确认</button>\
+      <span style="color: red;"><b>请输入管理员密码删除学生账户</b></span><br>\
+      <input id="delete_student_account_confirm_' + studentId + '" type="password"><br>\
+      <button type="button" onclick="deleteStudentAccountConfirmCheck(\'' + studentId + '\');">确认</button>\
       <button type="button" style="margin-left:20px" onclick="$(\'#pop_delete_student_account_confirm\').remove();">取消</button>\
     </div>\
   ');
@@ -1035,8 +1036,11 @@ function deleteStudentAccountConfirm(studentId) {
 }
 
 function deleteStudentAccountConfirmCheck(studentId) {
+  var adminPassword = $('#delete_student_account_confirm_' + studentId).val();
+  $('#pop_delete_student_account_confirm').remove();
   $.post('/api/admin/student/account/delete', {
     student_id: studentId,
+    password: adminPassword,
   }, function(data, textStatus, xhr) {
     if (data.status === 'OK') {
       deleteStudentAccountSuccess();
@@ -1270,4 +1274,40 @@ function resetTeacherPasswordConfirm() {
       alert(data.err_msg);
     }
   });
+}
+
+function clearAllStudentsBindedTeacher() {
+	$('body').append('\
+    <div id="clear_all_students_binded_teacher" class="pop_window" style="text-align: left; width: 30%">\
+      <p style="color: red;">清除所有学生绑定咨询师</p>\
+      <p>操作不可恢复，请谨慎！！！</p>\
+      <span style="color: red;"><b>请输入管理员密码</b></span><br>\
+      <input id="clear_all_students_binded_teacher_confirm" type="password"><br>\
+      <button onclick="clearAllStudentsBindedTeacherConfirm();">确定</button><button style="margin-left: 20px;" onclick="$(\'#clear_all_students_binded_teacher\').remove();">取消</button>\
+    </div>\
+  ');
+	optimize('#clear_all_students_binded_teacher');
+}
+
+function clearAllStudentsBindedTeacherConfirm() {
+	$.post('/api/admin/student/unbind/all', {
+	  password: $('#clear_all_students_binded_teacher_confirm').val(),
+  }, function(data, textStatus, xhr) {
+	  if (data.status === 'OK') {
+		  clearAllStudentsBindedTeacherSuccess();
+    } else {
+	    alert(data.err_msg);
+    }
+  });
+}
+
+function clearAllStudentsBindedTeacherSuccess() {
+	$('#clear_all_students_binded_teacher').remove();
+  $('body').append('\
+    <div id="pop_clear_all_students_binded_teacher_success" class="pop_window" style="width: 50%;">\
+      所有学生的绑定咨询师已清除！<br>\
+      <button type="button" onclick="$(\'#pop_clear_all_students_binded_teacher_success\').remove();">确定</button>\
+    </div>\
+  ');
+  optimize('#pop_clear_all_students_binded_teacher_success');
 }

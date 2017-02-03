@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
+	"fmt"
 	"regexp"
 	"time"
 )
@@ -33,6 +34,21 @@ func IsStudentId(studentId string) bool {
 		return false
 	}
 	return true
+}
+
+func ParseStudentId(studentId string) (string, error) {
+	if !IsStudentId(studentId) {
+		return "", rerror.NewRError(fmt.Sprintf("fail to parse studentId %s", studentId), nil)
+	}
+	switch studentId[4] {
+	case '0':
+		return studentId[2:4] + "级", nil
+	case '2':
+		return studentId[2:4] + "硕", nil
+	case '3':
+		return studentId[2:4] + "博", nil
+	}
+	return "", rerror.NewRError(fmt.Sprintf("unknown degree and grade %s", studentId), nil)
 }
 
 func StringToWeekday(weekday string) (time.Weekday, error) {

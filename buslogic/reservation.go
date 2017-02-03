@@ -6,6 +6,7 @@ import (
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"github.com/mijia/sweb/log"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -33,7 +34,7 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType int) (*model
 		if r.Status == model.RESERVATION_STATUS_AVAILABLE && r.StartTime.Before(time.Now()) {
 			continue
 		} else if r.StudentId == student.Id.Hex() {
-			if !r.TeacherFeedback.IsEmpty() && r.TeacherFeedback.Participants[0] == 0 {
+			if !r.TeacherFeedback.IsEmpty() && strings.HasPrefix(r.TeacherFeedback.Category, "H") {
 				// 学生未参与的咨询不展示给学生（家长、老师或者辅导员参加）
 				continue
 			}
@@ -283,7 +284,7 @@ func (w *Workflow) ShiftReservationTimeInDays(days int) error {
 	for _, r := range reservations {
 		r.StartTime = r.StartTime.AddDate(0, 0, days)
 		r.EndTime = r.EndTime.AddDate(0, 0, days)
-		err = w.mongoClient.UpdateReservationWithoutTime(r)
+		err = w.mongoClient.UpdateReservationWithoutUpdatedTime(r)
 		if err != nil {
 			log.Errorf("fail to update reservation %+v, err: %+v", r, err)
 		}
@@ -351,7 +352,9 @@ func (w *Workflow) WrapReservation(reservation *model.Reservation) map[string]in
 			result["student_crisis_level"] = student.CrisisLevel
 		}
 	}
+	result["has_student_feedback"] = !reservation.StudentFeedback.IsEmpty()
 	result["student_feedback"] = reservation.StudentFeedback.ToStringJson()
+	result["has_teacher_feedback"] = !reservation.TeacherFeedback.IsEmpty()
 	result["teacher_feedback"] = reservation.TeacherFeedback.ToStringJson()
 	return result
 }

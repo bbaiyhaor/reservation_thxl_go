@@ -22,9 +22,32 @@ export default class StudentRegisterPage extends React.Component {
     this.showAlert = this.showAlert.bind(this);
   }
 
-  onRegister(username, password) {
+  onRegister(username, password, fullname, gender, birthday, school, grade, currentAddress, familyAddress, mobile, email, experienceTime, experienceLocation, experienceTeacher, fatherAge, fatherJob, fatherEdu, motherAge, motherJob, motherEdu, parentMarriage) {
+    const payload = {
+      username,
+      password,
+      student_fullname: fullname,
+      student_gender: gender,
+      student_birthday: birthday,
+      student_school: school,
+      student_grade: grade,
+      student_current_address: currentAddress,
+      student_family_address: familyAddress,
+      student_mobile: mobile,
+      student_email: email,
+      student_experience_time: experienceTime,
+      student_experience_location: experienceLocation,
+      student_experience_teacher: experienceTeacher,
+      student_father_age: fatherAge,
+      student_father_job: fatherJob,
+      student_father_edu: fatherEdu,
+      student_mother_age: motherAge,
+      student_mother_job: motherJob,
+      student_mother_edu: motherEdu,
+      student_parent_marriage: parentMarriage,
+    };
     this.loading.show('正在加载中');
-    User.studentRegister(username, password, () => {
+    User.studentRegister(payload, () => {
       this.loading.hide();
       this.alert.show('注册成功', '请用学号和密码登录', '好的', () => {
         hashHistory.push('login');
@@ -74,7 +97,7 @@ export default class StudentRegisterPage extends React.Component {
         <PageBottom
           styles={{ color: '#999999', textAlign: 'center', backgroundColor: 'white', fontSize: '14px' }}
           contents={['清华大学学生心理发展指导中心', '联系方式：010-62782007']}
-          height="55  px"
+          height="55px"
         />
       </div>
     );

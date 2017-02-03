@@ -29,9 +29,6 @@ func main() {
 	} else if *method == "timetable" {
 		// 每天早上发送当天咨询安排表邮件
 		workflow.SendTodayTimetableMail(*mailTo)
-	} else if *method == "transfer-data-2016-11" {
-		// 2016-11重构项目后的数据迁移
-		TransferDataForNov2016(workflow)
 	} else if *method == "import-archive-file" {
 		// 导入档案列表，仅需执行一次
 		err := workflow.ImportArchiveFromCSVFile()

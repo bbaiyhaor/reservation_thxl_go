@@ -5,9 +5,11 @@ import (
 	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
 	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
 	"fmt"
+	"github.com/mijia/sweb/log"
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -239,7 +241,7 @@ func (w *Workflow) RemoveReservationsByAdmin(reservationIds []string, sourceIds 
 	removed := 0
 	for index, reservationId := range reservationIds {
 		if sourceIds[index] == "" {
-			// Source为ADD，无SourceId：直接置为DELETED（TODO 目前不能删除已预约咨询）
+			// Source为ADD，无SourceId：直接置为DELETED（目前不能删除已预约咨询）
 			if reservation, err := w.mongoClient.GetReservationById(reservationId); err == nil &&
 				(reservation.Source == model.RESERVATION_SOURCE_ADMIN_ADD || reservation.Source == model.RESERVATION_SOURCE_TEACHER_ADD) &&
 				reservation.Status != model.RESERVATION_STATUS_RESERVATED {
@@ -356,7 +358,7 @@ func (w *Workflow) GetFeedbackByAdmin(reservationId string, sourceId string,
 
 // 管理员提交反馈
 func (w *Workflow) SubmitFeedbackByAdmin(reservationId string, sourceId string,
-	category string, participants []int, emphasis string, severity []int, medicalDiagnosis []int, crisis []int,
+	category string, severity []int, medicalDiagnosis []int, crisis []int,
 	record string, crisisLevel string, userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
 		return nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
@@ -366,15 +368,11 @@ func (w *Workflow) SubmitFeedbackByAdmin(reservationId string, sourceId string,
 		return nil, re.NewRErrorCodeContext("reservation id is empty", nil, re.ERROR_MISSING_PARAM, "reservation_id")
 	} else if category == "" {
 		return nil, re.NewRErrorCodeContext("category is empty", nil, re.ERROR_MISSING_PARAM, "category")
-	} else if len(participants) != len(model.PARTICIPANTS) {
-		return nil, re.NewRErrorCodeContext("participants is not valid", nil, re.ERROR_INVALID_PARAM, "participants")
-	} else if emphasis == "" {
-		return nil, re.NewRErrorCodeContext("emphasis is empty", nil, re.ERROR_MISSING_PARAM, "emphasis")
-	} else if len(severity) != len(model.SEVERITY) {
+	} else if len(severity) != len(model.FeedbackSeverity) {
 		return nil, re.NewRErrorCodeContext("severity is not valid", nil, re.ERROR_INVALID_PARAM, "severity")
-	} else if len(medicalDiagnosis) != len(model.MEDICAL_DIAGNOSIS) {
+	} else if len(medicalDiagnosis) != len(model.FeedbackMedicalDiagnosis) {
 		return nil, re.NewRErrorCodeContext("medical_diagnosis is not valid", nil, re.ERROR_INVALID_PARAM, "medical_diagnosis")
-	} else if len(crisis) != len(model.CRISIS) {
+	} else if len(crisis) != len(model.FeedbackCrisis) {
 		return nil, re.NewRErrorCodeContext("crisis is not valid", nil, re.ERROR_INVALID_PARAM, "crisis")
 	} else if record == "" {
 		return nil, re.NewRErrorCodeContext("record is empty", nil, re.ERROR_MISSING_PARAM, "record")
@@ -382,10 +380,6 @@ func (w *Workflow) SubmitFeedbackByAdmin(reservationId string, sourceId string,
 		return nil, re.NewRErrorCodeContext("crisis_level is empty", nil, re.ERROR_MISSING_PARAM, "crisis_level")
 	} else if reservationId == sourceId {
 		return nil, re.NewRErrorCode("cannot get feedback of available reservation", nil, re.ERROR_FEEDBACK_AVAILABLE_RESERVATION)
-	}
-	emphasisInt, err := strconv.Atoi(emphasis)
-	if err != nil || emphasisInt < 0 {
-		return nil, re.NewRErrorCodeContext("emphasis is not valid", err, re.ERROR_INVALID_PARAM, "emphasis")
 	}
 	crisisLevelInt, err := strconv.Atoi(crisisLevel)
 	if err != nil || crisisLevelInt < 0 {
@@ -406,8 +400,6 @@ func (w *Workflow) SubmitFeedbackByAdmin(reservationId string, sourceId string,
 	sendFeedbackSMS := reservation.TeacherFeedback.IsEmpty() && reservation.StudentFeedback.IsEmpty()
 	reservation.TeacherFeedback = model.TeacherFeedback{
 		Category:         category,
-		Participants:     participants,
-		Emphasis:         emphasisInt,
 		Severity:         severity,
 		MedicalDiagnosis: medicalDiagnosis,
 		Crisis:           crisis,
@@ -421,7 +413,7 @@ func (w *Workflow) SubmitFeedbackByAdmin(reservationId string, sourceId string,
 	if err = w.mongoClient.UpdateReservationAndStudent(reservation, student); err != nil {
 		return nil, re.NewRErrorCode("fail to update reservation and student", err, re.ERROR_DATABASE)
 	}
-	if sendFeedbackSMS && participants[0] > 0 {
+	if sendFeedbackSMS && !strings.HasPrefix(category, "H") {
 		w.SendFeedbackSMS(reservation)
 	}
 	return reservation, nil
@@ -1014,47 +1006,67 @@ func (w *Workflow) ExportReportFormByAdmin(fromDate string, toDate string, userI
 		return "", nil
 	}
 	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_report_%s_%s%s", fromDate, toDate, utils.CSV_FILE_SUFFIX))
-	if err = w.ExportReportFormToFile(reservations, path); err != nil {
+	if err = w.ExportReportToFile(reservations, path); err != nil {
 		return "", err
 	}
 	return path, nil
 }
 
 // 管理员导出报表
-func (w *Workflow) ExportReportMonthlyByAdmin(monthlyDate string, userId string, userType int) (string, string, error) {
+func (w *Workflow) ExportReportMonthlyByAdmin(monthlyDate string, userId string, userType int) (string, error) {
 	if userId == "" {
-		return "", "", re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+		return "", re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_ADMIN {
-		return "", "", re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
+		return "", re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	} else if monthlyDate == "" {
-		return "", "", re.NewRErrorCodeContext("monthly_date is empty", nil, re.ERROR_MISSING_PARAM, "monthly_date")
+		return "", re.NewRErrorCodeContext("monthly_date is empty", nil, re.ERROR_MISSING_PARAM, "monthly_date")
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
 	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
-		return "", "", re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
+		return "", re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	date, err := time.ParseInLocation("2006-01-02", monthlyDate, time.Local)
 	if err != nil {
-		return "", "", re.NewRErrorCodeContext("date is not valid", err, re.ERROR_INVALID_PARAM, "date")
+		return "", re.NewRErrorCodeContext("date is not valid", err, re.ERROR_INVALID_PARAM, "date")
 	}
 	from := time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, time.Local)
 	to := from.AddDate(0, 1, 0)
 	reservations, err := w.mongoClient.GetReservatedReservationsBetweenTime(from, to)
 	if err != nil {
-		return "", "", re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
+		return "", re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
 	}
 	if len(reservations) == 0 {
-		return "", "", nil
+		return "", nil
 	}
-	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), utils.CSV_FILE_SUFFIX))
-	keyCasePath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_key_case_%d_%d%s", date.Year(), date.Month(), utils.CSV_FILE_SUFFIX))
-	if err = w.ExportReportFormToFile(reservations, reportPath); err != nil {
-		return "", "", err
+	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), utils.EXCEL_FILE_SUFFIX))
+	if err = w.ExportReportToFile(reservations, reportPath); err != nil {
+		return "", err
 	}
-	//if err = workflow.ExportKeyCaseReport(reservations, keyCasePath); err != nil {
-	//	return "", "", err
-	//}
-	return reportPath, keyCasePath, nil
+	return reportPath, nil
+}
+
+// 管理员清除所有学生的绑定咨询师
+func (w *Workflow) AdminClearAllStudentsBindedTeacher(userId string, userType int) error {
+	if userId == "" {
+		return re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_ADMIN {
+		return re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
+	}
+	admin, err := w.mongoClient.GetAdminById(userId)
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+		return re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
+	}
+	students, err := w.mongoClient.GetAllStudents()
+	if err != nil {
+		return re.NewRErrorCode("fail to get all students", err, re.ERROR_DATABASE)
+	}
+	for _, s := range students {
+		s.BindedTeacherId = ""
+		if err = w.mongoClient.UpdateStudent(s); err != nil {
+			log.Errorf("fail to clear student binded teacher: %+v", s)
+		}
+	}
+	return nil
 }
 
 func (w *Workflow) WrapAdmin(admin *model.Admin) map[string]interface{} {

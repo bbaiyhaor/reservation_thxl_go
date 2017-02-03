@@ -257,43 +257,25 @@ func (w *Workflow) ExportStudentInfoToFile(student *model.Student, path string) 
 			data = append(data, []string{"咨询日期", r.StartTime.Format("2006-01-02")})
 			if !r.TeacherFeedback.IsEmpty() {
 				data = append(data, []string{"评估分类", model.FeedbackAllCategory[r.TeacherFeedback.Category]})
-				participants := []string{"出席人员"}
-				for j := 0; j < len(r.TeacherFeedback.Participants); j++ {
-					if r.TeacherFeedback.Participants[j] > 0 {
-						participants = append(participants, model.PARTICIPANTS[j])
-					}
-				}
-				data = append(data, participants)
 
-				if r.TeacherFeedback.Emphasis > 0 {
-					data = append(data, []string{"重点明细", "是"})
-				} else {
-					data = append(data, []string{"重点明细", "否"})
-				}
 				severity := []string{"严重程度"}
-				if len(r.TeacherFeedback.Severity) == len(model.SEVERITY) {
-					for i := 0; i < len(r.TeacherFeedback.Severity); i++ {
-						if r.TeacherFeedback.Severity[i] > 0 {
-							severity = append(severity, model.SEVERITY[i])
-						}
+				for i := 0; i < len(r.TeacherFeedback.Severity); i++ {
+					if r.TeacherFeedback.Severity[i] > 0 {
+						severity = append(severity, model.FeedbackSeverity[i])
 					}
 				}
 				data = append(data, severity)
 				medicalDiagnosis := []string{"疑似或明确的医疗诊断"}
-				if len(r.TeacherFeedback.MedicalDiagnosis) == len(model.MEDICAL_DIAGNOSIS) {
-					for i := 0; i < len(r.TeacherFeedback.MedicalDiagnosis); i++ {
-						if r.TeacherFeedback.MedicalDiagnosis[i] > 0 {
-							medicalDiagnosis = append(medicalDiagnosis, model.MEDICAL_DIAGNOSIS[i])
-						}
+				for i := 0; i < len(r.TeacherFeedback.MedicalDiagnosis); i++ {
+					if r.TeacherFeedback.MedicalDiagnosis[i] > 0 {
+						medicalDiagnosis = append(medicalDiagnosis, model.FeedbackMedicalDiagnosis[i])
 					}
 				}
 				data = append(data, medicalDiagnosis)
 				crisis := []string{"危急情况"}
-				if len(r.TeacherFeedback.Crisis) == len(model.CRISIS) {
-					for i := 0; i < len(r.TeacherFeedback.Crisis); i++ {
-						if r.TeacherFeedback.Crisis[i] > 0 {
-							crisis = append(crisis, model.CRISIS[i])
-						}
+				for i := 0; i < len(r.TeacherFeedback.Crisis); i++ {
+					if r.TeacherFeedback.Crisis[i] > 0 {
+						crisis = append(crisis, model.FeedbackCrisis[i])
 					}
 				}
 				data = append(data, crisis)

@@ -52,11 +52,36 @@ func (w *Workflow) StudentLogin(username string, password string) (*model.Studen
 }
 
 // 学生注册
-func (w *Workflow) StudentRegister(username string, password string) (*model.Student, error) {
+func (w *Workflow) StudentRegister(username string, password string, fullname string, gender string, birthday string,
+	school string, grade string, currentAddress string, familyAddress string, mobile string, email string,
+	experienceTime string, experienceLocation string, experienceTeacher string, fatherAge string, fatherJob string, fatherEdu string,
+	motherAge string, motherJob string, motherEdu string, parentMarriage string) (*model.Student, error) {
 	if username == "" {
 		return nil, re.NewRErrorCodeContext("username is empty", nil, re.ERROR_MISSING_PARAM, "username")
 	} else if password == "" {
 		return nil, re.NewRErrorCodeContext("password is empty", nil, re.ERROR_MISSING_PARAM, "password")
+	} else if fullname == "" {
+		return nil, re.NewRErrorCodeContext("fullname is empty", nil, re.ERROR_MISSING_PARAM, "fullname")
+	} else if gender == "" {
+		return nil, re.NewRErrorCodeContext("gender is empty", nil, re.ERROR_MISSING_PARAM, "gender")
+	} else if birthday == "" {
+		return nil, re.NewRErrorCodeContext("birthday is empty", nil, re.ERROR_MISSING_PARAM, "birthday")
+	} else if school == "" {
+		return nil, re.NewRErrorCodeContext("school is empty", nil, re.ERROR_MISSING_PARAM, "school")
+	} else if grade == "" {
+		return nil, re.NewRErrorCodeContext("grade is empty", nil, re.ERROR_MISSING_PARAM, "grade")
+	} else if currentAddress == "" {
+		return nil, re.NewRErrorCodeContext("current_address is empty", nil, re.ERROR_MISSING_PARAM, "current_address")
+	} else if familyAddress == "" {
+		return nil, re.NewRErrorCodeContext("family_address is empty", nil, re.ERROR_MISSING_PARAM, "family_address")
+	} else if mobile == "" {
+		return nil, re.NewRErrorCodeContext("mobile is empty", nil, re.ERROR_MISSING_PARAM, "mobile")
+	} else if email == "" {
+		return nil, re.NewRErrorCodeContext("email is empty", nil, re.ERROR_MISSING_PARAM, "email")
+	} else if !utils.IsMobile(mobile) {
+		return nil, re.NewRErrorCode("mobile format is wrong", nil, re.ERROR_FORMAT_MOBILE)
+	} else if !utils.IsEmail(email) {
+		return nil, re.NewRErrorCode("email format is wrong", nil, re.ERROR_FORMAT_EMAIL)
 	}
 	if !utils.IsStudentId(username) {
 		return nil, re.NewRErrorCode("student id format is wrong", nil, re.ERROR_FORMAT_STUDENTID)
@@ -65,9 +90,32 @@ func (w *Workflow) StudentRegister(username string, password string) (*model.Stu
 		return nil, re.NewRErrorCode("student already exists", nil, re.ERROR_EXIST_USERNAME)
 	}
 	student := &model.Student{
-		Username: username,
-		Password: password,
-		UserType: model.USER_TYPE_STUDENT,
+		Username:       username,
+		Password:       password,
+		UserType:       model.USER_TYPE_STUDENT,
+		Fullname:       fullname,
+		Gender:         gender,
+		Birthday:       birthday,
+		School:         school,
+		Grade:          grade,
+		CurrentAddress: currentAddress,
+		FamilyAddress:  familyAddress,
+		Mobile:         mobile,
+		Email:          email,
+		Experience: model.Experience{
+			Time:     experienceTime,
+			Location: experienceLocation,
+			Teacher:  experienceTeacher,
+		},
+		ParentInfo: model.ParentInfo{
+			FatherAge:      fatherAge,
+			FatherJob:      fatherJob,
+			FatherEdu:      fatherEdu,
+			MotherAge:      motherAge,
+			MotherJob:      motherJob,
+			MotherEdu:      motherEdu,
+			ParentMarriage: parentMarriage,
+		},
 	}
 	archive, err := w.mongoClient.GetArchiveByStudentUsername(username)
 	if err == nil {

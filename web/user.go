@@ -105,10 +105,31 @@ func (uc *UserController) GetAdminTimetablePageLegacy(ctx context.Context, w htt
 func (uc *UserController) StudentRegister(ctx context.Context, w http.ResponseWriter, r *http.Request) (int, interface{}) {
 	username := form.ParamString(r, "username", "")
 	password := form.ParamString(r, "password", "")
+	fullname := form.ParamString(r, "student_fullname", "")
+	gender := form.ParamString(r, "student_gender", "")
+	birthday := form.ParamString(r, "student_birthday", "")
+	school := form.ParamString(r, "student_school", "")
+	grade := form.ParamString(r, "student_grade", "")
+	currentAddress := form.ParamString(r, "student_current_address", "")
+	familyAddress := form.ParamString(r, "student_family_address", "")
+	mobile := form.ParamString(r, "student_mobile", "")
+	email := form.ParamString(r, "student_email", "")
+	experienceTime := form.ParamString(r, "student_experience_time", "")
+	experienceLocation := form.ParamString(r, "student_experience_location", "")
+	experienceTeacher := form.ParamString(r, "student_experience_teacher", "")
+	fatherAge := form.ParamString(r, "student_father_age", "")
+	fatherJob := form.ParamString(r, "student_father_job", "")
+	fatherEdu := form.ParamString(r, "student_father_edu", "")
+	motherAge := form.ParamString(r, "student_mother_age", "")
+	motherJob := form.ParamString(r, "student_mother_job", "")
+	motherEdu := form.ParamString(r, "student_mother_edu", "")
+	parentMarriage := form.ParamString(r, "student_parent_marriage", "")
 
 	var result = make(map[string]interface{})
 
-	student, err := service.Workflow().StudentRegister(username, password)
+	student, err := service.Workflow().StudentRegister(username, password, fullname, gender, birthday,
+		school, grade, currentAddress, familyAddress, mobile, email, experienceTime, experienceLocation, experienceTeacher,
+		fatherAge, fatherJob, fatherEdu, motherAge, motherJob, motherEdu, parentMarriage)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}

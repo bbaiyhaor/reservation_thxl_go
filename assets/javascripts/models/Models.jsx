@@ -105,17 +105,13 @@ export const User = {
     fetch(apiStudentLogin, 'POST', payload, succ, errCallback);
   },
 
-  studentRegister(username, password, succCallback, errCallback) {
+  studentRegister(payload, succCallback, errCallback) {
     const succ = (data) => {
       if (data.status === 'OK') {
         succCallback && succCallback(data.payload);
       } else {
         errCallback && errCallback(data.err_msg, data.payload);
       }
-    };
-    const payload = {
-      username,
-      password,
     };
     fetch(apiStudentRegister, 'POST', payload, succ, errCallback);
   },

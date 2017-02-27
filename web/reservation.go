@@ -216,6 +216,7 @@ func (rc *ReservationController) GetFeedbackByTeacher(w http.ResponseWriter, r *
 	feedback["var_medical_diagnosis"] = model.FeedbackMedicalDiagnosis
 	feedback["var_crisis"] = model.FeedbackCrisis
 	result["feedback"] = feedback
+	result["student"] = service.Workflow().WrapStudent(student)
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -490,6 +491,7 @@ func (rc *ReservationController) GetFeedbackByAdmin(w http.ResponseWriter, r *ht
 	feedback["var_medical_diagnosis"] = model.FeedbackMedicalDiagnosis
 	feedback["var_crisis"] = model.FeedbackCrisis
 	result["feedback"] = feedback
+	result["student"] = service.Workflow().WrapStudent(student)
 
 	return http.StatusOK, wrapJsonOk(result)
 }

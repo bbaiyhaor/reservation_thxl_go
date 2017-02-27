@@ -539,17 +539,17 @@ function getFeedback(index) {
     if (data.status === 'OK') {
       firstCategory = data.payload.feedback.var_first_category;
       secondCategory = data.payload.feedback.var_second_category;
-      showFeedback(index, data.payload.feedback);
+      showFeedback(index, data.payload.feedback, data.payload.student);
     } else {
       alert(data.err_msg);
     }
   });
 }
 
-function showFeedback(index, feedback) {
+function showFeedback(index, feedback, student) {
   $('body').append('\
     <div class="pop_window" id="feedback_table_' + index + '" style="text-align: left; width: 50%">\
-      咨询师反馈表<br>\
+      ' + student.fullname + '同学的咨询师反馈表<br>\
       评估分类：<br>\
       <select id="category_first_' + index + '" onchange="selectFirstCategory(' + index + ')"></select><br>\
       <select id="category_second_' + index + '" onchange="selectSecondCategory(' + index + ')"></select>\

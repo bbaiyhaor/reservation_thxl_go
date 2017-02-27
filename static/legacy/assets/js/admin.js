@@ -629,6 +629,7 @@ function showFirstCategory(index) {
 
 function selectFirstCategory(index) {
   var first = $('#category_first_' + index).val();
+  $('#category_show_tips_' + index).text('');
   $('#category_second_' + index).find("option").remove().end();
   if (secondCategory.hasOwnProperty(first)) {
     for (var name in secondCategory[first]) {

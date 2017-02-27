@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	SMS_SUCCESS_STUDENT        = "%s你好，你已成功预约星期%s（%d月%d日）%s-%s咨询，地点：紫荆C楼409室。电话：62782007。"
+	SMS_SUCCESS_STUDENT        = "%s你好，你已成功预约星期%s（%d月%d日）%s-%s咨询，地点：紫荆C楼409室。电话：62782007。请记得携带学生卡，如需取消预约请提前一天致电62782007。"
 	SMS_SUCCESS_TEACHER        = "%s您好，%s已预约您星期%s（%d月%d日）%s-%s咨询，地点：紫荆C楼409室。电话：62782007。"
 	SMS_CANCEL_STUDENT         = "%s你好，因特殊原因你预约的星期%s（%d月%d日）%s-%s咨询已被取消，详询62782007。"
 	SMS_CANCEL_TEACHER         = "%s您好，%s预约的星期%s（%d月%d日）%s-%s咨询已被取消，详询62782007。"

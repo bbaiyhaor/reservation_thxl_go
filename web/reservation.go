@@ -43,6 +43,7 @@ func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view/daily/teacher/username", "ViewDailyReservationsWithTeacherUsernameByAdmin", RoleCookieInjection(rc.ViewDailyReservationsWithTeacherUsernameByAdmin))
 	m.GetJson(kAdminApiBaseUrl+"/reservation/export/today", "ExportTodayReservationsByAdmin", RoleCookieInjection(rc.ExportTodayReservationsByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report/monthly", "ExportReportMonthlyByAdmin", RoleCookieInjection(rc.ExportReportMonthlyByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report", "ExportReportByAdmin", RoleCookieInjection(rc.ExportReportByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/add", "AddReservationByAdmin", RoleCookieInjection(rc.AddReservationByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/edit", "EditReservationByAdmin", RoleCookieInjection(rc.EditReservationByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/remove", "RemoveReservationsByAdmin", RoleCookieInjection(rc.RemoveReservationsByAdmin))
@@ -823,6 +824,21 @@ func (rc *ReservationController) ExportReportMonthlyByAdmin(w http.ResponseWrite
 	var result = make(map[string]interface{})
 
 	reportUrl, err := service.Workflow().ExportReportMonthlyByAdmin(monthlyDate, userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
+	result["report_url"] = "/" + reportUrl
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (rc *ReservationController) ExportReportByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	fromDate := form.ParamString(r, "from_date", "")
+	toDate := form.ParamString(r, "to_date", "")
+
+	var result = make(map[string]interface{})
+
+	reportUrl, err := service.Workflow().ExportReportByAdmin(fromDate, toDate, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}

@@ -1151,9 +1151,10 @@ Object.size = function(obj) {
   return size;
 }
 
-function exportReportMonthly() {
-  $.post('/api/admin/reservation/export/report/monthly', {
-    monthly_date: $('#monthly_report_date').val(),
+function exportReport() {
+  $.post('/api/admin/reservation/export/report', {
+    from_date: $('#report_from').val(),
+    to_date: $('#report_to').val(),
   }, function(data, textStatus, xhr) {
     if (data.status === 'OK') {
       window.open(data.payload.report_url);

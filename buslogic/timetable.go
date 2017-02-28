@@ -270,7 +270,7 @@ func (w *Workflow) CloseTimetablesByAdmin(timedReservationIds []string, userId s
 func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.Reservation, path string) error {
 	data := make([][]string, 0)
 	today := utils.BeginOfDay(time.Now())
-	data = append(data, []string{today.Format("2006-01-02")})
+	data = append(data, []string{today.Format("2006年01月02日")})
 	data = append(data, []string{"时间", "咨询师", "学生姓名", "学生学号", "联系方式"})
 	for _, r := range reservations {
 		teacher, err := w.mongoClient.GetTeacherById(r.TeacherId)

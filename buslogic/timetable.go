@@ -271,7 +271,7 @@ func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.R
 	data := make([][]string, 0)
 	today := utils.BeginOfDay(time.Now())
 	data = append(data, []string{today.Format("2006-01-02")})
-	data = append(data, []string{"时间", "咨询师", "学生姓名", "联系方式"})
+	data = append(data, []string{"时间", "咨询师", "学生姓名", "学生学号", "联系方式"})
 	for _, r := range reservations {
 		teacher, err := w.mongoClient.GetTeacherById(r.TeacherId)
 		if err != nil {
@@ -279,10 +279,10 @@ func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.R
 		}
 		if student, err := w.mongoClient.GetStudentById(r.StudentId); err == nil {
 			data = append(data, []string{r.StartTime.Format("15:04") + " - " + r.EndTime.Format("15:04"),
-				teacher.Fullname, student.Fullname, student.Mobile})
+				teacher.Fullname, student.Fullname, student.Username, student.Mobile})
 		} else {
 			data = append(data, []string{r.StartTime.Format("15:04") + " - " + r.EndTime.Format("15:04"),
-				teacher.Fullname, "", ""})
+				teacher.Fullname, "", "", ""})
 		}
 	}
 	if err := utils.WriteToCSV(data, path); err != nil {

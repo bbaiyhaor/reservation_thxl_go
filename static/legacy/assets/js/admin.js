@@ -22,23 +22,9 @@ function viewReservations() {
 }
 
 function queryReservations() {
-  $.getJSON('/api/admin/reservation/view/daily', {
-    from_date: $('#query_date').val()
-  }, function(json, textStatus) {
-    if (json.status === 'OK') {
-      console.log(json.payload);
-      reservations = json.payload.reservations;
-      refreshDataTable(reservations);
-      optimize();
-    } else {
-      alert(json.err_msg);
-    }
-  });
-}
-
-function queryReservationsByTeacher() {
-  $.getJSON('/api/admin/reservation/view/teacher/username', {
-    teacher_username: $('#query_teacher_username').val()
+  $.getJSON('/api/admin/reservation/view/daily/teacher/username', {
+    from_date: $('#query_date').val(),
+    teacher_username: $('#query_teacher_username').val(),
   }, function(json, textStatus) {
     if (json.status === 'OK') {
       console.log(json.payload);

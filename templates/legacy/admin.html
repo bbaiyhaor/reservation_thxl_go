@@ -21,11 +21,10 @@
 </div>
 <div style="padding-top:10px">
     <button onclick="removeReservations();">批量删除</button>
-    <button onclick="cancelReservations();">取消预约</button>
-    <input type="text" id="query_date" style="width:80px; margin-left: 20px;"/>
-    <button onclick="queryReservations();">按时间查询</button>
-    <input type="text" id="query_teacher_username" style="width:80px; margin-left: 20px;"/>
-    <button onclick="queryReservationsByTeacher();">按工号查询</button>
+    <button onclick="cancelReservations();" style="margin-right: 20px;">取消预约</button>
+    时间：<input type="text" id="query_date" style="width:80px;"/>
+    咨询师工号：<input type="text" id="query_teacher_username" style="width:80px;"/>
+    <button onclick="queryReservations();">按日期和工号查询</button>
 </div>
 <div style="padding-top:10px">
     <button onclick="exportTodayReservations();">导出当天时间表</button>

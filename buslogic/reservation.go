@@ -282,7 +282,7 @@ func (w *Workflow) GetReservationsDailyWithTeacherUsernameByAdmin(fromDate strin
 	} else if userType != model.USER_TYPE_ADMIN {
 		return nil, nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	} else if fromDate == "" && teacherUsername == "" {
-		return nil, nil, re.NewRErrorCodeContext("from_date and teacher username are both empty", nil, re.ERROR_MISSING_PARAM, "from_date&teacher_username")
+		return w.GetReservationsByAdmin(userId, userType)
 	} else if fromDate == "" {
 		return w.GetReservationsWithTeacherUsernameByAdmin(teacherUsername, userId, userType)
 	} else if teacherUsername == "" {

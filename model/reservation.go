@@ -92,7 +92,7 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 
 func (tf TeacherFeedback) ToStringJson() map[string]interface{} {
 	var json = make(map[string]interface{})
-	json["category"] = FeedbackAllCategory[tf.Category]
+	json["category"] = FeedbackAllCategoryMap[tf.Category]
 	var severity string
 	for i := 0; i < len(tf.Severity); i++ {
 		if tf.Severity[i] > 0 {
@@ -202,7 +202,11 @@ func (m *MongoClient) GetReservationsAfterTime(start time.Time) ([]*Reservation,
 	return reservations, err
 }
 
-var FeedbackFirstCategory = map[string]string{
+var FeedbackFirstCategoryKeys = []string{
+	"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "Y", "Z",
+}
+
+var FeedbackFirstCategoryMap = map[string]string{
 	"":  "请选择",
 	"A": "A 学业问题",
 	"B": "B 情感问题",
@@ -218,7 +222,7 @@ var FeedbackFirstCategory = map[string]string{
 	"Z": "Z 个体督导",
 }
 
-var FeedbackSecondCategory = map[string]map[string]string{
+var FeedbackSecondCategoryMap = map[string]map[string]string{
 	"": map[string]string{
 		"": "请选择",
 	},
@@ -308,7 +312,7 @@ var FeedbackSecondCategory = map[string]map[string]string{
 	},
 }
 
-var FeedbackAllCategory = map[string]string{
+var FeedbackAllCategoryMap = map[string]string{
 	"A1": "A1 学业成就困扰",
 	"A2": "A2 专业认同困扰",
 	"A3": "A3 缓考评估",

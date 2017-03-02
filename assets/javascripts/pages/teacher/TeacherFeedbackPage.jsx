@@ -25,6 +25,7 @@ export default class TeacherFeedbackPage extends React.Component {
     this.state = {
       reservation: null,
       feedback: null,
+      student: null,
       crisisLevel: 0,
     };
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -56,6 +57,7 @@ export default class TeacherFeedbackPage extends React.Component {
         this.setState({
           reservation,
           feedback: data.feedback,
+          student: data.student,
         });
       }, (error) => {
         this.loading.hide();
@@ -89,7 +91,7 @@ export default class TeacherFeedbackPage extends React.Component {
     return (
       <div>
         <Panel>
-          <PanelHeader style={{ fontSize: '18px' }}>咨询师反馈表</PanelHeader>
+          <PanelHeader style={{ fontSize: '18px' }}>{this.state.student && `${this.state.student.fullname}同学的`}咨询师反馈表</PanelHeader>
           <TeacherFeedbackForm
             reservation={this.state.reservation}
             feedback={this.state.feedback}

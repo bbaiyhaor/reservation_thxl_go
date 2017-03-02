@@ -113,7 +113,10 @@ export default class TeacherFeedbackForm extends React.Component {
       default:
         this.setState({ [name]: value });
         if (name === 'firstCategory') {
-          this.setState({ secondCategory: '' });
+          this.setState({
+            secondCategory: '',
+            categoryShowTips: '',
+          });
         } else if (name === 'secondCategory') {
           if (value === 'A3') {
             this.setState((prevState) => {
@@ -133,13 +136,12 @@ export default class TeacherFeedbackForm extends React.Component {
                 categoryShowTips: '',
               };
             });
+          } else if (this.state.categoryShowCheckTips.includes(value)) {
+            this.setState({ categoryShowTips: '请核查是否需要重点标记' });
+          } else if (this.state.categoryShowNeedTips.includes(value)) {
+            this.setState({ categoryShowTips: '请选择合适的重点标记，否则不能够成功提交反馈表' });
           } else {
-            if (this.state.categoryShowCheckTips.includes(value)) {
-              this.setState({ categoryShowTips: '请核查是否需要重点标记' });
-            }
-            if (this.state.categoryShowNeedTips.includes(value)) {
-              this.setState({ categoryShowTips: '请选择合适的重点标记，否则不能够成功提交反馈表' });
-            }
+            this.setState({ categoryShowTips: '' });
           }
         }
     }

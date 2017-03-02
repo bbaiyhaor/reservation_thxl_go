@@ -215,26 +215,26 @@ func (w *Workflow) GetReservationsDailyByAdmin(fromDate string, userId string, u
 }
 
 // 管理员通过咨询师工号查询咨询
-func (w *Workflow) GetReservationsWithTeacherUsernameByAdmin(teacherUsername string, userId string, userType int) ([]*model.Reservation, error) {
+func (w *Workflow) GetReservationsWithTeacherUsernameByAdmin(teacherUsername string, userId string, userType int) (*model.Admin, []*model.Reservation, error) {
 	if userId == "" {
-		return nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+		return nil, nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_ADMIN {
-		return nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
+		return nil, nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	} else if teacherUsername == "" {
-		return nil, re.NewRErrorCodeContext("teacher username is empty", nil, re.ERROR_MISSING_PARAM, "teacher_username")
+		return nil, nil, re.NewRErrorCodeContext("teacher username is empty", nil, re.ERROR_MISSING_PARAM, "teacher_username")
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
 	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
-		return nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	teacher, err := w.mongoClient.GetTeacherByUsername(teacherUsername)
 	if err != nil {
-		return nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 	}
 	from := time.Now().AddDate(0, 0, -7)
 	reservations, err := w.mongoClient.GetReservationsAfterTime(from)
 	if err != nil {
-		return nil, re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
+		return nil, nil, re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
 	}
 	var result []*model.Reservation
 	for _, r := range reservations {
@@ -273,7 +273,36 @@ func (w *Workflow) GetReservationsWithTeacherUsernameByAdmin(teacherUsername str
 		}
 	}
 	sort.Sort(ByStartTimeOfReservation(result))
-	return result, nil
+	return admin, result, nil
+}
+
+func (w *Workflow) GetReservationsDailyWithTeacherUsernameByAdmin(fromDate string, teacherUsername string, userId string, userType int) (*model.Admin, []*model.Reservation, error) {
+	if userId == "" {
+		return nil, nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_ADMIN {
+		return nil, nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
+	} else if fromDate == "" && teacherUsername == "" {
+		return w.GetReservationsByAdmin(userId, userType)
+	} else if fromDate == "" {
+		return w.GetReservationsWithTeacherUsernameByAdmin(teacherUsername, userId, userType)
+	} else if teacherUsername == "" {
+		return w.GetReservationsDailyByAdmin(fromDate, userId, userType)
+	}
+	admin, reservations, err := w.GetReservationsDailyByAdmin(fromDate, userId, userType)
+	if err != nil {
+		return nil, nil, err
+	}
+	teacher, err := w.mongoClient.GetTeacherByUsername(teacherUsername)
+	if err != nil {
+		return nil, nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
+	}
+	filteredReservations := make([]*model.Reservation, 0)
+	for _, r := range reservations {
+		if r.TeacherId == teacher.Id.Hex() {
+			filteredReservations = append(filteredReservations, r)
+		}
+	}
+	return admin, filteredReservations, nil
 }
 
 func (w *Workflow) ShiftReservationTimeInDays(days int) error {

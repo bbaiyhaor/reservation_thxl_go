@@ -40,8 +40,10 @@ func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view", "ViewReservationsByAdmin", RoleCookieInjection(rc.ViewReservationsByAdmin))
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view/daily", "ViewDailyReservationsByAdmin", RoleCookieInjection(rc.ViewDailyReservationsByAdmin))
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view/teacher/username", "ViewReservationsWithTeacherUsernameByAdmin", RoleCookieInjection(rc.ViewReservationsWithTeacherUsernameByAdmin))
+	m.GetJson(kAdminApiBaseUrl+"/reservation/view/daily/teacher/username", "ViewDailyReservationsWithTeacherUsernameByAdmin", RoleCookieInjection(rc.ViewDailyReservationsWithTeacherUsernameByAdmin))
 	m.GetJson(kAdminApiBaseUrl+"/reservation/export/today", "ExportTodayReservationsByAdmin", RoleCookieInjection(rc.ExportTodayReservationsByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report/monthly", "ExportReportMonthlyByAdmin", RoleCookieInjection(rc.ExportReportMonthlyByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report", "ExportReportByAdmin", RoleCookieInjection(rc.ExportReportByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/add", "AddReservationByAdmin", RoleCookieInjection(rc.AddReservationByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/edit", "EditReservationByAdmin", RoleCookieInjection(rc.EditReservationByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/remove", "RemoveReservationsByAdmin", RoleCookieInjection(rc.RemoveReservationsByAdmin))
@@ -62,6 +64,7 @@ func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	m.PostJson(kAdminApiBaseUrl+"/teacher/password/reset", "ResetTeacherPasswordByAdmin", RoleCookieInjection(rc.ResetTeacherPasswordByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/teacher/search", "SearchTeacherByAdmin", RoleCookieInjection(rc.SearchTeacherByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/teacher/workload", "GetTeacherWorkloadByAdmin", RoleCookieInjection(rc.GetTeacherWorkloadByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/teacher/workload/export", "ExportTeacherWorkloadByAdmin", RoleCookieInjection(rc.ExportTeacherWorkloadByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/student/unbind/all", "ClearAllStudentsBindedTeacherByAdmin", RoleCookieInjection(rc.ClearAllStudentsBindedTeacherByAdmin))
 }
 
@@ -210,12 +213,13 @@ func (rc *ReservationController) GetFeedbackByTeacher(w http.ResponseWriter, r *
 	}
 	feedback := reservation.TeacherFeedback.ToJson()
 	feedback["crisis_level"] = student.CrisisLevel
-	feedback["var_first_category"] = model.FeedbackFirstCategory
-	feedback["var_second_category"] = model.FeedbackSecondCategory
+	feedback["var_first_category"] = model.FeedbackFirstCategoryMap
+	feedback["var_second_category"] = model.FeedbackSecondCategoryMap
 	feedback["var_severity"] = model.FeedbackSeverity
 	feedback["var_medical_diagnosis"] = model.FeedbackMedicalDiagnosis
 	feedback["var_crisis"] = model.FeedbackCrisis
 	result["feedback"] = feedback
+	result["student"] = service.Workflow().WrapStudent(student)
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -359,10 +363,39 @@ func (rc *ReservationController) ViewReservationsWithTeacherUsernameByAdmin(w ht
 
 	var result = make(map[string]interface{})
 
-	reservations, err := service.Workflow().GetReservationsWithTeacherUsernameByAdmin(teacherUsername, userId, userType)
+	admin, reservations, err := service.Workflow().GetReservationsWithTeacherUsernameByAdmin(teacherUsername, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
+	result["admin"] = service.Workflow().WrapAdmin(admin)
+	var array = make([]interface{}, 0)
+	for _, res := range reservations {
+		resJson := service.Workflow().WrapReservation(res)
+		if res.Status == model.RESERVATION_STATUS_AVAILABLE {
+			resJson["status"] = model.RESERVATION_STATUS_AVAILABLE
+		} else if res.Status == model.RESERVATION_STATUS_RESERVATED && res.StartTime.Before(time.Now()) {
+			resJson["status"] = model.RESERVATION_STATUS_FEEDBACK
+		} else {
+			resJson["status"] = model.RESERVATION_STATUS_RESERVATED
+		}
+		array = append(array, resJson)
+	}
+	result["reservations"] = array
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (rc *ReservationController) ViewDailyReservationsWithTeacherUsernameByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	fromDate := form.ParamString(r, "from_date", "")
+	teacherUsername := form.ParamString(r, "teacher_username", "")
+
+	var result = make(map[string]interface{})
+
+	admin, reservations, err := service.Workflow().GetReservationsDailyWithTeacherUsernameByAdmin(fromDate, teacherUsername, userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
+	result["admin"] = service.Workflow().WrapAdmin(admin)
 	var array = make([]interface{}, 0)
 	for _, res := range reservations {
 		resJson := service.Workflow().WrapReservation(res)
@@ -484,12 +517,13 @@ func (rc *ReservationController) GetFeedbackByAdmin(w http.ResponseWriter, r *ht
 	}
 	feedback := reservation.TeacherFeedback.ToJson()
 	feedback["crisis_level"] = student.CrisisLevel
-	feedback["var_first_category"] = model.FeedbackFirstCategory
-	feedback["var_second_category"] = model.FeedbackSecondCategory
+	feedback["var_first_category"] = model.FeedbackFirstCategoryMap
+	feedback["var_second_category"] = model.FeedbackSecondCategoryMap
 	feedback["var_severity"] = model.FeedbackSeverity
 	feedback["var_medical_diagnosis"] = model.FeedbackMedicalDiagnosis
 	feedback["var_crisis"] = model.FeedbackCrisis
 	result["feedback"] = feedback
+	result["student"] = service.Workflow().WrapStudent(student)
 
 	return http.StatusOK, wrapJsonOk(result)
 }
@@ -785,12 +819,42 @@ func (rc *ReservationController) GetTeacherWorkloadByAdmin(w http.ResponseWriter
 	return http.StatusOK, wrapJsonOk(result)
 }
 
+func (rc *ReservationController) ExportTeacherWorkloadByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	fromDate := form.ParamString(r, "from_date", "")
+	toDate := form.ParamString(r, "to_date", "")
+
+	var result = make(map[string]interface{})
+
+	reportUrl, err := service.Workflow().ExportTeacherWorkloadByAdmin(fromDate, toDate, userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
+	result["report_url"] = "/" + reportUrl
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
 func (rc *ReservationController) ExportReportMonthlyByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	monthlyDate := form.ParamString(r, "monthly_date", "")
 
 	var result = make(map[string]interface{})
 
 	reportUrl, err := service.Workflow().ExportReportMonthlyByAdmin(monthlyDate, userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
+	result["report_url"] = "/" + reportUrl
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (rc *ReservationController) ExportReportByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	fromDate := form.ParamString(r, "from_date", "")
+	toDate := form.ParamString(r, "to_date", "")
+
+	var result = make(map[string]interface{})
+
+	reportUrl, err := service.Workflow().ExportReportByAdmin(fromDate, toDate, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}

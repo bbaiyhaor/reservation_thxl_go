@@ -58,7 +58,7 @@ export default class StudentReservationListPage extends React.Component {
                 退出登录
               </LogoutButton>
             </div>
-            <CellsTitle>请根据您的需要选择相应咨询师和时间段进行预约</CellsTitle>
+            <CellsTitle>可预约时间为当前时间加一周减去1.5小时，请根据您的需要选择相应咨询师和时间段进行预约。</CellsTitle>
           </PanelHeader>
           <PanelBody>
             <StudentReservationList reservations={this.state.reservations} />

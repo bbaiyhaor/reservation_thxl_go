@@ -22,23 +22,9 @@ function viewReservations() {
 }
 
 function queryReservations() {
-  $.getJSON('/api/admin/reservation/view/daily', {
-    from_date: $('#query_date').val()
-  }, function(json, textStatus) {
-    if (json.status === 'OK') {
-      console.log(json.payload);
-      reservations = json.payload.reservations;
-      refreshDataTable(reservations);
-      optimize();
-    } else {
-      alert(json.err_msg);
-    }
-  });
-}
-
-function queryReservationsByTeacher() {
-  $.getJSON('/api/admin/reservation/view/teacher/username', {
-    teacher_username: $('#query_teacher_username').val()
+  $.getJSON('/api/admin/reservation/view/daily/teacher/username', {
+    from_date: $('#query_date').val(),
+    teacher_username: $('#query_teacher_username').val(),
   }, function(json, textStatus) {
     if (json.status === 'OK') {
       console.log(json.payload);
@@ -539,17 +525,17 @@ function getFeedback(index) {
     if (data.status === 'OK') {
       firstCategory = data.payload.feedback.var_first_category;
       secondCategory = data.payload.feedback.var_second_category;
-      showFeedback(index, data.payload.feedback);
+      showFeedback(index, data.payload.feedback, data.payload.student);
     } else {
       alert(data.err_msg);
     }
   });
 }
 
-function showFeedback(index, feedback) {
+function showFeedback(index, feedback, student) {
   $('body').append('\
     <div class="pop_window" id="feedback_table_' + index + '" style="text-align: left; width: 50%">\
-      咨询师反馈表<br>\
+      ' + student.fullname + '同学的咨询师反馈表<br>\
       评估分类：<br>\
       <select id="category_first_' + index + '" onchange="selectFirstCategory(' + index + ')"></select><br>\
       <select id="category_second_' + index + '" onchange="selectSecondCategory(' + index + ')"></select>\
@@ -629,6 +615,7 @@ function showFirstCategory(index) {
 
 function selectFirstCategory(index) {
   var first = $('#category_first_' + index).val();
+  $('#category_show_tips_' + index).text('');
   $('#category_second_' + index).find("option").remove().end();
   if (secondCategory.hasOwnProperty(first)) {
     for (var name in secondCategory[first]) {
@@ -1164,9 +1151,23 @@ Object.size = function(obj) {
   return size;
 }
 
-function exportReportMonthly() {
-  $.post('/api/admin/reservation/export/report/monthly', {
-    monthly_date: $('#monthly_report_date').val(),
+function exportWorkload() {
+	$.post('/api/admin/teacher/workload/export', {
+		from_date: $('#workload_from').val(),
+		to_date: $('#workload_to').val(),
+	}, function(data, textStatus, xhr) {
+		if (data.status === 'OK') {
+			window.open(data.payload.report_url);
+		} else {
+			alert(data.err_msg);
+		}
+	});
+}
+
+function exportReport() {
+  $.post('/api/admin/reservation/export/report', {
+    from_date: $('#report_from').val(),
+    to_date: $('#report_to').val(),
   }, function(data, textStatus, xhr) {
     if (data.status === 'OK') {
       window.open(data.payload.report_url);

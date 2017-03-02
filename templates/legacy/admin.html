@@ -22,8 +22,8 @@
 <div style="padding-top:10px">
     <button onclick="removeReservations();">批量删除</button>
     <button onclick="cancelReservations();" style="margin-right: 20px;">取消预约</button>
-    时间：<input type="text" id="query_date" style="width:80px;"/>
-    咨询师工号：<input type="text" id="query_teacher_username" style="width:80px;"/>
+    日期<input type="text" id="query_date" style="width:80px;"/>
+    咨询师工号<input type="text" id="query_teacher_username" style="width:80px;"/>
     <button onclick="queryReservations();">按日期和工号查询</button>
 </div>
 <div style="padding-top:10px">
@@ -36,13 +36,14 @@
     咨询报表
     起<input type="text" id="report_from" style="width: 100px"/>
     止<input type="text" id="report_to" style="width: 100px"/>
-    <button onclick="exportReport();">导出</button>
+    <button onclick="exportReport();">导出</button>　
 </div>
 <div style="padding-top: 10px">
-    咨询师工作量　
+    咨询师工作量
     起<input type="text" id="workload_from" style="width: 100px"/>
     止<input type="text" id="workload_to" style="width: 100px"/>
     <button onclick="getWorkload();">统计</button>
+    <button onclick="exportWorkload();">导出</button>
 </div>
 <div id="page_maintable">
 

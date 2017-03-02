@@ -1151,6 +1151,19 @@ Object.size = function(obj) {
   return size;
 }
 
+function exportWorkload() {
+	$.post('/api/admin/teacher/workload/export', {
+		from_date: $('#workload_from').val(),
+		to_date: $('#workload_to').val(),
+	}, function(data, textStatus, xhr) {
+		if (data.status === 'OK') {
+			window.open(data.payload.report_url);
+		} else {
+			alert(data.err_msg);
+		}
+	});
+}
+
 function exportReport() {
   $.post('/api/admin/reservation/export/report', {
     from_date: $('#report_from').val(),

@@ -256,7 +256,7 @@ func (w *Workflow) ExportStudentInfoToFile(student *model.Student, path string) 
 			data = append(data, []string{"咨询师", teacher.Username, teacher.Fullname})
 			data = append(data, []string{"咨询日期", r.StartTime.Format("2006-01-02")})
 			if !r.TeacherFeedback.IsEmpty() {
-				data = append(data, []string{"评估分类", model.FeedbackAllCategory[r.TeacherFeedback.Category]})
+				data = append(data, []string{"评估分类", model.FeedbackAllCategoryMap[r.TeacherFeedback.Category]})
 
 				severity := []string{"严重程度"}
 				for i := 0; i < len(r.TeacherFeedback.Severity); i++ {

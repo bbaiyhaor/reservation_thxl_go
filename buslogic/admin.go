@@ -974,8 +974,8 @@ func (w *Workflow) GetTeacherWorkloadByAdmin(fromDate string, toDate string,
 	return workload, nil
 }
 
-// 管理员导出报表
-func (w *Workflow) ExportReportFormByAdmin(fromDate string, toDate string, userId string, userType int) (string, error) {
+// 管理员统计咨询师工作量
+func (w *Workflow) ExportTeacherWorkloadByAdmin(fromDate string, toDate string, userId string, userType int) (string, error) {
 	if userId == "" {
 		return "", re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_ADMIN {
@@ -1005,11 +1005,11 @@ func (w *Workflow) ExportReportFormByAdmin(fromDate string, toDate string, userI
 	if len(reservations) == 0 {
 		return "", nil
 	}
-	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_report_%s_%s%s", fromDate, toDate, utils.CSV_FILE_SUFFIX))
-	if err = w.ExportReportToFile(reservations, path); err != nil {
+	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("teacher_workload_%s-%s%s", from.Format("2006-01-02"), to.Format("2006-01-02"), utils.EXCEL_FILE_SUFFIX))
+	if err = w.ExportWorkloadToFile(reservations, reportPath); err != nil {
 		return "", err
 	}
-	return path, nil
+	return reportPath, nil
 }
 
 // 管理员按月导出报表

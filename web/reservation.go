@@ -64,6 +64,7 @@ func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	m.PostJson(kAdminApiBaseUrl+"/teacher/password/reset", "ResetTeacherPasswordByAdmin", RoleCookieInjection(rc.ResetTeacherPasswordByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/teacher/search", "SearchTeacherByAdmin", RoleCookieInjection(rc.SearchTeacherByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/teacher/workload", "GetTeacherWorkloadByAdmin", RoleCookieInjection(rc.GetTeacherWorkloadByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/teacher/workload/export", "ExportTeacherWorkloadByAdmin", RoleCookieInjection(rc.ExportTeacherWorkloadByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/student/unbind/all", "ClearAllStudentsBindedTeacherByAdmin", RoleCookieInjection(rc.ClearAllStudentsBindedTeacherByAdmin))
 }
 
@@ -212,8 +213,8 @@ func (rc *ReservationController) GetFeedbackByTeacher(w http.ResponseWriter, r *
 	}
 	feedback := reservation.TeacherFeedback.ToJson()
 	feedback["crisis_level"] = student.CrisisLevel
-	feedback["var_first_category"] = model.FeedbackFirstCategory
-	feedback["var_second_category"] = model.FeedbackSecondCategory
+	feedback["var_first_category"] = model.FeedbackFirstCategoryMap
+	feedback["var_second_category"] = model.FeedbackSecondCategoryMap
 	feedback["var_severity"] = model.FeedbackSeverity
 	feedback["var_medical_diagnosis"] = model.FeedbackMedicalDiagnosis
 	feedback["var_crisis"] = model.FeedbackCrisis
@@ -516,8 +517,8 @@ func (rc *ReservationController) GetFeedbackByAdmin(w http.ResponseWriter, r *ht
 	}
 	feedback := reservation.TeacherFeedback.ToJson()
 	feedback["crisis_level"] = student.CrisisLevel
-	feedback["var_first_category"] = model.FeedbackFirstCategory
-	feedback["var_second_category"] = model.FeedbackSecondCategory
+	feedback["var_first_category"] = model.FeedbackFirstCategoryMap
+	feedback["var_second_category"] = model.FeedbackSecondCategoryMap
 	feedback["var_severity"] = model.FeedbackSeverity
 	feedback["var_medical_diagnosis"] = model.FeedbackMedicalDiagnosis
 	feedback["var_crisis"] = model.FeedbackCrisis
@@ -814,6 +815,21 @@ func (rc *ReservationController) GetTeacherWorkloadByAdmin(w http.ResponseWriter
 		return http.StatusOK, wrapJsonError(err)
 	}
 	result["workload"] = workload
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (rc *ReservationController) ExportTeacherWorkloadByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	fromDate := form.ParamString(r, "from_date", "")
+	toDate := form.ParamString(r, "to_date", "")
+
+	var result = make(map[string]interface{})
+
+	reportUrl, err := service.Workflow().ExportTeacherWorkloadByAdmin(fromDate, toDate, userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
+	result["report_url"] = "/" + reportUrl
 
 	return http.StatusOK, wrapJsonOk(result)
 }

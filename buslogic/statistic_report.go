@@ -10,6 +10,110 @@ import (
 	"strings"
 )
 
+// 定义单元格样式
+var (
+	textCenterAlignment = xlsx.Alignment{
+		Horizontal: "center",
+		Vertical:   "center",
+	}
+	textRightAlignment = xlsx.Alignment{
+		Horizontal: "right",
+		Vertical:   "center",
+	}
+	border = xlsx.Border{
+		Left:        "thin",
+		LeftColor:   "000000",
+		Right:       "thin",
+		RightColor:  "000000",
+		Top:         "thin",
+		TopColor:    "000000",
+		Bottom:      "thin",
+		BottomColor: "000000",
+	}
+
+	grayFill   = *xlsx.NewFill("solid", "D9E2F3", "D9E2F3")
+	greenFill  = *xlsx.NewFill("solid", "C5E0B2", "C5E0B2")
+	orangeFill = *xlsx.NewFill("solid", "F4B082", "F4B082")
+	yellowFill = *xlsx.NewFill("solid", "FFC000", "FFC000")
+	redFill    = *xlsx.NewFill("solid", "FF0000", "FF0000")
+
+	borderStyle *xlsx.Style = &xlsx.Style{
+		ApplyBorder: true,
+		Border:      border,
+	}
+	textCenterStyle *xlsx.Style = &xlsx.Style{
+		ApplyAlignment: true,
+		ApplyBorder:    true,
+		Alignment:      textCenterAlignment,
+		Border:         border,
+	}
+	textCenterGrayStyle *xlsx.Style = &xlsx.Style{
+		ApplyAlignment: true,
+		ApplyFill:      true,
+		ApplyBorder:    true,
+		Alignment:      textCenterAlignment,
+		Fill:           grayFill,
+		Border:         border,
+	}
+	textCenterGreenStyle *xlsx.Style = &xlsx.Style{
+		ApplyAlignment: true,
+		ApplyFill:      true,
+		ApplyBorder:    true,
+		Alignment:      textCenterAlignment,
+		Fill:           greenFill,
+		Border:         border,
+	}
+	textRightGreenStyle *xlsx.Style = &xlsx.Style{
+		ApplyAlignment: true,
+		ApplyFill:      true,
+		ApplyBorder:    true,
+		Alignment:      textRightAlignment,
+		Fill:           greenFill,
+		Border:         border,
+	}
+	textCenterOrangeStyle *xlsx.Style = &xlsx.Style{
+		ApplyAlignment: true,
+		ApplyFill:      true,
+		ApplyBorder:    true,
+		Alignment:      textCenterAlignment,
+		Fill:           orangeFill,
+		Border:         border,
+	}
+	bgGrayStyle *xlsx.Style = &xlsx.Style{
+		ApplyFill:   true,
+		ApplyBorder: true,
+		Fill:        grayFill,
+		Border:      border,
+	}
+	bgGreenStyle *xlsx.Style = &xlsx.Style{
+		ApplyFill:   true,
+		ApplyBorder: true,
+		Fill:        greenFill,
+		Border:      border,
+	}
+	bgOrangeStyle *xlsx.Style = &xlsx.Style{
+		ApplyFill:   true,
+		ApplyBorder: true,
+		Fill:        orangeFill,
+		Border:      border,
+	}
+	bgYellowStyle *xlsx.Style = &xlsx.Style{
+		ApplyFill:   true,
+		ApplyBorder: true,
+		Fill:        yellowFill,
+		Border:      border,
+	}
+	bgRedStyle *xlsx.Style = &xlsx.Style{
+		ApplyFill:   true,
+		ApplyBorder: true,
+		Fill:        redFill,
+		Border:      border,
+	}
+)
+
+//================================================================
+//===========================咨询月报==============================
+//================================================================
 type FirstClassReport struct {
 	FirstClass         string
 	SecondClassReports []*SecondClassReport
@@ -17,20 +121,6 @@ type FirstClassReport struct {
 	NumFemale          int // 合计（女）
 	NumUnderGraduates  int // 合计（本科生）
 	NumGraduates       int // 合计（研究生）
-}
-
-type ByClassOfFirstClassReport []*FirstClassReport
-
-func (a ByClassOfFirstClassReport) Len() int {
-	return len(a)
-}
-
-func (a ByClassOfFirstClassReport) Swap(i, j int) {
-	a[i], a[j] = a[j], a[i]
-}
-
-func (a ByClassOfFirstClassReport) Less(i, j int) bool {
-	return a[i].FirstClass < a[j].FirstClass
 }
 
 type SecondClassReport struct {
@@ -48,62 +138,13 @@ type SecondClassReport struct {
 	Ratio             float64        // 比例（需转成百分比）
 }
 
-type ByClassOfSecondClassReport []*SecondClassReport
-
-func (a ByClassOfSecondClassReport) Len() int {
-	return len(a)
-}
-
-func (a ByClassOfSecondClassReport) Swap(i, j int) {
-	a[i], a[j] = a[j], a[i]
-}
-
-func (a ByClassOfSecondClassReport) Less(i, j int) bool {
-	return a[i].SecondClass < a[j].SecondClass
-}
-
-type ByGradesOfStringSlice []string
-
-func (a ByGradesOfStringSlice) Len() int {
-	return len(a)
-}
-
-func (a ByGradesOfStringSlice) Swap(i, j int) {
-	a[i], a[j] = a[j], a[i]
-}
-
-func (a ByGradesOfStringSlice) Less(i, j int) bool {
-	if strings.HasSuffix(a[i], "级") {
-		if strings.HasSuffix(a[j], "级") {
-			return a[i] > a[j]
-		} else {
-			return true
-		}
-	} else if strings.HasSuffix(a[i], "硕") {
-		if strings.HasSuffix(a[j], "级") {
-			return false
-		} else if strings.HasSuffix(a[j], "硕") {
-			return a[i] > a[j]
-		} else if strings.HasSuffix(a[j], "博") {
-			return true
-		}
-	} else if strings.HasSuffix(a[i], "博") {
-		if strings.HasSuffix(a[j], "博") {
-			return a[i] > a[j]
-		} else {
-			return false
-		}
-	}
-	return true
-}
-
 func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path string) error {
 	// 建立存储结构
 	// 咨询情况汇总
 	categoryFCReport := make([]*FirstClassReport, 0)
 	categoryFCReportMap := make(map[string]*FirstClassReport)
 	categorySCReportMap := make(map[string]*SecondClassReport)
-	for fi, firstCategory := range model.FeedbackFirstCategory {
+	for fi, firstCategory := range model.FeedbackFirstCategoryMap {
 		if fi == "" {
 			continue
 		}
@@ -111,7 +152,7 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 			FirstClass:         firstCategory,
 			SecondClassReports: make([]*SecondClassReport, 0),
 		}
-		for si, secondCategory := range model.FeedbackSecondCategory[fi] {
+		for si, secondCategory := range model.FeedbackSecondCategoryMap[fi] {
 			if si == "" {
 				continue
 			}
@@ -122,11 +163,15 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 			fcReport.SecondClassReports = append(fcReport.SecondClassReports, scReport)
 			categorySCReportMap[si] = scReport
 		}
-		sort.Sort(ByClassOfSecondClassReport(fcReport.SecondClassReports))
+		sort.Slice(fcReport.SecondClassReports, func(i, j int) bool {
+			return fcReport.SecondClassReports[i].SecondClass < fcReport.SecondClassReports[j].SecondClass
+		})
 		categoryFCReportMap[fi] = fcReport
 		categoryFCReport = append(categoryFCReport, fcReport)
 	}
-	sort.Sort(ByClassOfFirstClassReport(categoryFCReport))
+	sort.Slice(categoryFCReport, func(i, j int) bool {
+		return categoryFCReport[i].FirstClass < categoryFCReport[j].FirstClass
+	})
 	categoryTotalReport := &SecondClassReport{
 		SecondClass: "总计",
 		Grades: map[string]int{
@@ -349,110 +394,36 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 	for g := range categoryTotalReport.Grades {
 		allGrades = append(allGrades, g)
 	}
-	sort.Sort(ByGradesOfStringSlice(allGrades))
+	sort.Slice(allGrades, func(i, j int) bool {
+		if strings.HasSuffix(allGrades[i], "级") {
+			if strings.HasSuffix(allGrades[j], "级") {
+				return allGrades[i] > allGrades[j]
+			} else {
+				return true
+			}
+		} else if strings.HasSuffix(allGrades[i], "硕") {
+			if strings.HasSuffix(allGrades[j], "级") {
+				return false
+			} else if strings.HasSuffix(allGrades[j], "硕") {
+				return allGrades[i] > allGrades[j]
+			} else if strings.HasSuffix(allGrades[j], "博") {
+				return true
+			}
+		} else if strings.HasSuffix(allGrades[i], "博") {
+			if strings.HasSuffix(allGrades[j], "博") {
+				return allGrades[i] > allGrades[j]
+			} else {
+				return false
+			}
+		}
+		return true
+	})
 	// 开始写入文件
 	var file *xlsx.File
 	var sheet *xlsx.Sheet
 	var row *xlsx.Row
 	var cell *xlsx.Cell
 	var err error
-	// 单元格样式
-	textCenterAlignment := xlsx.Alignment{
-		Horizontal: "center",
-		Vertical:   "center",
-	}
-	textRightAlignment := xlsx.Alignment{
-		Horizontal: "right",
-		Vertical:   "center",
-	}
-	border := xlsx.Border{
-		Left:        "thin",
-		LeftColor:   "000000",
-		Right:       "thin",
-		RightColor:  "000000",
-		Top:         "thin",
-		TopColor:    "000000",
-		Bottom:      "thin",
-		BottomColor: "000000",
-	}
-	grayFill := *xlsx.NewFill("solid", "D9E2F3", "D9E2F3")
-	greenFill := *xlsx.NewFill("solid", "C5E0B2", "C5E0B2")
-	orangeFill := *xlsx.NewFill("solid", "F4B082", "F4B082")
-	yellowFill := *xlsx.NewFill("solid", "FFC000", "FFC000")
-	redFill := *xlsx.NewFill("solid", "FF0000", "FF0000")
-	var borderStyle *xlsx.Style = &xlsx.Style{
-		ApplyBorder: true,
-		Border:      border,
-	}
-	var textCenterStyle *xlsx.Style = &xlsx.Style{
-		ApplyAlignment: true,
-		ApplyBorder:    true,
-		Alignment:      textCenterAlignment,
-		Border:         border,
-	}
-	var textCenterGrayStyle *xlsx.Style = &xlsx.Style{
-		ApplyAlignment: true,
-		ApplyFill:      true,
-		ApplyBorder:    true,
-		Alignment:      textCenterAlignment,
-		Fill:           grayFill,
-		Border:         border,
-	}
-	var textCenterGreenStyle *xlsx.Style = &xlsx.Style{
-		ApplyAlignment: true,
-		ApplyFill:      true,
-		ApplyBorder:    true,
-		Alignment:      textCenterAlignment,
-		Fill:           greenFill,
-		Border:         border,
-	}
-	var textRightGreenStyle *xlsx.Style = &xlsx.Style{
-		ApplyAlignment: true,
-		ApplyFill:      true,
-		ApplyBorder:    true,
-		Alignment:      textRightAlignment,
-		Fill:           greenFill,
-		Border:         border,
-	}
-	var textCenterOrangeStyle *xlsx.Style = &xlsx.Style{
-		ApplyAlignment: true,
-		ApplyFill:      true,
-		ApplyBorder:    true,
-		Alignment:      textCenterAlignment,
-		Fill:           orangeFill,
-		Border:         border,
-	}
-	var bgGrayStyle *xlsx.Style = &xlsx.Style{
-		ApplyFill:   true,
-		ApplyBorder: true,
-		Fill:        grayFill,
-		Border:      border,
-	}
-	var bgGreenStyle *xlsx.Style = &xlsx.Style{
-		ApplyFill:   true,
-		ApplyBorder: true,
-		Fill:        greenFill,
-		Border:      border,
-	}
-	var bgOrangeStyle *xlsx.Style = &xlsx.Style{
-		ApplyFill:   true,
-		ApplyBorder: true,
-		Fill:        orangeFill,
-		Border:      border,
-	}
-	var bgYellowStyle *xlsx.Style = &xlsx.Style{
-		ApplyFill:   true,
-		ApplyBorder: true,
-		Fill:        yellowFill,
-		Border:      border,
-	}
-	var bgRedStyle *xlsx.Style = &xlsx.Style{
-		ApplyFill:   true,
-		ApplyBorder: true,
-		Fill:        redFill,
-		Border:      border,
-	}
-
 	xlsx.SetDefaultFont(11, "宋体")
 	file = xlsx.NewFile()
 	//==========咨询情况汇总表=========
@@ -1191,6 +1162,258 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 	sheet.SetColWidth(1, 1, 24)
 	sheet.SetColWidth(len(allGrades)+4, len(allGrades)+5, 11)
 	sheet.SetColWidth(len(allGrades)+8, len(allGrades)+9, 11)
+
+	err = file.Save(path)
+	if err != nil {
+		return re.NewRError("fail to save file to path", err)
+	}
+	return nil
+}
+
+//================================================================
+//====================咨询师工作量统计==============================
+//================================================================
+type TeacherWorkload struct {
+	TeacherId           string
+	Fullname            string
+	StudentIdMap        map[string]int
+	TotalNum            int
+	TotalCount          int
+	UnderGraduateIdMap  map[string]int
+	NumUnderGraduates   int // 本科生人数
+	CountUnderGraduates int // 本科生人次
+	GraduateIdMap       map[string]int
+	NumGraduates        int // 研究生人数
+	CountGraduates      int // 研究生人次
+	FirstClassWorkloads map[string]*FirstClassWorkload
+}
+
+type FirstClassWorkload struct {
+	FirstClass          string
+	UnderGraduateIdMap  map[string]int
+	NumUnderGraduates   int // 本科生人数
+	CountUnderGraduates int // 本科生人次
+	GraduateIdMap       map[string]int
+	NumGraduates        int // 研究生人数
+	CountGraduates      int // 研究生人次
+}
+
+func (w *Workflow) ExportWorkloadToFile(reservations []*model.Reservation, path string) error {
+	// 建立存储结构
+	teacherWorkloads := make([]*TeacherWorkload, 0)
+	teacherWorkloadMap := make(map[string]*TeacherWorkload)
+	for _, r := range reservations {
+		if r.Status != model.RESERVATION_STATUS_RESERVATED || r.TeacherFeedback.IsEmpty() {
+			continue
+		}
+		if tWork, ok := teacherWorkloadMap[r.TeacherId]; !ok {
+			teacher, err := w.mongoClient.GetTeacherById(r.TeacherId)
+			if err != nil {
+				continue
+			}
+			tWork = &TeacherWorkload{
+				TeacherId:           r.TeacherId,
+				Fullname:            teacher.Fullname,
+				StudentIdMap:        make(map[string]int),
+				UnderGraduateIdMap:  make(map[string]int),
+				GraduateIdMap:       make(map[string]int),
+				FirstClassWorkloads: make(map[string]*FirstClassWorkload),
+			}
+			for fi, firstCategory := range model.FeedbackFirstCategoryMap {
+				if fi == "" {
+					continue
+				}
+				tWork.FirstClassWorkloads[fi] = &FirstClassWorkload{
+					FirstClass:         firstCategory,
+					UnderGraduateIdMap: make(map[string]int),
+					GraduateIdMap:      make(map[string]int),
+				}
+			}
+			teacherWorkloads = append(teacherWorkloads, tWork)
+			teacherWorkloadMap[r.TeacherId] = tWork
+		}
+		student, err := w.mongoClient.GetStudentById(r.StudentId)
+		if err != nil {
+			continue
+		}
+		grade, err := utils.ParseStudentId(student.Username)
+		if err != nil {
+			continue
+		}
+		tWork := teacherWorkloadMap[r.TeacherId]
+		// 总人数/人次
+		if _, ok := tWork.StudentIdMap[r.StudentId]; !ok {
+			tWork.TotalNum++
+		}
+		tWork.TotalCount++
+		tWork.StudentIdMap[r.StudentId]++
+		// 本科生/研究生人数/人次
+		if strings.HasSuffix(grade, "级") {
+			if _, ok := tWork.UnderGraduateIdMap[r.StudentId]; !ok {
+				tWork.NumUnderGraduates++
+			}
+			tWork.CountUnderGraduates++
+			tWork.UnderGraduateIdMap[r.StudentId]++
+		} else if strings.HasSuffix(grade, "硕") || strings.HasSuffix(grade, "博") {
+			if _, ok := tWork.GraduateIdMap[r.StudentId]; !ok {
+				tWork.NumGraduates++
+			}
+			tWork.CountGraduates++
+			tWork.GraduateIdMap[r.StudentId]++
+		}
+		// 分类人次
+		if r.TeacherFeedback.Category != "" {
+			fc := r.TeacherFeedback.Category[0:1]
+			if fcWork, ok := tWork.FirstClassWorkloads[fc]; ok {
+				if strings.HasSuffix(grade, "级") {
+					if _, ok := fcWork.UnderGraduateIdMap[r.StudentId]; !ok {
+						fcWork.NumUnderGraduates++
+					}
+					fcWork.CountUnderGraduates++
+					fcWork.UnderGraduateIdMap[r.StudentId]++
+				} else if strings.HasSuffix(grade, "硕") || strings.HasSuffix(grade, "博") {
+					if _, ok := fcWork.GraduateIdMap[r.StudentId]; !ok {
+						fcWork.NumGraduates++
+					}
+					fcWork.CountGraduates++
+					fcWork.GraduateIdMap[r.StudentId]++
+				}
+			}
+		}
+	}
+	sort.Slice(teacherWorkloads, func(i, j int) bool {
+		return teacherWorkloads[i].TeacherId < teacherWorkloads[j].TeacherId
+	})
+	// 写入文件
+	var file *xlsx.File
+	var sheet *xlsx.Sheet
+	var row *xlsx.Row
+	var cell *xlsx.Cell
+	var err error
+	xlsx.SetDefaultFont(11, "宋体")
+	file = xlsx.NewFile()
+	sheet, err = file.AddSheet("咨询师工作量汇总")
+	if err != nil {
+		return re.NewRError("fail to create workload sheet", err)
+	}
+	// 第一表头
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell.SetValue("咨询师")
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell.SetValue("人数")
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell.SetValue("人次")
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell.SetValue("本科生")
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell.SetValue("研究生")
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	for _, fi := range model.FeedbackFirstCategoryKeys {
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+		cell.SetValue(model.FeedbackFirstCategoryMap[fi])
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+	}
+	// 合并第一表头
+	cell = row.Cells[3]
+	cell.Merge(1, 0)
+	cell.SetStyle(textCenterStyle)
+	cell = row.Cells[5]
+	cell.Merge(1, 0)
+	cell.SetStyle(textCenterStyle)
+	for i := 0; i < len(model.FeedbackFirstCategoryKeys); i++ {
+		cell = row.Cells[i*2+7]
+		cell.Merge(1, 0)
+		cell.SetStyle(textCenterStyle)
+	}
+	// 第二表头
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell.SetValue("人数")
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell.SetValue("人次")
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell.SetValue("人数")
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell.SetValue("人次")
+	for i := 0; i < len(model.FeedbackFirstCategoryMap)-1; i++ {
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+		cell.SetValue("本科生人次")
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+		cell.SetValue("研究生人次")
+	}
+	// 合并第二表头
+	row = sheet.Rows[0]
+	cell = row.Cells[0]
+	cell.Merge(0, 1)
+	cell.SetStyle(textCenterStyle)
+	cell = row.Cells[1]
+	cell.Merge(0, 1)
+	cell.SetStyle(textCenterStyle)
+	cell = row.Cells[2]
+	cell.Merge(0, 1)
+	cell.SetStyle(textCenterStyle)
+	// 工作量汇总
+	for _, tWork := range teacherWorkloads {
+		row = sheet.AddRow()
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+		cell.SetValue(tWork.Fullname)
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+		cell.SetValue(tWork.TotalNum)
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+		cell.SetValue(tWork.TotalCount)
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+		cell.SetValue(tWork.NumUnderGraduates)
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+		cell.SetValue(tWork.CountUnderGraduates)
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+		cell.SetValue(tWork.NumGraduates)
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+		cell.SetValue(tWork.CountGraduates)
+		for _, fi := range model.FeedbackFirstCategoryKeys {
+			cell = row.AddCell()
+			cell.SetStyle(borderStyle)
+			if tWork.FirstClassWorkloads[fi].CountUnderGraduates > 0 {
+				cell.SetValue(tWork.FirstClassWorkloads[fi].CountUnderGraduates)
+			}
+			cell = row.AddCell()
+			cell.SetStyle(borderStyle)
+			if tWork.FirstClassWorkloads[fi].CountGraduates > 0 {
+				cell.SetValue(tWork.FirstClassWorkloads[fi].CountGraduates)
+			}
+		}
+	}
+	// 调整列宽
+	sheet.SetColWidth(7, 7+2*len(model.FeedbackFirstCategoryKeys), 10)
 
 	err = file.Save(path)
 	if err != nil {

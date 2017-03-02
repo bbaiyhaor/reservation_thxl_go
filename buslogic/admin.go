@@ -722,7 +722,7 @@ func (w *Workflow) ExportStudentByAdmin(studentId string, userId string, userTyp
 	if student.ArchiveNumber == "" {
 		return "", re.NewRErrorCode("lack archive number", nil, re.ERROR_ADMIN_EXPORT_STUDENT_NO_ARCHIVE_NUMBER)
 	}
-	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("student_%s_%s_%s%s", student.ArchiveNumber, student.Username, time.Now().Format("2006-01-02"), utils.CSV_FILE_SUFFIX))
+	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("student_%s_%s_%s%s", student.ArchiveNumber, student.Username, time.Now().Format("20060102"), utils.CSV_FILE_SUFFIX))
 	if err = w.ExportStudentInfoToFile(student, path); err != nil {
 		return "", err
 	}
@@ -1005,7 +1005,7 @@ func (w *Workflow) ExportTeacherWorkloadByAdmin(fromDate string, toDate string, 
 	if len(reservations) == 0 {
 		return "", nil
 	}
-	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("teacher_workload_%s-%s%s", from.Format("2006-01-02"), to.Format("2006-01-02"), utils.EXCEL_FILE_SUFFIX))
+	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("teacher_workload_%s-%s%s", from.Format("20060102"), to.Format("20060102"), utils.EXCEL_FILE_SUFFIX))
 	if err = w.ExportWorkloadToFile(reservations, reportPath); err != nil {
 		return "", err
 	}
@@ -1076,7 +1076,7 @@ func (w *Workflow) ExportReportByAdmin(fromDate string, toDate string, userId st
 	if len(reservations) == 0 {
 		return "", nil
 	}
-	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("reservation_report_%s-%s%s", from.Format("2006-01-02"), to.Format("2006-01-02"), utils.EXCEL_FILE_SUFFIX))
+	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("reservation_report_%s-%s%s", from.Format("20060102"), to.Format("20060102"), utils.EXCEL_FILE_SUFFIX))
 	if err = w.ExportReportToFile(reservations, reportPath); err != nil {
 		return "", err
 	}

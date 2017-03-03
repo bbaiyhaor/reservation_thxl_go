@@ -59,4 +59,4 @@ restart: kill $(MAC_TARGET)
 dist: clean $(MAC_TARGET) $(MAC_EXTERNAL) $(LINUX_TARGET) $(LINUX_EXTERNAL)
 	@NODE_ENV=production $(NODE_BIN)/webpack --progress --colors
 	@zip -r -v $(APP_NAME)-$(APP_VERSION).zip $(MAC_TARGET) $(MAC_EXTERNAL) $(LINUX_TARGET) $(LINUX_EXTERNAL) \
-    	webpack-assets.json public templates static deploy
+    	webpack-assets.json public templates static deploy tools

@@ -28,7 +28,7 @@ func main() {
 		workflow.SendTomorrowReservationReminderSMS()
 	} else if *method == "timetable" {
 		// 每天早上发送当天咨询安排表邮件
-		workflow.SendTodayTimetableMail(*mailTo)
+		workflow.MailTodayReservationArrangements(*mailTo)
 	} else if *method == "import-archive-file" {
 		// 导入档案列表，仅需执行一次
 		err := workflow.ImportArchiveFromCSVFile()

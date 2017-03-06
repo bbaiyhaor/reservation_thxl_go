@@ -844,8 +844,8 @@ func (w *Workflow) ResetTeacherPasswordByAdmin(teacherUsername string, teacherFu
 	return teacher, nil
 }
 
-// 管理员导出当天时间表
-func (w *Workflow) ExportTodayReservationTimetableByAdmin(userId string, userType int) (string, error) {
+// 管理员导出当天咨询安排表
+func (w *Workflow) ExportTodayReservationArrangementsByAdmin(userId string, userType int) (string, error) {
 	if userId == "" {
 		return "", re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_ADMIN {
@@ -873,8 +873,49 @@ func (w *Workflow) ExportTodayReservationTimetableByAdmin(userId string, userTyp
 	if len(reservations) == 0 {
 		return "", re.NewRErrorCode("no reservations today", nil, re.ERROR_ADMIN_NO_RESERVATIONS_TODAY)
 	}
-	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("timetable_%s%s", todayDate, utils.CSV_FILE_SUFFIX))
-	if err = w.ExportTodayReservationTimetableToFile(reservations, path); err != nil {
+	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("timetable_%s%s", today.Format("20060102"), utils.EXCEL_FILE_SUFFIX))
+	if err = w.ExportReservationArrangementsToFile(reservations, today, path); err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
+// 管理员导出指定日期咨询安排表
+func (w *Workflow) ExportReservationArrangementsByAdmin(fromDate string, userId string, userType int) (string, error) {
+	if userId == "" {
+		return "", re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_ADMIN {
+		return "", re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
+	} else if fromDate == "" {
+		return w.ExportTodayReservationArrangementsByAdmin(userId, userType)
+	}
+	admin, err := w.mongoClient.GetAdminById(userId)
+	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+		return "", re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
+	}
+	from, err := time.ParseInLocation("2006-01-02", fromDate, time.Local)
+	if err != nil {
+		return "", re.NewRErrorCodeContext("from date is not valid", err, re.ERROR_INVALID_PARAM, "from_date")
+	}
+	to := from.AddDate(0, 0, 1)
+	reservations, err := w.mongoClient.GetReservationsBetweenTime(from, to)
+	if err != nil {
+		return "", re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
+	}
+	theDayDate := from.Format("2006-01-02")
+	if timedReservations, err := w.mongoClient.GetTimedReservationsByWeekday(from.Weekday()); err == nil {
+		for _, tr := range timedReservations {
+			if !tr.Exceptions[theDayDate] && !tr.Timed[theDayDate] {
+				reservations = append(reservations, tr.ToReservation(from))
+			}
+		}
+	}
+	sort.Sort(ByStartTimeOfReservation(reservations))
+	if len(reservations) == 0 {
+		return "", re.NewRErrorCode("no reservations today", nil, re.ERROR_ADMIN_NO_RESERVATIONS_TODAY)
+	}
+	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("timetable_%s%s", from.Format("20060102"), utils.EXCEL_FILE_SUFFIX))
+	if err = w.ExportReservationArrangementsToFile(reservations, from, path); err != nil {
 		return "", err
 	}
 	return path, nil

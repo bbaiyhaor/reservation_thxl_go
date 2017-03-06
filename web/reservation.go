@@ -41,7 +41,8 @@ func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view/daily", "ViewDailyReservationsByAdmin", RoleCookieInjection(rc.ViewDailyReservationsByAdmin))
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view/teacher/username", "ViewReservationsWithTeacherUsernameByAdmin", RoleCookieInjection(rc.ViewReservationsWithTeacherUsernameByAdmin))
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view/daily/teacher/username", "ViewDailyReservationsWithTeacherUsernameByAdmin", RoleCookieInjection(rc.ViewDailyReservationsWithTeacherUsernameByAdmin))
-	m.GetJson(kAdminApiBaseUrl+"/reservation/export/today", "ExportTodayReservationsByAdmin", RoleCookieInjection(rc.ExportTodayReservationsByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/reservation/export/arrangements/today", "ExportTodayReservationArrangementsByAdmin", RoleCookieInjection(rc.ExportTodayReservationArrangementsByAdmin))
+	m.PostJson(kAdminApiBaseUrl+"/reservation/export/arrangements", "ExportReservationArrangementsByAdmin", RoleCookieInjection(rc.ExportReservationArrangementsByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report/monthly", "ExportReportMonthlyByAdmin", RoleCookieInjection(rc.ExportReportMonthlyByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/export/report", "ExportReportByAdmin", RoleCookieInjection(rc.ExportReportByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/add", "AddReservationByAdmin", RoleCookieInjection(rc.AddReservationByAdmin))
@@ -413,10 +414,24 @@ func (rc *ReservationController) ViewDailyReservationsWithTeacherUsernameByAdmin
 	return http.StatusOK, wrapJsonOk(result)
 }
 
-func (rc *ReservationController) ExportTodayReservationsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+func (rc *ReservationController) ExportTodayReservationArrangementsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	var result = make(map[string]interface{})
 
-	url, err := service.Workflow().ExportTodayReservationTimetableByAdmin(userId, userType)
+	url, err := service.Workflow().ExportTodayReservationArrangementsByAdmin(userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
+	result["url"] = "/" + url
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (rc *ReservationController) ExportReservationArrangementsByAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	fromDate := form.ParamString(r, "from_date", "")
+
+	var result = make(map[string]interface{})
+
+	url, err := service.Workflow().ExportReservationArrangementsByAdmin(fromDate, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}

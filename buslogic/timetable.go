@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/mijia/sweb/log"
 	"github.com/scorredoira/email"
+	"github.com/tealeg/xlsx"
 	"net/mail"
 	"path/filepath"
 	"sort"
@@ -267,32 +268,8 @@ func (w *Workflow) CloseTimetablesByAdmin(timedReservationIds []string, userId s
 	return closed, nil
 }
 
-func (w *Workflow) ExportTodayReservationTimetableToFile(reservations []*model.Reservation, path string) error {
-	data := make([][]string, 0)
-	today := utils.BeginOfDay(time.Now())
-	data = append(data, []string{today.Format("2006年01月02日")})
-	data = append(data, []string{"时间", "咨询师", "学生姓名", "学生学号", "联系方式"})
-	for _, r := range reservations {
-		teacher, err := w.mongoClient.GetTeacherById(r.TeacherId)
-		if err != nil {
-			continue
-		}
-		if student, err := w.mongoClient.GetStudentById(r.StudentId); err == nil {
-			data = append(data, []string{r.StartTime.Format("15:04") + " - " + r.EndTime.Format("15:04"),
-				teacher.Fullname, student.Fullname, student.Username, student.Mobile})
-		} else {
-			data = append(data, []string{r.StartTime.Format("15:04") + " - " + r.EndTime.Format("15:04"),
-				teacher.Fullname, "", "", ""})
-		}
-	}
-	if err := utils.WriteToCSV(data, path); err != nil {
-		return err
-	}
-	return nil
-}
-
 // 每天8:00发送当天咨询安排表邮件
-func (w *Workflow) SendTodayTimetableMail(mailTo string) {
+func (w *Workflow) MailTodayReservationArrangements(mailTo string) {
 	today := utils.BeginOfDay(time.Now())
 	tomorrow := today.AddDate(0, 0, 1)
 	reservations, err := w.mongoClient.GetReservationsBetweenTime(today, tomorrow)
@@ -309,8 +286,8 @@ func (w *Workflow) SendTodayTimetableMail(mailTo string) {
 		}
 	}
 	sort.Sort(ByStartTimeOfReservation(reservations))
-	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("timetable_%s%s", todayDate, utils.CSV_FILE_SUFFIX))
-	if err = w.ExportTodayReservationTimetableToFile(reservations, path); err != nil {
+	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("timetable_%s%s", today.Format("20060102"), utils.EXCEL_FILE_SUFFIX))
+	if err = w.ExportReservationArrangementsToFile(reservations, today, path); err != nil {
 		log.Errorf("%v", err)
 		return
 	}
@@ -325,6 +302,56 @@ func (w *Workflow) SendTodayTimetableMail(mailTo string) {
 		return
 	}
 	log.Infof("发送邮件成功")
+}
+
+func (w *Workflow) ExportReservationArrangementsToFile(reservations []*model.Reservation, date time.Time, path string) error {
+	var file *xlsx.File
+	var sheet *xlsx.Sheet
+	var row *xlsx.Row
+	var cell *xlsx.Cell
+	var err error
+	xlsx.SetDefaultFont(11, "宋体")
+	file = xlsx.NewFile()
+	sheet, err = file.AddSheet(fmt.Sprintf("%s咨询安排表", date.Format("20060102")))
+	if err != nil {
+		return re.NewRError("fail to create today sheet", err)
+	}
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("时间")
+	cell = row.AddCell()
+	cell.SetValue("咨询师")
+	cell = row.AddCell()
+	cell.SetValue("学生姓名")
+	cell = row.AddCell()
+	cell.SetValue("学生学号")
+	cell = row.AddCell()
+	cell.SetValue("联系方式")
+	for _, r := range reservations {
+		teacher, err := w.mongoClient.GetTeacherById(r.TeacherId)
+		if err != nil {
+			continue
+		}
+		row = sheet.AddRow()
+		cell = row.AddCell()
+		cell.SetValue(fmt.Sprintf("%s - %s", r.StartTime.Format("15:04"), r.EndTime.Format("15:04")))
+		cell = row.AddCell()
+		cell.SetValue(teacher.Fullname)
+		if student, err := w.mongoClient.GetStudentById(r.StudentId); err == nil {
+			cell = row.AddCell()
+			cell.SetValue(student.Fullname)
+			cell = row.AddCell()
+			cell.SetValue(student.Username)
+			cell = row.AddCell()
+			cell.SetValue(student.Mobile)
+		}
+	}
+
+	err = file.Save(path)
+	if err != nil {
+		return re.NewRError("fail to save file to path", err)
+	}
+	return nil
 }
 
 type ByWeekdayOfTimedReservation []*model.TimedReservation

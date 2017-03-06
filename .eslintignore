@@ -3,4 +3,4 @@
 assets/javascripts/react-weui/*
 static/legacy/*
 webpack.config.js
-deploy/mongo_index.js
+tools/mongo_index.js

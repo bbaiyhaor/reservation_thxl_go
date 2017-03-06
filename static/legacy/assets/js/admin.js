@@ -37,8 +37,10 @@ function queryReservations() {
   });
 }
 
-function exportTodayReservations() {
-  $.getJSON('/api/admin/reservation/export/today', function(json, textStatus) {
+function exportReservationArrangements() {
+  $.post('/api/admin/reservation/export/arrangements', {
+    from_date: $('#arrangement_date').val()
+  }, function(json, textStatus) {
     if (json.status === 'OK') {
       window.open(json.payload.url);
     } else {

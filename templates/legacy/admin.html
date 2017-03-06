@@ -22,12 +22,17 @@
 <div style="padding-top:10px">
     <button onclick="removeReservations();">批量删除</button>
     <button onclick="cancelReservations();" style="margin-right: 20px;">取消预约</button>
+    日期<input type="text" id="arrangement_date" style="width:80px;"/>
+    <button onclick="exportReservationArrangements();">导出咨询安排表</button>
+    (留空默认导出当天安排表)
+</div>
+<div style="padding-top:10px">
     日期<input type="text" id="query_date" style="width:80px;"/>
     咨询师工号<input type="text" id="query_teacher_username" style="width:80px;"/>
     <button onclick="queryReservations();">按日期和工号查询</button>
+    (均可留空以另一条件单独查询)
 </div>
 <div style="padding-top:10px">
-    <button onclick="exportTodayReservations();">导出当天时间表</button>
     <span style="margin-left:20px">请输入学生学号</span>
     <input type="text" id="query_student" style="width: 100px"/>
     <button onclick="queryStudent();">查看学生信息</button>
@@ -56,6 +61,14 @@
 <script type="text/javascript">
     $(function() {
         viewReservations();
+	    $('#arrangement_date').datepicker({
+		    showOtherMonths: true,
+		    selectOtherMonths: true,
+		    showButtonPanel: true,
+		    dateFormat: 'yy-mm-dd',
+		    showWeek: true,
+		    firstDay: 1
+	    });
         $('#query_date').datepicker({
             showOtherMonths: true,
             selectOtherMonths: true,

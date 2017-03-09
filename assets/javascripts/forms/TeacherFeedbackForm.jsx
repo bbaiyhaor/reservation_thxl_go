@@ -168,7 +168,8 @@ export default class TeacherFeedbackForm extends React.Component {
       this.recordInput.focus();
       return;
     }
-    if (!this.state.severity.includes(1) && !this.state.medicalDiagnosis.includes(1) && !this.state.crisis.includes(1)) {
+    if (this.state.categoryShowNeedTips.includes(this.state.secondCategory) && !this.state.severity.includes(1)
+      && !this.state.medicalDiagnosis.includes(1) && !this.state.crisis.includes(1)) {
       this.setState({ categoryShowTips: '请选择合适的重点标记，否则不能够成功提交反馈表' });
       this.props.showAlert('提交失败', '请选择合适的重点标记，否则不能够成功提交反馈表', '好的');
       return;

@@ -1,7 +1,7 @@
 package model
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
+	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"github.com/mijia/sweb/log"
 	"gopkg.in/mgo.v2"
 	"time"

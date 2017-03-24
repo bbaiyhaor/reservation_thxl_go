@@ -5,10 +5,10 @@ import (
 	"golang.org/x/net/context"
 	"net/http"
 	"github.com/mijia/sweb/form"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/service"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
+	"github.com/shudiwsh2009/reservation_thxl_go/rerror"
+	"github.com/shudiwsh2009/reservation_thxl_go/service"
+	"github.com/shudiwsh2009/reservation_thxl_go/model"
+	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 )
 
 func RoleCookieInjection(handle func(http.ResponseWriter, *http.Request, string, int) (int, interface{})) JsonHandler {

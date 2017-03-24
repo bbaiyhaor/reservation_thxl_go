@@ -1,8 +1,8 @@
 package buslogic
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
+	"github.com/shudiwsh2009/reservation_thxl_go/model"
+	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"strconv"
 	"time"
 	"strings"

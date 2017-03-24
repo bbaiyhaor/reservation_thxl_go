@@ -1,8 +1,8 @@
 package web
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
-	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
+	"github.com/shudiwsh2009/reservation_thxl_go/buslogic"
+	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"github.com/mijia/sweb/render"
 	"github.com/mijia/sweb/server"
 	"golang.org/x/net/context"

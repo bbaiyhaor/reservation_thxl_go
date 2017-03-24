@@ -1,11 +1,11 @@
 package web
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/service"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
+	"github.com/shudiwsh2009/reservation_thxl_go/buslogic"
+	"github.com/shudiwsh2009/reservation_thxl_go/model"
+	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
+	"github.com/shudiwsh2009/reservation_thxl_go/service"
+	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"encoding/base64"
 	"fmt"
 	"net/http"

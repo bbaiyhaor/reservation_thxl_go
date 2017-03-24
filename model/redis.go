@@ -1,7 +1,7 @@
 package model
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
+	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"gopkg.in/redis.v5"
 	"log"
 )

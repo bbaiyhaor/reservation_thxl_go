@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
+	"github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"fmt"
 	"regexp"
 	"time"

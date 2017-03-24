@@ -8,11 +8,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@bitbucket.org/shudiwsh2009/reservation_thxl_go.git"
+    "url": "git+ssh://git@github.com/shudiwsh2009/reservation_thxl_go.git"
   },
   "author": "Shudi Wang",
   "license": "ISC",
-  "homepage": "https://bitbucket.org/shudiwsh2009/reservation_thxl_go#readme",
+  "homepage": "https://github.com/shudiwsh2009/reservation_thxl_go#readme",
   "dependencies": {
     "classnames": "^2.2.5",
     "jquery": "^3.1.1",

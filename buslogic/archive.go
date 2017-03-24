@@ -1,8 +1,8 @@
 package buslogic
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
+	"github.com/shudiwsh2009/reservation_thxl_go/model"
+	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"path/filepath"
 )
 

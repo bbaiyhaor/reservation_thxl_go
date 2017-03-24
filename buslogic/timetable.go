@@ -1,10 +1,10 @@
 package buslogic
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
+	"github.com/shudiwsh2009/reservation_thxl_go/config"
+	"github.com/shudiwsh2009/reservation_thxl_go/model"
+	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
+	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"fmt"
 	"github.com/mijia/sweb/log"
 	"github.com/scorredoira/email"

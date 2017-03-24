@@ -1,7 +1,7 @@
 package buslogic
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
+	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"github.com/mijia/sweb/log"
 	"github.com/scorredoira/email"
 	"net/mail"

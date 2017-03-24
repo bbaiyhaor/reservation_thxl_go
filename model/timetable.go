@@ -1,8 +1,8 @@
 package model
 
 import (
-	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/utils"
+	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
+	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"gopkg.in/mgo.v2/bson"
 	"time"
 )

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/buslogic"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/config"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
+	"github.com/shudiwsh2009/reservation_thxl_go/buslogic"
+	"github.com/shudiwsh2009/reservation_thxl_go/config"
+	"github.com/shudiwsh2009/reservation_thxl_go/model"
 	"flag"
 	"github.com/mijia/sweb/log"
 )

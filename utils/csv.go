@@ -1,7 +1,7 @@
 package utils
 
 import (
-	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
+	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"encoding/csv"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"

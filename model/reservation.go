@@ -1,7 +1,7 @@
 package model
 
 import (
-	re "bitbucket.org/shudiwsh2009/reservation_thxl_go/rerror"
+	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
 	"time"

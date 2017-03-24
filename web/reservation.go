@@ -1,8 +1,8 @@
 package web
 
 import (
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/model"
-	"bitbucket.org/shudiwsh2009/reservation_thxl_go/service"
+	"github.com/shudiwsh2009/reservation_thxl_go/model"
+	"github.com/shudiwsh2009/reservation_thxl_go/service"
 	"github.com/mijia/sweb/form"
 	"net/http"
 	"strconv"

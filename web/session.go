@@ -1,13 +1,14 @@
 package web
 
 import (
+	"encoding/base64"
+	"fmt"
 	"github.com/shudiwsh2009/reservation_thxl_go/buslogic"
+	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"github.com/shudiwsh2009/reservation_thxl_go/model"
 	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"github.com/shudiwsh2009/reservation_thxl_go/service"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
-	"encoding/base64"
-	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -106,7 +107,7 @@ func clearSession(w http.ResponseWriter, r *http.Request) error {
 }
 
 func encryptSession(userId string, username string, userType int, now time.Time) (string, error) {
-	key := []byte("U)Z9D>F]+LP4p.v4")
+	key := []byte(config.Instance().SessionKeyCode)
 	cookie := strings.Join([]string{userId, username, strconv.Itoa(userType), now.Format("2006-01-02 15:04:05")}, "|")
 	aesCookie, err := utils.AesEncrypt([]byte(cookie), key, key)
 	if err != nil {
@@ -117,7 +118,7 @@ func encryptSession(userId string, username string, userType int, now time.Time)
 }
 
 func decryptSession(encCookie string) (string, string, int, time.Time, error) {
-	key := []byte("U)Z9D>F]+LP4p.v4")
+	key := []byte(config.Instance().SessionKeyCode)
 	aesCookie, err := base64.StdEncoding.DecodeString(encCookie)
 	if err != nil {
 		return "", "", 0, time.Now(), err

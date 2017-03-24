@@ -24,6 +24,7 @@ type Config struct {
 	RedisAddress      string   `json:"redis_address"`
 	RedisPassword     string   `json:"redis_password"`
 	RedisDatabase     int      `json:"redis_database"`
+	SessionKeyCode    string   `json:"session_key_code"`
 }
 
 var conf *Config

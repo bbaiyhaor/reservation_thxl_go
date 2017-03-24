@@ -758,8 +758,12 @@ function setStudent(index) {
 }
 
 function searchStudent(index) {
+  var studentUsername = $('#student_username_' + index).val();
+  if (!/^\d{10}$/.test(studentUsername)) {
+    return;
+  }
   $.post('/api/admin/student/search', {
-    student_username: $('#student_username_' + index).val(),
+    student_username: studentUsername,
   }, function(data, textStatus, xhr) {
     if (data.status === 'OK') {
       $('#student_fullname_' + index).val(data.payload.student.fullname);

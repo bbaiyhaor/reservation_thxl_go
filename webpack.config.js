@@ -1,8 +1,8 @@
-var path = require('path');
-var webpack = require('webpack');
-var CleanPlugin = require('clean-webpack-plugin');
-var ExtractPlugin = require('extract-text-webpack-plugin');
-var AssetsPlugin = require('assets-webpack-plugin');
+var Path = require('path');
+var Webpack = require('webpack');
+var CleanWebpackPlugin = require('clean-webpack-plugin');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var AssetsWebpackPlugin = require('assets-webpack-plugin');
 
 var argv = process.argv;
 var DEV_HOT = false;
@@ -14,34 +14,37 @@ if(process.env.DEV_HOT) {
 
 var production = process.env.NODE_ENV === 'production';
 var plugins = [
-    new webpack.NoErrorsPlugin(),
-    new ExtractPlugin('[name]-[contenthash].css'),
-    new AssetsPlugin({
+    new Webpack.NoEmitOnErrorsPlugin(),
+    new ExtractTextPlugin('[name]-[contenthash].css'),
+    new AssetsWebpackPlugin({
         fullPath: false,
         prettyPrint: true,
+    }),
+    new Webpack.LoaderOptionsPlugin({
+        debug: !production,
     }),
 ];
 
 if (production) {
     plugins = plugins.concat([
-        new CleanPlugin('public/bundles'),
-        new webpack.optimize.DedupePlugin(),
-        new webpack.optimize.OccurenceOrderPlugin(),
-        new webpack.optimize.CommonsChunkPlugin({
+        new CleanWebpackPlugin('public/bundles'),
+        new Webpack.optimize.DedupePlugin(),
+        new Webpack.optimize.OccurrenceOrderPlugin(),
+        new Webpack.optimize.CommonsChunkPlugin({
             name: 'common',
             children: true,
             minChunks: 2,
         }),
-        new webpack.optimize.MinChunkSizePlugin({
+        new Webpack.optimize.MinChunkSizePlugin({
             minChunkSize: 51200, // ~50kb
         }),
-        new webpack.optimize.UglifyJsPlugin({
+        new Webpack.optimize.UglifyJsPlugin({
             mangle: true,
             compress: {
                 warnings: false, // Suppress uglification warnings
             },
         }),
-        new webpack.DefinePlugin({
+        new Webpack.DefinePlugin({
             __SERVER__: !production,
             __DEVELOPMENT__: !production,
             __DEVTOOLS__: !production,
@@ -53,7 +56,7 @@ if (production) {
     ]);
 } else {
     plugins = plugins.concat([
-        new webpack.DefinePlugin({
+        new Webpack.DefinePlugin({
             'process.env': {
                 BABEL_ENV: JSON.stringify(process.env.NODE_ENV),
                 NODE_ENV: JSON.stringify(process.env.NODE_ENV),
@@ -63,35 +66,30 @@ if (production) {
 }
 
 var config = {
-    debug: !production,
     devtool: production ? false : 'eval',
     plugins: plugins,
-
     entry: {
-        entry: path.join(__dirname, 'assets/javascripts/EntryApp.jsx'),
-        student: path.join(__dirname, 'assets/javascripts/StudentApp.jsx'),
-        teacher: path.join(__dirname, 'assets/javascripts/TeacherApp.jsx'),
+        entry: Path.join(__dirname, 'assets/javascripts/EntryApp.jsx'),
+        student: Path.join(__dirname, 'assets/javascripts/StudentApp.jsx'),
+        teacher: Path.join(__dirname, 'assets/javascripts/TeacherApp.jsx'),
     },
     output: {
-        path: 'public/bundles',
+        path: Path.join(__dirname, 'public/bundles'),
         publicPath: '/assets/bundles/',
         filename: '[name]-[hash].js',
         chunkFilename: '[name]-[chunkhash].js',
     },
-
     resolve: {
-        root: path.resolve(__dirname),
-        extensions: ['', '.js', '.jsx', '.css', '.png'],
+        extensions: ['.js', '.jsx', '.css', '.png'],
         alias: {
-            '#react-weui': 'assets/javascripts/react-weui/src',
-            '#pages': 'assets/javascripts/pages',
-            '#forms': 'assets/javascripts/forms',
-            '#coms': 'assets/javascripts/components',
-            '#models': 'assets/javascripts/models',
-            '#imgs': 'assets/images',
+            '#react-weui': Path.join(__dirname, 'assets/javascripts/react-weui/src'),
+            '#pages': Path.join(__dirname, 'assets/javascripts/pages'),
+            '#forms': Path.join(__dirname, 'assets/javascripts/forms'),
+            '#coms': Path.join(__dirname, 'assets/javascripts/components'),
+            '#models': Path.join(__dirname, 'assets/javascripts/models'),
+            '#imgs': Path.join(__dirname, 'assets/images'),
         },
     },
-
     module: {
         // preLoaders: [
         //     {
@@ -102,28 +100,28 @@ var config = {
         //     },
         // ],
         loaders: [
-            { test: /\.css$/, loader: ExtractPlugin.extract('style', 'css') },
-            { test: /\.scss$/, loader: ExtractPlugin.extract('style', 'css!sass') },
-            { test: /\.html$/, loader: 'html' },
-            { test: /\.(png|gif|svg)$/, loader: 'url?name=[name]@[hash].[ext]&limit=5000' },
-            { test: /\.(pdf|ico|jpg|eot|otf|woff|ttf|mp4|webm)$/, loader: 'file?name=[name]@[hash].[ext]' },
+            { test: /\.css$/, loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader' }) },
+            { test: /\.scss$/, loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader!sass-loader'}) },
+            { test: /\.html$/, loader: 'html-loader' },
+            { test: /\.(png|gif|svg)$/, loader: 'url-loader?name=[name]@[hash].[ext]&limit=5000' },
+            { test: /\.(pdf|ico|jpg|eot|otf|woff|ttf|mp4|webm)$/, loader: 'file-loader?name=[name]@[hash].[ext]' },
             {
                 test: /\.jsx?$/,
-                loader: "babel",
+                loader: "babel-loader",
                 query: {
                     presets: ['es2015', 'react', 'stage-0'],
                 },
-                include: path.join(__dirname, 'assets'),
+                include: Path.join(__dirname, 'assets'),
                 exclude: /(node_modules|bower_components|assets\/javascripts\/react-weui)/,
             },
             {
                 test: /\.jsx?$/,
-                loader: "babel",
+                loader: "babel-loader",
                 query: {
                     presets: ['es2015', 'react', 'stage-0'],
                     plugins: ['add-module-exports'],
                 },
-                include: path.join(__dirname, 'assets/javascripts/react-weui'),
+                include: Path.join(__dirname, 'assets/javascripts/react-weui'),
                 exclude: /(node_modules|bower_components)/,
             },
         ],
@@ -136,7 +134,6 @@ if(DEV_HOT){
     config.devServer = {
         hot: true,
         inline: true,
-        debug: true,
         progress: true,
         port: 8080,
         proxy: [{
@@ -155,8 +152,7 @@ if(DEV_HOT){
         open: true,
         stats: { colors: true }
     };
-
-    config.plugins.unshift(new webpack.HotModuleReplacementPlugin());
+    config.plugins.unshift(new Webpack.HotModuleReplacementPlugin());
 
     var babelLoader = config.module.loaders[config.module.loaders.length - 1];
     babelLoader.query.presets.unshift('react-hmre');

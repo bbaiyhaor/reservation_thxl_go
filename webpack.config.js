@@ -3,6 +3,7 @@ var webpack = require('webpack');
 var CleanWebpackPlugin = require('clean-webpack-plugin');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var AssetsWebpackPlugin = require('assets-webpack-plugin');
+var ProgressBarWebpackPlugin = require('progress-bar-webpack-plugin');
 
 var argv = process.argv;
 var DEV_HOT = false;
@@ -65,7 +66,7 @@ if (production) {
 }
 
 var config = {
-    devtool: production ? false : 'eval',
+    devtool: production ? 'cheap-module-source-map' : 'cheap-module-eval-source-map',
     plugins: plugins,
     entry: {
         entry: path.join(__dirname, 'assets/javascripts/EntryApp.jsx'),
@@ -134,7 +135,6 @@ if(DEV_HOT){
     config.devServer = {
         hot: true,
         inline: true,
-        progress: true,
         port: 8080,
         proxy: [{
             // for all not hot-update request
@@ -143,7 +143,6 @@ if(DEV_HOT){
         }],
         // contentBase:'http://localhost:9000',
         port: process.env.DEV_HOT_PORT || 8090,
-        devtool: 'eval-source-map',
         open: true,
         watchOptions: {
             aggregateTimeout: 300,
@@ -153,6 +152,9 @@ if(DEV_HOT){
         stats: { colors: true }
     };
     config.plugins.unshift(new webpack.HotModuleReplacementPlugin());
+    config.plugins.concat([
+	    new ProgressBarWebpackPlugin({ clear: false })
+    ]);
 
     var babelLoader = config.module.loaders[config.module.loaders.length - 1];
     babelLoader.query.presets.unshift('react-hmre');

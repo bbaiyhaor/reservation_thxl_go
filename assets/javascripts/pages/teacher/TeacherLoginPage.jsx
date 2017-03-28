@@ -37,7 +37,7 @@ export default class TeacherLoginPage extends React.Component {
   render() {
     return (
       <div>
-        <Panel access>
+        <Panel>
           <PanelHeader style={{ fontSize: '18px' }}>咨询师登录</PanelHeader>
           <PanelBody>
             <LoginForm

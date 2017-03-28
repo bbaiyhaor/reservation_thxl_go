@@ -92,7 +92,7 @@ export default class StudentMakeReservationPage extends React.Component {
   render() {
     return (
       <div>
-        <Panel access>
+        <Panel>
           <PanelHeader style={{ fontSize: '18px' }}>学生信息登记表</PanelHeader>
           <MakeReservationForm
             student={this.state.student}

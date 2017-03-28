@@ -83,7 +83,7 @@ export default class StudentFeedbackPage extends React.Component {
   render() {
     return (
       <div>
-        <Panel access>
+        <Panel>
           <PanelHeader style={{ fontSize: '18px' }}>学生咨询反馈表</PanelHeader>
           <StudentFeedbackForm
             reservation={this.state.reservation}

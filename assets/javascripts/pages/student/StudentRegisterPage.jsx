@@ -67,7 +67,7 @@ export default class StudentRegisterPage extends React.Component {
   render() {
     return (
       <div>
-        <Panel access>
+        <Panel>
           <PanelHeader style={{ fontSize: '18px' }}>学生注册</PanelHeader>
           <PanelBody>
             <RegisterForm

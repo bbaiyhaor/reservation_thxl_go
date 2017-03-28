@@ -47,7 +47,7 @@ export default class StudentReservationListPage extends React.Component {
   render() {
     return (
       <div>
-        <Panel access>
+        <Panel>
           <PanelHeader style={{ fontSize: '18px' }}>
             {User.fullname !== '' ? `${User.fullname}，` : ''}欢迎使用咨询预约系统
             <div style={{ height: '20px' }}>

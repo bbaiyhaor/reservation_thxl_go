@@ -17,7 +17,7 @@ const propTypes = {
 
 function EntryApp({ studentEntryIcon, teacherEntryIcon }) {
   return (
-    <Panel access>
+    <Panel>
       <PanelHeader style={{ fontSize: '18px' }}>
         学生心理发展指导中心预约系统
       </PanelHeader>

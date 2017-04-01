@@ -1,22 +1,12 @@
-/**
- * Created by shudi on 2016/11/4.
- */
-import React, { PropTypes } from 'react';
-import { Form, FormCell, CellsTitle, CellHeader, CellBody, CellFooter, Label, Select, Checkbox, TextArea, Icon, ButtonArea, Button } from '#react-weui';
+/* eslint react/no-array-index-key: ["off"] */
 import 'weui';
-
-const propTypes = {
-  handleSubmit: PropTypes.func.isRequired,
-  handleCancel: PropTypes.func.isRequired,
-  showAlert: PropTypes.func.isRequired,
-};
+import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Checkbox, Form, FormCell, Icon, Label, Select, TextArea } from '#react-weui';
+import React, { PropTypes } from 'react';
 
 export default class TeacherFeedbackForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      reservation: null,
-      feedback: null,
       firstCategories: null,
       secondCategories: null,
       firstCategory: '',
@@ -41,45 +31,42 @@ export default class TeacherFeedbackForm extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({
-      reservation: nextProps.reservation,
-      feedback: nextProps.feedback,
-    });
-    if (nextProps.feedback) {
-      let severity = nextProps.feedback.severity;
-      const varSeverity = nextProps.feedback.var_severity;
+    const { feedback } = nextProps;
+    if (feedback) {
+      let severity = feedback.severity;
+      const varSeverity = feedback.var_severity;
       while (severity.length < varSeverity.length) {
         severity.push(0);
       }
       severity = severity.slice(0, varSeverity.length);
 
-      let medicalDiagnosis = nextProps.feedback.medical_diagnosis;
-      const varMedicalDiagnosis = nextProps.feedback.var_medical_diagnosis;
+      let medicalDiagnosis = feedback.medical_diagnosis;
+      const varMedicalDiagnosis = feedback.var_medical_diagnosis;
       while (medicalDiagnosis.length < varMedicalDiagnosis.length) {
         medicalDiagnosis.push(0);
       }
       medicalDiagnosis = medicalDiagnosis.slice(0, varMedicalDiagnosis.length);
 
-      let crisis = nextProps.feedback.crisis;
-      const varCrisis = nextProps.feedback.var_crisis;
+      let crisis = feedback.crisis;
+      const varCrisis = feedback.var_crisis;
       while (crisis.length < varCrisis.length) {
         crisis.push(0);
       }
       crisis = crisis.slice(0, varCrisis.length);
 
       this.setState({
-        firstCategories: nextProps.feedback.var_first_category,
-        secondCategories: nextProps.feedback.var_second_category,
-        firstCategory: nextProps.feedback.category ? nextProps.feedback.category.substring(0, 1) : '',
-        secondCategory: nextProps.feedback.category ? nextProps.feedback.category : '',
+        firstCategories: feedback.var_first_category,
+        secondCategories: feedback.var_second_category,
+        firstCategory: feedback.category ? feedback.category.substring(0, 1) : '',
+        secondCategory: feedback.category ? feedback.category : '',
         severity,
         varSeverity,
         medicalDiagnosis,
         varMedicalDiagnosis,
         crisis,
         varCrisis,
-        record: nextProps.feedback.record ? nextProps.feedback.record : '',
-        crisisLevel: nextProps.feedback.crisis_level ? nextProps.feedback.crisis_level.toString() : '0',
+        record: feedback.record ? feedback.record : '',
+        crisisLevel: feedback.crisis_level ? feedback.crisis_level.toString() : '0',
       });
     }
   }
@@ -175,8 +162,8 @@ export default class TeacherFeedbackForm extends React.Component {
       return;
     }
     const payload = {
-      reservation_id: this.state.reservation.id,
-      source_id: this.state.reservation.source_id,
+      reservation_id: this.props.reservation.id,
+      source_id: this.props.reservation.source_id,
       category: this.state.secondCategory,
       severity: this.state.severity,
       medical_diagnosis: this.state.medicalDiagnosis,
@@ -272,9 +259,9 @@ export default class TeacherFeedbackForm extends React.Component {
   render() {
     return (
       <div>
-        {this.state.reservation &&
+        {this.props.reservation &&
           <CellsTitle>
-            正在反馈：{this.state.reservation.start_time}-{this.state.reservation.end_time.slice(-5)} {this.state.reservation.teacher_fullname}
+            正在反馈：{this.props.reservation.start_time}-{this.props.reservation.end_time.slice(-5)} {this.props.reservation.teacher_fullname}
           </CellsTitle>
         }
         <Form checkbox>
@@ -372,4 +359,14 @@ export default class TeacherFeedbackForm extends React.Component {
   }
 }
 
-TeacherFeedbackForm.propTypes = propTypes;
+TeacherFeedbackForm.propTypes = {
+  reservation: PropTypes.object.isRequired,
+  feedback: PropTypes.object,
+  handleSubmit: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func.isRequired,
+  showAlert: PropTypes.func.isRequired,
+};
+
+TeacherFeedbackForm.defaultProps = {
+  feedback: null,
+};

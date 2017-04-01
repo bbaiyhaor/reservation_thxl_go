@@ -1,15 +1,6 @@
-/**
- * Created by shudi on 2016/11/6.
- */
-import React, { PropTypes } from 'react';
-import { FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, Button } from '#react-weui';
 import 'weui';
-
-const propTypes = {
-  verifyCodeLabel: PropTypes.string.isRequired,
-  verifyCodePlaceholder: PropTypes.string.isRequired,
-  handleClick: PropTypes.func,
-};
+import { Button, CellBody, CellFooter, CellHeader, FormCell, Icon, Input, Label } from '#react-weui';
+import React, { PropTypes } from 'react';
 
 export default class VerifyCodeInput extends React.Component {
   constructor(props) {
@@ -122,4 +113,8 @@ export default class VerifyCodeInput extends React.Component {
   }
 }
 
-VerifyCodeInput.propTypes = propTypes;
+VerifyCodeInput.propTypes = {
+  verifyCodeLabel: PropTypes.string.isRequired,
+  verifyCodePlaceholder: PropTypes.string.isRequired,
+  handleClick: PropTypes.func.isRequired,
+};

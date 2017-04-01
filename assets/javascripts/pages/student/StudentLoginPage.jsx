@@ -1,23 +1,15 @@
-/**
- * Created by shudi on 2016/10/22.
- */
-import React from 'react';
-import { hashHistory } from 'react-router';
-import { Panel, PanelHeader, PanelBody } from '#react-weui';
 import 'weui';
-
+import { AlertDialog, LoadingHud } from '#coms/Huds';
+import { Panel, PanelBody, PanelHeader } from '#react-weui';
+import React, { PropTypes } from 'react';
 import LoginForm from '#forms/LoginForm';
 import PageBottom from '#coms/PageBottom';
-import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { User } from '#models/Models';
 
 export default class StudentLoginPage extends React.Component {
-  static toRegister() {
-    hashHistory.push('register');
-  }
-
   constructor(props) {
     super(props);
+    this.toRegister = this.toRegister.bind(this);
     this.onLogin = this.onLogin.bind(this);
   }
 
@@ -25,13 +17,17 @@ export default class StudentLoginPage extends React.Component {
     this.loading.show('正在加载中');
     User.studentLogin(username, password, () => {
       this.loading.hide();
-      hashHistory.push('reservation');
+      this.props.history.push('/reservation');
     }, (error) => {
       this.loading.hide();
       setTimeout(() => {
         this.alert.show('登录失败', error, '好的');
       }, 500);
     });
+  }
+
+  toRegister() {
+    this.props.history.push('/register');
   }
 
   render() {
@@ -49,7 +45,7 @@ export default class StudentLoginPage extends React.Component {
               submitText="登录"
               cancelText="没有账户"
               handleSubmit={this.onLogin}
-              handleCancel={StudentLoginPage.toRegister}
+              handleCancel={this.toRegister}
             />
             <div style={{ color: '#999999', padding: '10px 20px', textAlign: 'center', fontSize: '13px' }}>
               账号密码遇到任何问题，请在工作时间（周一至周五8:00-12:00；13:00-17:00）致电010-62782007。
@@ -67,3 +63,7 @@ export default class StudentLoginPage extends React.Component {
     );
   }
 }
+
+StudentLoginPage.propTypes = {
+  history: PropTypes.object.isRequired,
+};

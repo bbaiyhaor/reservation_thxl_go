@@ -19,12 +19,12 @@ const (
 
 func (uc *UserController) MuxHandlers(m JsonMuxer) {
 	m.Get("/m", "EntryPage", uc.GetEntryPage)
-	m.Get("/m/student", "StudentPage", uc.GetStudentPage)
-	m.Get("/m/teacher", "TeacherPage", uc.GetTeacherPage)
+	m.Get("/m/student/*name", "StudentPage", uc.GetStudentPage)
+	m.Get("/m/teacher/*name", "TeacherPage", uc.GetTeacherPage)
 	// legacy
-	m.Get("/reservation", "LegacyEntryPage", uc.GetEntryPage)
-	m.Get("/reservation/student", "LegacyStudentPage", uc.GetStudentPage)
-	m.Get("/reservation/teacher", "LegacyTeacherPage", uc.GetTeacherPage)
+	m.Get("/reservation", "LegacyEntryPage", uc.GetEntryPageLegacy)
+	m.Get("/reservation/student/*name", "LegacyStudentPage", uc.GetStudentPageLegacy)
+	m.Get("/reservation/teacher/*name", "LegacyTeacherPage", uc.GetTeacherPageLegacy)
 	m.Get("/reservation/admin/login", "AdminLoginPage", uc.GetAdminLoginPageLegacy)
 	m.Get("/reservation/admin", "AdminPage", LegacyAdminPageInjection(uc.GetAdminPageLegacy))
 	m.Get("/reservation/admin/timetable", "AdminTimetablePage", LegacyAdminPageInjection(uc.GetAdminTimetablePageLegacy))
@@ -58,15 +58,30 @@ func (uc *UserController) GetEntryPage(ctx context.Context, w http.ResponseWrite
 	return ctx
 }
 
+func (uc *UserController) GetEntryPageLegacy(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+	http.Redirect(w, r, "/m", http.StatusFound)
+	return ctx
+}
+
 func (uc *UserController) GetStudentPage(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	params := map[string]interface{}{}
 	uc.RenderHtmlOr500(w, http.StatusOK, "student", params)
 	return ctx
 }
 
+func (uc *UserController) GetStudentPageLegacy(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+	http.Redirect(w, r, "/m/student", http.StatusFound)
+	return ctx
+}
+
 func (uc *UserController) GetTeacherPage(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	params := map[string]interface{}{}
 	uc.RenderHtmlOr500(w, http.StatusOK, "teacher", params)
+	return ctx
+}
+
+func (uc *UserController) GetTeacherPageLegacy(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+	http.Redirect(w, r, "/m/teacher", http.StatusFound)
 	return ctx
 }
 
@@ -259,11 +274,11 @@ func (uc *UserController) Logout(w http.ResponseWriter, r *http.Request, userId 
 
 	switch userType {
 	case model.USER_TYPE_ADMIN:
-		result["redirect_url"] = "/reservation/admin"
+		result["redirect_url"] = "/reservation/admin/login"
 	case model.USER_TYPE_TEACHER:
-		result["redirect_url"] = "/m/teacher#/login"
+		result["redirect_url"] = "/m/teacher/login"
 	case model.USER_TYPE_STUDENT:
-		result["redirect_url"] = "/m/student#/login"
+		result["redirect_url"] = "/m/student/login"
 	default:
 		result["redirect_url"] = "/m"
 	}

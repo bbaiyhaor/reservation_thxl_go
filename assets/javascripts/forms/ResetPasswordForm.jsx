@@ -1,34 +1,9 @@
-/**
- * Created by shudi on 2016/11/6.
- */
 /* eslint consistent-return: "off" */
-import React, { PropTypes } from 'react';
-import { CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, ButtonArea, Button } from '#react-weui';
 import 'weui';
-
-import VerifyCodeInput from '#coms/VerifyCodeInput';
+import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Form, FormCell, Icon, Input, Label } from '#react-weui';
+import React, { PropTypes } from 'react';
 import { User } from '#models/Models';
-
-const propTypes = {
-  titleTip: PropTypes.string,
-  usernameLabel: PropTypes.string.isRequired,
-  usernamePlaceholder: PropTypes.string.isRequired,
-  fullnameLabel: PropTypes.string.isRequired,
-  fullnamePlaceholder: PropTypes.string.isRequired,
-  mobileLabel: PropTypes.string.isRequired,
-  mobilePlaceholder: PropTypes.string.isRequired,
-  verifyCodeLabel: PropTypes.string.isRequired,
-  verifyCodePlaceholder: PropTypes.string.isRequired,
-  newPasswordLabel: PropTypes.string.isRequired,
-  newPasswordPlaceholder: PropTypes.string.isRequired,
-  newPasswordConfirmLabel: PropTypes.string.isRequired,
-  newPasswordConfirmPlaceholder: PropTypes.string.isRequired,
-  submitText: PropTypes.string.isRequired,
-  cancelText: PropTypes.string,
-  handleSubmit: PropTypes.func.isRequired,
-  handleCancel: PropTypes.func,
-  showAlert: PropTypes.func,
-};
+import VerifyCodeInput from '#coms/VerifyCodeInput';
 
 export default class ResetPasswordForm extends React.Component {
   constructor(props) {
@@ -245,4 +220,30 @@ export default class ResetPasswordForm extends React.Component {
   }
 }
 
-ResetPasswordForm.propTypes = propTypes;
+ResetPasswordForm.propTypes = {
+  titleTip: PropTypes.string,
+  usernameLabel: PropTypes.string.isRequired,
+  usernamePlaceholder: PropTypes.string.isRequired,
+  fullnameLabel: PropTypes.string.isRequired,
+  fullnamePlaceholder: PropTypes.string.isRequired,
+  mobileLabel: PropTypes.string.isRequired,
+  mobilePlaceholder: PropTypes.string.isRequired,
+  verifyCodeLabel: PropTypes.string.isRequired,
+  verifyCodePlaceholder: PropTypes.string.isRequired,
+  newPasswordLabel: PropTypes.string.isRequired,
+  newPasswordPlaceholder: PropTypes.string.isRequired,
+  newPasswordConfirmLabel: PropTypes.string.isRequired,
+  newPasswordConfirmPlaceholder: PropTypes.string.isRequired,
+  submitText: PropTypes.string.isRequired,
+  cancelText: PropTypes.string,
+  handleSubmit: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func,
+  showAlert: PropTypes.func,
+};
+
+ResetPasswordForm.defaultProps = {
+  titleTip: '',
+  cancelText: '',
+  handleCancel: undefined,
+  showAlert: undefined,
+};

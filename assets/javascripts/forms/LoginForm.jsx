@@ -1,21 +1,6 @@
-/**
- * Created by shudi on 2016/10/22.
- */
-import React, { PropTypes } from 'react';
-import { CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, ButtonArea, Button } from '#react-weui';
 import 'weui';
-
-const propTypes = {
-  titleTip: PropTypes.string,
-  usernameLabel: PropTypes.string.isRequired,
-  usernamePlaceholder: PropTypes.string,
-  passwordLabel: PropTypes.string.isRequired,
-  passwordPlaceholder: PropTypes.string,
-  submitText: PropTypes.string.isRequired,
-  cancelText: PropTypes.string,
-  handleSubmit: PropTypes.func.isRequired,
-  handleCancel: PropTypes.func,
-};
+import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Form, FormCell, Icon, Input, Label } from '#react-weui';
+import React, { PropTypes } from 'react';
 
 export default class LoginForm extends React.Component {
   constructor(props) {
@@ -107,4 +92,22 @@ export default class LoginForm extends React.Component {
   }
 }
 
-LoginForm.propTypes = propTypes;
+LoginForm.propTypes = {
+  titleTip: PropTypes.string,
+  usernameLabel: PropTypes.string.isRequired,
+  usernamePlaceholder: PropTypes.string,
+  passwordLabel: PropTypes.string.isRequired,
+  passwordPlaceholder: PropTypes.string,
+  submitText: PropTypes.string.isRequired,
+  cancelText: PropTypes.string,
+  handleSubmit: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func,
+};
+
+LoginForm.defaultProps = {
+  titleTip: '',
+  usernamePlaceholder: '',
+  passwordPlaceholder: '',
+  cancelText: '',
+  handleCancel: undefined,
+};

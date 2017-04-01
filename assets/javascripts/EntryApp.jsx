@@ -1,19 +1,10 @@
-/**
- * Created by shudi on 2016/10/20.
- */
-import React, { PropTypes } from 'react';
-import ReactDOM from 'react-dom';
-import { Panel, PanelHeader, PanelBody, MediaBox, MediaBoxHeader, MediaBoxBody, MediaBoxTitle, MediaBoxDescription } from '#react-weui';
 import 'weui';
-
+import { MediaBox, MediaBoxBody, MediaBoxDescription, MediaBoxHeader, MediaBoxTitle, Panel, PanelBody, PanelHeader } from '#react-weui';
+import React, { PropTypes } from 'react';
 import PageBottom from '#coms/PageBottom';
+import ReactDOM from 'react-dom';
 import StudentEntryIcon from '#imgs/mobile/student.png';
 import TeacherEntryIcon from '#imgs/mobile/teacher.png';
-
-const propTypes = {
-  studentEntryIcon: PropTypes.string.isRequired,
-  teacherEntryIcon: PropTypes.string.isRequired,
-};
 
 function EntryApp({ studentEntryIcon, teacherEntryIcon }) {
   return (
@@ -49,7 +40,10 @@ function EntryApp({ studentEntryIcon, teacherEntryIcon }) {
   );
 }
 
-EntryApp.propTypes = propTypes;
+EntryApp.propTypes = {
+  studentEntryIcon: PropTypes.string.isRequired,
+  teacherEntryIcon: PropTypes.string.isRequired,
+};
 
 ReactDOM.render(
   <EntryApp

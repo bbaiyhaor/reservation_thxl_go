@@ -1,18 +1,9 @@
-/**
- * Created by shudi on 2016/11/5.
- */
-import React, { PropTypes } from 'react';
-import { hashHistory } from 'react-router';
-import { Panel, PanelHeader, CellsTitle, Cells, Cell, CellBody, CellFooter, TextArea } from '#react-weui';
 import 'weui';
-
-import PageBottom from '#coms/PageBottom';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
+import { Cell, CellBody, CellFooter, Cells, CellsTitle, Panel, PanelHeader, TextArea } from '#react-weui';
+import React, { PropTypes } from 'react';
 import { Application } from '#models/Models';
-
-const propTypes = {
-  location: PropTypes.object,
-};
+import PageBottom from '#coms/PageBottom';
 
 export default class TeacherViewStudentInfoPage extends React.Component {
   constructor(props) {
@@ -24,8 +15,8 @@ export default class TeacherViewStudentInfoPage extends React.Component {
   }
 
   componentDidMount() {
-    const studentId = this.props.location.query.student_id;
-    const studentUsername = this.props.location.query.student_username;
+    const studentId = this.props.history.location.state.student_id || '';
+    const studentUsername = this.props.history.location.state.student_username || '';
     this.loading.show('正在加载中');
     if (studentId && studentId !== '') {
       setTimeout(() => {
@@ -38,7 +29,7 @@ export default class TeacherViewStudentInfoPage extends React.Component {
         }, (error) => {
           this.loading.hide();
           this.alert.show('', error, '好的', () => {
-            hashHistory.push('reservation');
+            this.props.history.push('/reservation');
           });
         });
       }, 500);
@@ -53,13 +44,13 @@ export default class TeacherViewStudentInfoPage extends React.Component {
         }, (error) => {
           this.loading.hide();
           this.alert.show('', error, '好的', () => {
-            hashHistory.push('reservation');
+            this.props.history.push('/reservation');
           });
         });
       }, 500);
     } else {
       this.loading.hide();
-      hashHistory.push('reservation');
+      this.props.history.push('/reservation');
     }
   }
 
@@ -85,7 +76,9 @@ export default class TeacherViewStudentInfoPage extends React.Component {
   }
 }
 
-TeacherViewStudentInfoPage.propTypes = propTypes;
+TeacherViewStudentInfoPage.propTypes = {
+  history: PropTypes.object.isRequired,
+};
 
 class StudentInfoPanel extends React.Component {
   constructor(props) {
@@ -135,7 +128,7 @@ class StudentInfoPanel extends React.Component {
             } : null;
             return (
               <div key={`student_reservation_div_${reservation.id}`}>
-                <Cells access style={{ marginTop: '0px' }}>
+                <Cells style={{ marginTop: '0px' }}>
                   <Cell onClick={() => { this.showStudentReservation(reservation.id); }}>
                     <CellBody style={{ ...cellBodyStyle }}>
                       {reservation.start_time}-{reservation.end_time.slice(-5)} {reservation.teacher_fullname}
@@ -287,8 +280,14 @@ class StudentInfoPanel extends React.Component {
   }
 }
 
-const cellPropTypes = {
-  reservation: PropTypes.object,
+StudentInfoPanel.propTypes = {
+  reservations: PropTypes.arrayOf(React.PropTypes.object),
+  student: PropTypes.object,
+};
+
+StudentInfoPanel.defaultProps = {
+  reservations: [],
+  student: null,
 };
 
 function StudentReservationCell({ reservation }) {
@@ -361,4 +360,6 @@ function StudentReservationCell({ reservation }) {
   );
 }
 
-StudentReservationCell.propTypes = cellPropTypes;
+StudentReservationCell.propTypes = {
+  reservation: PropTypes.object.isRequired,
+};

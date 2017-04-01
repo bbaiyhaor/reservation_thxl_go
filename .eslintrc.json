@@ -5,8 +5,10 @@
     "browser": true
   },
   "rules": {
+    "sort-imports": "error",
     "import/extensions": "off",
     "react/no-multi-comp": "off",
+    "react/forbid-prop-types": ["error", { "forbid": ["any", "array"] }],
     "max-len": "off",
     "no-unused-expressions": ["error", { "allowShortCircuit": true, "allowTernary": true }]
   },

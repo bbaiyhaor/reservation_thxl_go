@@ -1,37 +1,33 @@
-/**
- * Created by shudi on 2016/10/22.
- */
-import React from 'react';
-import { hashHistory } from 'react-router';
-import { Panel, PanelHeader, PanelBody } from '#react-weui';
 import 'weui';
-
+import { AlertDialog, LoadingHud } from '#coms/Huds';
+import { Panel, PanelBody, PanelHeader } from '#react-weui';
+import React, { PropTypes } from 'react';
 import LoginForm from '#forms/LoginForm';
 import PageBottom from '#coms/PageBottom';
-import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { User } from '#models/Models';
 
 export default class TeacherLoginPage extends React.Component {
-  static toReset() {
-    hashHistory.push('password/reset');
-  }
-
   constructor(props) {
     super(props);
     this.onLogin = this.onLogin.bind(this);
+    this.toResetPassword = this.toResetPassword.bind(this);
   }
 
   onLogin(username, password) {
     this.loading.show('正在加载中');
     User.teacherLogin(username, password, () => {
       this.loading.hide();
-      hashHistory.push('reservation');
+      this.props.history.push('/reservation');
     }, (error) => {
       this.loading.hide();
       setTimeout(() => {
         this.alert.show('登录失败', error, '好的');
       }, 500);
     });
+  }
+
+  toResetPassword() {
+    this.props.history.push('/password/reset');
   }
 
   render() {
@@ -49,7 +45,7 @@ export default class TeacherLoginPage extends React.Component {
               submitText="登录"
               cancelText="忘记密码"
               handleSubmit={this.onLogin}
-              handleCancel={TeacherLoginPage.toReset}
+              handleCancel={this.toResetPassword}
             />
             <div style={{ color: '#999999', padding: '10px 20px', textAlign: 'center', fontSize: '13px' }}>
               账号密码遇到任何问题，请与管理员联络。
@@ -67,3 +63,7 @@ export default class TeacherLoginPage extends React.Component {
     );
   }
 }
+
+TeacherLoginPage.propTypes = {
+  history: PropTypes.object.isRequired,
+};

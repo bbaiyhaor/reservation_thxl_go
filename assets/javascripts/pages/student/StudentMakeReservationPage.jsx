@@ -1,38 +1,26 @@
-/**
- * Created by shudi on 2016/10/24.
- */
-import React, { PropTypes } from 'react';
-import { hashHistory } from 'react-router';
-import { Panel, PanelHeader } from '#react-weui';
 import 'weui';
-
+import { AlertDialog, LoadingHud } from '#coms/Huds';
+import { Application, User } from '#models/Models';
+import { Panel, PanelHeader } from '#react-weui';
+import React, { PropTypes } from 'react';
 import MakeReservationForm from '#forms/MakeReservationForm';
 import PageBottom from '#coms/PageBottom';
-import { AlertDialog, LoadingHud } from '#coms/Huds';
-import { User, Application } from '#models/Models';
-
-const propTypes = {
-  location: PropTypes.object,
-};
 
 export default class StudentMakeReservationPage extends React.Component {
-  static handleCancel() {
-    hashHistory.goBack();
-  }
-
   constructor(props) {
     super(props);
     this.state = {
       student: null,
       reservation: null,
     };
+    this.handleCancel = this.handleCancel.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentWillMount() {
-    const reservationId = this.props.location.query.reservation_id;
+    const reservationId = this.props.history.location.state.reservation_id || '';
     if (reservationId === '' || !User.student || !Application.reservations || Application.reservations.length === 0) {
-      hashHistory.push('reservation');
+      this.props.history.push('/reservation');
       return;
     }
     let i = 0;
@@ -46,7 +34,7 @@ export default class StudentMakeReservationPage extends React.Component {
       }
     }
     if (i === Application.reservations.length) {
-      hashHistory.push('reservation');
+      this.props.history.push('/reservation');
     }
   }
 
@@ -81,12 +69,16 @@ export default class StudentMakeReservationPage extends React.Component {
     setTimeout(() => {
       Application.makeReservationByStudent(payload, () => {
         this.loading.hide();
-        hashHistory.push('reservation/make/success');
+        this.props.history.push('/reservation/make/success');
       }, (error) => {
         this.loading.hide();
         this.alert.show('预约失败', error, '好的');
       });
     }, 500);
+  }
+
+  handleCancel() {
+    this.props.history.goBack();
   }
 
   render() {
@@ -98,7 +90,7 @@ export default class StudentMakeReservationPage extends React.Component {
             student={this.state.student}
             reservation={this.state.reservation}
             handleSubmit={this.handleSubmit}
-            handleCancel={StudentMakeReservationPage.handleCancel}
+            handleCancel={this.handleCancel}
           />
         </Panel>
         <LoadingHud ref={(loading) => { this.loading = loading; }} />
@@ -113,4 +105,6 @@ export default class StudentMakeReservationPage extends React.Component {
   }
 }
 
-StudentMakeReservationPage.propTypes = propTypes;
+StudentMakeReservationPage.propTypes = {
+  history: PropTypes.object.isRequired,
+};

@@ -8,8 +8,8 @@ var ProgressBarWebpackPlugin = require('progress-bar-webpack-plugin');
 var argv = process.argv;
 var DEV_HOT = false;
 
-//TODO change to parse argv instead
-if(process.env.DEV_HOT) {
+// TODO change to parse argv instead
+if (process.env.DEV_HOT) {
     DEV_HOT = true;
 }
 
@@ -131,7 +131,7 @@ var config = {
 
 //merge hot reload config
 
-if(DEV_HOT){
+if (DEV_HOT) {
     config.devServer = {
         hot: true,
         inline: true,
@@ -139,7 +139,7 @@ if(DEV_HOT){
         proxy: [{
             // for all not hot-update request
             path:    /^(?!.*\.hot-update\.js)(.*)$/,
-            target: 'http://localhost:'+ process.env.PORT || 9000
+            target: 'http://localhost:'+ process.env.PORT || 9000,
         }],
         // contentBase:'http://localhost:9000',
         port: process.env.DEV_HOT_PORT || 8090,

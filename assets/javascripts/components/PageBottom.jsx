@@ -1,13 +1,5 @@
-/**
- * Created by shudi on 2016/10/21.
- */
+/* eslint react/no-array-index-key: ["off"] */
 import React, { PropTypes } from 'react';
-
-const propTypes = {
-  contents: PropTypes.arrayOf(PropTypes.string).isRequired,
-  styles: PropTypes.object,
-  height: PropTypes.string,
-};
 
 export default function PageBottom({ contents, styles, height }) {
   const bottomStyle = {
@@ -29,4 +21,13 @@ export default function PageBottom({ contents, styles, height }) {
   );
 }
 
-PageBottom.propTypes = propTypes;
+PageBottom.propTypes = {
+  contents: PropTypes.arrayOf(PropTypes.string).isRequired,
+  styles: PropTypes.object,
+  height: PropTypes.string,
+};
+
+PageBottom.defaultProps = {
+  styles: {},
+  height: '55px',
+};

@@ -1,21 +1,6 @@
-import React, { PropTypes } from 'react';
-import { CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, ButtonArea, Button } from '#react-weui';
 import 'weui';
-
-const propTypes = {
-  titleTip: PropTypes.string,
-  oldPasswordLabel: PropTypes.string.isRequired,
-  oldPasswordPlaceholder: PropTypes.string,
-  newPasswordLabel: PropTypes.string.isRequired,
-  newPasswordPlaceholder: PropTypes.string,
-  newPasswordConfirmLabel: PropTypes.string.isRequired,
-  newPasswordConfirmPlaceholder: PropTypes.string,
-  submitText: PropTypes.string.isRequired,
-  cancelText: PropTypes.string,
-  handleSubmit: PropTypes.func.isRequired,
-  handleCancel: PropTypes.func,
-  showAlert: PropTypes.func,
-};
+import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Form, FormCell, Icon, Input, Label } from '#react-weui';
+import React, { PropTypes } from 'react';
 
 export default class ChangePasswordForm extends React.Component {
   constructor(props) {
@@ -146,4 +131,27 @@ export default class ChangePasswordForm extends React.Component {
   }
 }
 
-ChangePasswordForm.propTypes = propTypes;
+ChangePasswordForm.propTypes = {
+  titleTip: PropTypes.string,
+  oldPasswordLabel: PropTypes.string.isRequired,
+  oldPasswordPlaceholder: PropTypes.string,
+  newPasswordLabel: PropTypes.string.isRequired,
+  newPasswordPlaceholder: PropTypes.string,
+  newPasswordConfirmLabel: PropTypes.string.isRequired,
+  newPasswordConfirmPlaceholder: PropTypes.string,
+  submitText: PropTypes.string.isRequired,
+  cancelText: PropTypes.string,
+  handleSubmit: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func,
+  showAlert: PropTypes.func,
+};
+
+ChangePasswordForm.defaultProps = {
+  titleTip: '',
+  oldPasswordPlaceholder: '',
+  newPasswordPlaceholder: '',
+  newPasswordConfirmPlaceholder: '',
+  cancelText: '',
+  handleCancel: undefined,
+  showAlert: undefined,
+};

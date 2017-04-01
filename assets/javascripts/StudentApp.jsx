@@ -1,34 +1,30 @@
-/**
- * Created by shudi on 2016/10/22.
- */
+import { BrowserRouter, Route } from 'react-router-dom';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Router, Route, IndexRoute, hashHistory } from 'react-router';
-
+import StudentFeedbackPage from '#pages/student/StudentFeedbackPage';
 import StudentLoginPage from '#pages/student/StudentLoginPage';
-import StudentRegisterPage from '#pages/student/StudentRegisterPage';
-import StudentProtocolPage from '#pages/student/StudentProtocolPage';
-import StudentReservationListPage from '#pages/student/StudentReservationListPage';
 import StudentMakeReservationPage from '#pages/student/StudentMakeReservationPage';
 import StudentMakeReservationSuccessPage from '#pages/student/StudentMakeReservationSuccessPage';
-import StudentFeedbackPage from '#pages/student/StudentFeedbackPage';
+import StudentProtocolPage from '#pages/student/StudentProtocolPage';
+import StudentRegisterPage from '#pages/student/StudentRegisterPage';
+import StudentReservationListPage from '#pages/student/StudentReservationListPage';
 
 const routes = (
-  <Route path="/">
-    <IndexRoute component={StudentReservationListPage} />
-    <Route path="login" component={StudentLoginPage} />
-    <Route path="register" component={StudentRegisterPage} />
-    <Route path="protocol" component={StudentProtocolPage} />
-    <Route path="reservation" component={StudentReservationListPage} />
-    <Route path="reservation/make" component={StudentMakeReservationPage} />
-    <Route path="reservation/make/success" component={StudentMakeReservationSuccessPage} />
-    <Route path="reservation/feedback" component={StudentFeedbackPage} />
-  </Route>
+  <div>
+    <Route exact path="/" component={StudentLoginPage} />
+    <Route exact path="/login" component={StudentLoginPage} />
+    <Route exact path="/register" component={StudentRegisterPage} />
+    <Route exact path="/protocol" component={StudentProtocolPage} />
+    <Route exact path="/reservation" component={StudentReservationListPage} />
+    <Route exact path="/reservation/make" component={StudentMakeReservationPage} />
+    <Route exact path="/reservation/make/success" component={StudentMakeReservationSuccessPage} />
+    <Route exact path="/reservation/feedback" component={StudentFeedbackPage} />
+  </div>
 );
 
 ReactDOM.render(
-  <Router history={hashHistory}>
+  <BrowserRouter basename="/m/student">
     {routes}
-  </Router>,
+  </BrowserRouter>,
   document.getElementById('content'),
 );

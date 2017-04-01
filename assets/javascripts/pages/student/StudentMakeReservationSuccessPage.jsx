@@ -1,20 +1,17 @@
-/**
- * Created by shudi on 2016/11/28.
- */
-import React from 'react';
-import { hashHistory } from 'react-router';
-import { Msg } from '#react-weui';
 import 'weui';
+import React, { PropTypes } from 'react';
+import { Msg } from '#react-weui';
 
 export default class StudentMakeReservationSuccessPage extends React.Component {
   constructor(props) {
     super(props);
+    const { history } = this.props;
     this.state = {
       buttons: [{
         type: 'primary',
         label: '返回首页',
         onClick: () => {
-          hashHistory.push('reservation');
+          history.push('/reservation');
         },
       }],
     };
@@ -31,3 +28,7 @@ export default class StudentMakeReservationSuccessPage extends React.Component {
     );
   }
 }
+
+StudentMakeReservationSuccessPage.propTypes = {
+  history: PropTypes.object.isRequired,
+};

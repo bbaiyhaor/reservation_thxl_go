@@ -1,6 +1,6 @@
 import 'weui';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
-import { Panel, PanelBody, PanelHeader } from '#react-weui';
+import { Panel, PanelBody, PanelHeader } from 'react-weui';
 import React, { PropTypes } from 'react';
 import PageBottom from '#coms/PageBottom';
 import ResetPasswordForm from '#forms/ResetPasswordForm';

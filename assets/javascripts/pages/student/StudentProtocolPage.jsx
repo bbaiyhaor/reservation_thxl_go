@@ -1,5 +1,5 @@
 import 'weui';
-import { Article } from '#react-weui';
+import { Article } from 'react-weui';
 import PageBottom from '#coms/PageBottom';
 import React from 'react';
 

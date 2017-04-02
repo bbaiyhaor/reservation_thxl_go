@@ -1,6 +1,6 @@
 import 'weui';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
-import { Cell, CellBody, CellFooter, Cells, CellsTitle, Panel, PanelHeader, TextArea } from '#react-weui';
+import { Cell, CellBody, CellFooter, Cells, CellsTitle, Panel, PanelHeader, TextArea } from 'react-weui';
 import React, { PropTypes } from 'react';
 import { Application } from '#models/Models';
 import PageBottom from '#coms/PageBottom';

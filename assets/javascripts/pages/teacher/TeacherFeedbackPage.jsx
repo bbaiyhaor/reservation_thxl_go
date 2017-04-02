@@ -1,7 +1,7 @@
 import 'weui';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { Application, User } from '#models/Models';
-import { Panel, PanelHeader } from '#react-weui';
+import { Panel, PanelHeader } from 'react-weui';
 import React, { PropTypes } from 'react';
 import PageBottom from '#coms/PageBottom';
 import TeacherFeedbackForm from '#forms/TeacherFeedbackForm';

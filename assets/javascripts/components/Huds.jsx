@@ -1,5 +1,5 @@
 import 'weui';
-import { Dialog, Toast } from '#react-weui';
+import { Dialog, Toast } from 'react-weui';
 import React from 'react';
 
 export class AlertDialog extends React.Component {

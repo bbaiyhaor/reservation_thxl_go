@@ -1,5 +1,5 @@
 import 'weui';
-import { Agreement, Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Form, FormCell, Icon, Input, Label, Select } from '#react-weui';
+import { Agreement, Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Form, FormCell, Icon, Input, Label, Select } from 'react-weui';
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router-dom';
 

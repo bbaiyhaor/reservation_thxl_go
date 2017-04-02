@@ -1,5 +1,5 @@
 import 'weui';
-import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Form, FormCell, Icon, Input, Label } from '#react-weui';
+import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Form, FormCell, Icon, Input, Label } from 'react-weui';
 import React, { PropTypes } from 'react';
 
 export default class LoginForm extends React.Component {

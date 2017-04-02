@@ -82,7 +82,6 @@ var config = {
     resolve: {
         extensions: ['.js', '.jsx', '.css', '.png'],
         alias: {
-            '#react-weui': path.join(__dirname, 'assets/javascripts/react-weui/src'),
             '#pages': path.join(__dirname, 'assets/javascripts/pages'),
             '#forms': path.join(__dirname, 'assets/javascripts/forms'),
             '#coms': path.join(__dirname, 'assets/javascripts/components'),
@@ -91,18 +90,9 @@ var config = {
         },
     },
     module: {
-        // preLoaders: [
-        //     {
-        //         test: /\.jsx?$/,
-        //         loader: "eslint-loader",
-        //         include: path.join(__dirname, 'assets'),
-        //         exclude: /(node_modules|bower_components|assets\/javascripts\/react-weui)/,
-        //     },
-        // ],
         loaders: [
             { test: /\.css$/, loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader' }) },
-            { test: /\.scss$/, loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader!sass-loader'}) },
-            { test: /\.less$/, loader: 'style-loader!css-loader!less-loader' },
+            { test: /\.scss$/, loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader!sass-loader' }) },
             { test: /\.html$/, loader: 'html-loader' },
             { test: /\.(png|gif|svg)$/, loader: 'url-loader?name=[name]@[hash].[ext]&limit=5000' },
             { test: /\.(pdf|ico|jpg|eot|otf|woff|ttf|mp4|webm)$/, loader: 'file-loader?name=[name]@[hash].[ext]' },
@@ -113,16 +103,6 @@ var config = {
                     presets: ['es2015', 'react', 'stage-0'],
                 },
                 include: path.join(__dirname, 'assets'),
-                exclude: /(node_modules|bower_components|assets\/javascripts\/react-weui)/,
-            },
-            {
-                test: /\.jsx?$/,
-                loader: "babel-loader",
-                query: {
-                    presets: ['es2015', 'react', 'stage-0'],
-                    plugins: ['add-module-exports'],
-                },
-                include: path.join(__dirname, 'assets/javascripts/react-weui'),
                 exclude: /(node_modules|bower_components)/,
             },
         ],

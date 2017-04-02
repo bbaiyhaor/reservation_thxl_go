@@ -2,7 +2,7 @@
 import 'weui';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { Application, User } from '#models/Models';
-import { Button, CellBody, CellFooter, CellsTitle, FormCell, Icon, Input, MediaBox, MediaBoxBody, MediaBoxDescription, MediaBoxTitle, Panel, PanelBody, PanelHeader, SearchBar } from '#react-weui';
+import { Button, CellBody, CellFooter, CellsTitle, FormCell, Icon, Input, MediaBox, MediaBoxBody, MediaBoxDescription, MediaBoxTitle, Panel, PanelBody, PanelHeader, SearchBar } from 'react-weui';
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router-dom';
 import LogoutButton from '#coms/LogoutButton';

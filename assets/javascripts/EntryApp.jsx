@@ -1,5 +1,5 @@
 import 'weui';
-import { MediaBox, MediaBoxBody, MediaBoxDescription, MediaBoxHeader, MediaBoxTitle, Panel, PanelBody, PanelHeader } from '#react-weui';
+import { MediaBox, MediaBoxBody, MediaBoxDescription, MediaBoxHeader, MediaBoxTitle, Panel, PanelBody, PanelHeader } from 'react-weui';
 import React, { PropTypes } from 'react';
 import PageBottom from '#coms/PageBottom';
 import ReactDOM from 'react-dom';

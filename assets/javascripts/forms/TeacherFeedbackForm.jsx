@@ -1,6 +1,6 @@
 /* eslint react/no-array-index-key: ["off"] */
 import 'weui';
-import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Checkbox, Form, FormCell, Icon, Label, Select, TextArea } from '#react-weui';
+import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Checkbox, Form, FormCell, Icon, Label, Select, TextArea } from 'react-weui';
 import React, { PropTypes } from 'react';
 
 export default class TeacherFeedbackForm extends React.Component {

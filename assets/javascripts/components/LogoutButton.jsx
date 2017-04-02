@@ -1,17 +1,8 @@
-/**
- * Created by shudi on 2016/10/22.
- */
-import React, { PropTypes } from 'react';
-import { Button } from '#react-weui';
 import 'weui';
-
+import React, { PropTypes } from 'react';
 import { AlertDialog } from '#coms/Huds';
+import { Button } from 'react-weui';
 import { User } from '#models/Models';
-
-const propTypes = {
-  children: PropTypes.node,
-  alert: PropTypes.func,
-};
 
 export default class LogoutButton extends React.Component {
   constructor(props) {
@@ -43,4 +34,6 @@ export default class LogoutButton extends React.Component {
   }
 }
 
-LogoutButton.propTypes = propTypes;
+LogoutButton.propTypes = {
+  children: PropTypes.node.isRequired,
+};

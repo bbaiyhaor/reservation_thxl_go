@@ -1,25 +1,21 @@
-/**
- * Created by shudi on 2016/11/6.
- */
-import React from 'react';
-import { hashHistory } from 'react-router';
-import { Panel, PanelHeader, PanelBody } from '#react-weui';
 import 'weui';
-
-import ResetPasswordForm from '#forms/ResetPasswordForm';
-import PageBottom from '#coms/PageBottom';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
+import { Panel, PanelBody, PanelHeader } from 'react-weui';
+import React, { PropTypes } from 'react';
+import PageBottom from '#coms/PageBottom';
+import ResetPasswordForm from '#forms/ResetPasswordForm';
 import { User } from '#models/Models';
 
 export default class TeacherResetPasswordPage extends React.Component {
-  static toLogin() {
-    hashHistory.push('login');
-  }
-
   constructor(props) {
     super(props);
+    this.toLogin = this.toLogin.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.showAlert = this.showAlert.bind(this);
+  }
+
+  toLogin() {
+    this.props.history.push('/login');
   }
 
   handleSubmit(username, newPassword, verifyCode) {
@@ -28,7 +24,7 @@ export default class TeacherResetPasswordPage extends React.Component {
       User.teacherPasswordResetVerify(username, newPassword, verifyCode, () => {
         this.loading.hide();
         this.alert.show('重置成功', '您已成功重置密码，请重新登录', '好的', () => {
-          hashHistory.push('login');
+          this.props.history.push('/login');
         });
       }, (error) => {
         this.loading.hide();
@@ -63,7 +59,7 @@ export default class TeacherResetPasswordPage extends React.Component {
               submitText="重置密码"
               cancelText="返回登录"
               handleSubmit={this.handleSubmit}
-              handleCancel={TeacherResetPasswordPage.toLogin}
+              handleCancel={this.toLogin}
               showAlert={this.showAlert}
             />
             <div style={{ color: '#999999', padding: '10px 20px', textAlign: 'center', fontSize: '13px' }}>
@@ -82,3 +78,7 @@ export default class TeacherResetPasswordPage extends React.Component {
     );
   }
 }
+
+TeacherResetPasswordPage.propTypes = {
+  history: PropTypes.object.isRequired,
+};

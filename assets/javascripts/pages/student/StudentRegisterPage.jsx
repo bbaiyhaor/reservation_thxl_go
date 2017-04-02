@@ -1,24 +1,16 @@
-/**
- * Created by shudi on 2016/10/22.
- */
-import React from 'react';
-import { hashHistory } from 'react-router';
-import { Panel, PanelHeader, PanelBody } from '#react-weui';
 import 'weui';
-
-import RegisterForm from '#forms/RegisterForm';
-import PageBottom from '#coms/PageBottom';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
+import { Panel, PanelBody, PanelHeader } from 'react-weui';
+import React, { PropTypes } from 'react';
+import PageBottom from '#coms/PageBottom';
+import RegisterForm from '#forms/RegisterForm';
 import { User } from '#models/Models';
 
 export default class StudentRegisterPage extends React.Component {
-  static toLogin() {
-    hashHistory.push('login');
-  }
-
   constructor(props) {
     super(props);
     this.onRegister = this.onRegister.bind(this);
+    this.toLogin = this.toLogin.bind(this);
     this.showAlert = this.showAlert.bind(this);
   }
 
@@ -50,7 +42,7 @@ export default class StudentRegisterPage extends React.Component {
     User.studentRegister(payload, () => {
       this.loading.hide();
       this.alert.show('注册成功', '请用学号和密码登录', '好的', () => {
-        hashHistory.push('login');
+        this.props.history.push('/login');
       });
     }, (error) => {
       this.loading.hide();
@@ -60,6 +52,10 @@ export default class StudentRegisterPage extends React.Component {
     });
   }
 
+  toLogin() {
+    this.props.history.push('/login');
+  }
+
   showAlert(title, msg, label) {
     this.alert.show(title, msg, label);
   }
@@ -67,7 +63,7 @@ export default class StudentRegisterPage extends React.Component {
   render() {
     return (
       <div>
-        <Panel access>
+        <Panel>
           <PanelHeader style={{ fontSize: '18px' }}>学生注册</PanelHeader>
           <PanelBody>
             <RegisterForm
@@ -80,11 +76,11 @@ export default class StudentRegisterPage extends React.Component {
               confirmPasswordPlaceholder="请确认密码"
               protocol="咨询协议"
               protocolPrefix="我已阅读并同意"
-              protocolLink="protocol"
+              protocolLink="/protocol"
               submitText="注册"
               cancelText="已有账户"
               handleSubmit={this.onRegister}
-              handleCancel={StudentRegisterPage.toLogin}
+              handleCancel={this.toLogin}
               showAlert={this.showAlert}
             />
             <div style={{ color: '#999999', padding: '10px 20px', textAlign: 'center', fontSize: '13px' }}>
@@ -103,3 +99,7 @@ export default class StudentRegisterPage extends React.Component {
     );
   }
 }
+
+StudentRegisterPage.propTypes = {
+  history: PropTypes.object.isRequired,
+};

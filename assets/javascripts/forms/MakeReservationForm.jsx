@@ -1,24 +1,12 @@
 /* eslint max-len: ["off"] */
-/**
- * Created by shudi on 2016/10/24.
- */
-import React, { PropTypes } from 'react';
-import { Form, FormCell, CellHeader, CellBody, CellFooter, CellsTitle, Label, Input, Icon, Select, TextArea, ButtonArea, Button } from '#react-weui';
 import 'weui';
-
-const propTypes = {
-  student: PropTypes.object,
-  reservation: PropTypes.object,
-  handleSubmit: PropTypes.func.isRequired,
-  handleCancel: PropTypes.func.isRequired,
-};
+import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Form, FormCell, Icon, Input, Label, Select, TextArea } from 'react-weui';
+import React, { PropTypes } from 'react';
 
 export default class MakeReservationForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      reservation: this.props.reservation,
-      student: this.props.student,
       fullname: this.props.student.fullname,
       gender: this.props.student.gender,
       birthday: this.props.student.birthday,
@@ -129,15 +117,15 @@ export default class MakeReservationForm extends React.Component {
       this.problemInput.focus();
       return;
     }
-    this.props.handleSubmit(this.state.reservation, this.state.fullname, this.state.gender, this.state.birthday, this.state.school, this.state.grade, this.state.currentAddress, this.state.familyAddress, this.state.mobile, this.state.email, this.state.experienceTime, this.state.experienceLocation, this.state.experienceTeacher, this.state.fatherAge, this.state.fatherJob, this.state.fatherEdu, this.state.motherAge, this.state.motherJob, this.state.motherEdu, this.state.parentMarriage, this.state.significant, this.state.problem);
+    this.props.handleSubmit(this.props.reservation, this.state.fullname, this.state.gender, this.state.birthday, this.state.school, this.state.grade, this.state.currentAddress, this.state.familyAddress, this.state.mobile, this.state.email, this.state.experienceTime, this.state.experienceLocation, this.state.experienceTeacher, this.state.fatherAge, this.state.fatherJob, this.state.fatherEdu, this.state.motherAge, this.state.motherJob, this.state.motherEdu, this.state.parentMarriage, this.state.significant, this.state.problem);
   }
 
   render() {
     return (
       <div>
-        {this.state.reservation &&
+        {this.props.reservation &&
           <CellsTitle>
-            正在预约：{this.state.reservation.start_time}-{this.state.reservation.end_time.slice(-5)} {this.state.reservation.teacher_fullname}
+            正在预约：{this.props.reservation.start_time}-{this.props.reservation.end_time.slice(-5)} {this.props.reservation.teacher_fullname}
           </CellsTitle>
         }
         <Form>
@@ -457,7 +445,7 @@ export default class MakeReservationForm extends React.Component {
               <TextArea
                 placeholder="请输入"
                 rows="3"
-                maxlength="300"
+                maxLength={300}
                 value={this.state.significant}
                 onChange={(e) => { this.handleChange(e, 'significant'); }}
               />
@@ -472,7 +460,7 @@ export default class MakeReservationForm extends React.Component {
                 ref={(problemInput) => { this.problemInput = problemInput; }}
                 placeholder="请输入"
                 rows="3"
-                maxlength="300"
+                maxLength={300}
                 value={this.state.problem}
                 onChange={(e) => { this.handleChange(e, 'problem'); }}
               />
@@ -494,4 +482,9 @@ export default class MakeReservationForm extends React.Component {
   }
 }
 
-MakeReservationForm.propTypes = propTypes;
+MakeReservationForm.propTypes = {
+  student: PropTypes.object.isRequired,
+  reservation: PropTypes.object.isRequired,
+  handleSubmit: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func.isRequired,
+};

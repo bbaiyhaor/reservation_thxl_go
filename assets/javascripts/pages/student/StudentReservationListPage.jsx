@@ -1,16 +1,11 @@
 /* eslint max-len: ["off"] */
-/**
- * Created by shudi on 2016/10/23.
- */
-import React, { PropTypes } from 'react';
-import { hashHistory } from 'react-router';
-import { Panel, PanelHeader, PanelBody, CellsTitle, MediaBox, Button, Cells, Cell, CellBody, SearchBar } from '#react-weui';
 import 'weui';
-
+import { AlertDialog, ConfirmDialog, LoadingHud } from '#coms/Huds';
+import { Application, User } from '#models/Models';
+import { Button, Cell, CellBody, Cells, CellsTitle, MediaBox, Panel, PanelBody, PanelHeader, SearchBar } from 'react-weui';
+import React, { PropTypes } from 'react';
 import LogoutButton from '#coms/LogoutButton';
 import PageBottom from '#coms/PageBottom';
-import { AlertDialog, ConfirmDialog, LoadingHud } from '#coms/Huds';
-import { User, Application } from '#models/Models';
 
 export default class StudentReservationListPage extends React.Component {
   constructor(props) {
@@ -36,18 +31,18 @@ export default class StudentReservationListPage extends React.Component {
       }, (error) => {
         this.loading.hide();
         this.alert.show('', error, '好的', () => {
-          hashHistory.push('login');
+          this.props.history.push('/login');
         });
       });
     }, () => {
-      hashHistory.push('login');
+      this.props.history.push('/login');
     });
   }
 
   render() {
     return (
       <div>
-        <Panel access>
+        <Panel>
           <PanelHeader style={{ fontSize: '18px' }}>
             {User.fullname !== '' ? `${User.fullname}，` : ''}欢迎使用咨询预约系统
             <div style={{ height: '20px' }}>
@@ -61,7 +56,10 @@ export default class StudentReservationListPage extends React.Component {
             <CellsTitle>可预约时间为当前时间加一周减去1.5小时，请根据您的需要选择相应咨询师和时间段进行预约。</CellsTitle>
           </PanelHeader>
           <PanelBody>
-            <StudentReservationList reservations={this.state.reservations} />
+            <StudentReservationList
+              reservations={this.state.reservations}
+              history={this.props.history}
+            />
           </PanelBody>
         </Panel>
         <LoadingHud ref={(loading) => { this.loading = loading; }} />
@@ -76,21 +74,18 @@ export default class StudentReservationListPage extends React.Component {
   }
 }
 
-const propTypes = {
-  reservations: PropTypes.arrayOf(React.PropTypes.object),
+StudentReservationListPage.propTypes = {
+  history: PropTypes.object.isRequired,
 };
 
 class StudentReservationList extends React.Component {
-  static feedback(reservation) {
-    hashHistory.push(`reservation/feedback?reservation_id=${reservation.id}`);
-  }
-
   constructor(props) {
     super(props);
     this.state = {
       reservations: this.props.reservations,
       reservationsBak: this.props.reservations,
     };
+    this.toFeedback = this.toFeedback.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.makeReservation = this.makeReservation.bind(this);
   }
@@ -100,6 +95,10 @@ class StudentReservationList extends React.Component {
       reservations: nextProps.reservations,
       reservationsBak: nextProps.reservations,
     });
+  }
+
+  toFeedback(reservation) {
+    this.props.history.push('/reservation/feedback', { reservation_id: `${reservation.id}` });
   }
 
   handleChange(text) {
@@ -123,10 +122,11 @@ class StudentReservationList extends React.Component {
   }
 
   makeReservation(reservation) {
+    const { history } = this.props;
     this.confirm.show('',
       '确定预约后请准确填写个人信息，方便心理咨询中心老师与你取得联系。',
       '暂不预约', '立即预约', null,
-      () => hashHistory.push(`reservation/make?reservation_id=${reservation.id}`),
+      () => history.push('/reservation/make', { reservation_id: `${reservation.id}` }),
     );
   }
 
@@ -150,7 +150,7 @@ class StudentReservationList extends React.Component {
           type="warn"
           onClick={(e) => {
             e.stopPropagation();
-            StudentReservationList.feedback(reservation);
+            this.toFeedback(reservation);
           }}
         >反馈</Button>
       );
@@ -195,4 +195,11 @@ class StudentReservationList extends React.Component {
   }
 }
 
-StudentReservationList.propTypes = propTypes;
+StudentReservationList.propTypes = {
+  history: PropTypes.object.isRequired,
+  reservations: PropTypes.arrayOf(React.PropTypes.object),
+};
+
+StudentReservationList.defaultProps = {
+  reservations: [],
+};

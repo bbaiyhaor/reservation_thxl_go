@@ -1,6 +1,3 @@
-/**
- * Created by shudi on 2016/10/22.
- */
 export default {
   isMobile(mobile) {
     return /^1[3|4|5|7|8][0-9]{9}$/.test(mobile);

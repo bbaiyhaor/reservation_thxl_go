@@ -1,11 +1,6 @@
-/**
- * Created by shudi on 2016/10/23.
- */
-import React from 'react';
-import { Dialog, Toast } from '#react-weui';
 import 'weui';
-
-const { Alert, Confirm } = Dialog;
+import { Dialog, Toast } from 'react-weui';
+import React from 'react';
 
 export class AlertDialog extends React.Component {
   constructor(props) {
@@ -53,13 +48,13 @@ export class AlertDialog extends React.Component {
 
   render() {
     return (
-      <Alert
+      <Dialog
         title={this.state.alert.title}
         buttons={this.state.alert.buttons}
         show={this.state.alertShow}
       >
         {this.state.alert.msg}
-      </Alert>
+      </Dialog>
     );
   }
 }
@@ -132,13 +127,13 @@ export class ConfirmDialog extends React.Component {
 
   render() {
     return (
-      <Confirm
+      <Dialog
         title={this.state.confirm.title}
         buttons={this.state.confirm.buttons}
         show={this.state.confirmShow}
       >
         {this.state.confirm.msg}
-      </Confirm>
+      </Dialog>
     );
   }
 }

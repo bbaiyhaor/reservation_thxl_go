@@ -1,6 +1,3 @@
-/**
- * Created by shudi on 2016/10/22.
- */
 /* eslint no-use-before-define: "off", no-console: "off" */
 import $ from 'jquery';
 

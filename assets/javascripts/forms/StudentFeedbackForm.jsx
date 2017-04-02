@@ -1,43 +1,38 @@
-/**
- * Created by shudi on 2016/10/30.
- */
-import React, { PropTypes } from 'react';
-import { Form, FormCell, Cells, Cell, CellBody, CellFooter, CellsTitle, ButtonArea, Button, Radio } from '#react-weui';
 import 'weui';
-
-const propTypes = {
-  handleSubmit: PropTypes.func.isRequired,
-  handleCancel: PropTypes.func.isRequired,
-};
+import { Button, ButtonArea, Cell, CellBody, CellFooter, Cells, CellsTitle, Form, FormCell, Radio } from 'react-weui';
+import React, { PropTypes } from 'react';
 
 export default class StudentFeedbackForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      reservation: null,
-      scores: [],
-      feedbackRadio1: 4,
-      feedbackRadio2: 4,
-      feedbackRadio3: 4,
-      feedbackRadio4: 4,
-      feedbackRadio5: 4,
+      feedbackRadio1: 0,
+      feedbackRadio2: 0,
+      feedbackRadio3: 0,
+      feedbackRadio4: 0,
+      feedbackRadio5: 0,
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({
-      reservation: nextProps.reservation,
-      scores: nextProps.scores,
-    });
-    if (nextProps.scores.length === 5) {
+    const { scores } = nextProps;
+    if (scores && scores.length === 5) {
       this.setState({
         feedbackRadio1: nextProps.scores[0],
         feedbackRadio2: nextProps.scores[1],
         feedbackRadio3: nextProps.scores[2],
         feedbackRadio4: nextProps.scores[3],
         feedbackRadio5: nextProps.scores[4],
+      });
+    } else {
+      this.setState({
+        feedbackRadio1: 4,
+        feedbackRadio2: 4,
+        feedbackRadio3: 4,
+        feedbackRadio4: 4,
+        feedbackRadio5: 4,
       });
     }
   }
@@ -53,9 +48,9 @@ export default class StudentFeedbackForm extends React.Component {
   render() {
     return (
       <div>
-        {this.state.reservation &&
+        {this.props.reservation &&
           <CellsTitle>
-            正在反馈：{this.state.reservation.start_time}-{this.state.reservation.end_time.slice(-5)} {this.state.reservation.teacher_fullname}
+            正在反馈：{this.props.reservation.start_time}-{this.props.reservation.end_time.slice(-5)} {this.props.reservation.teacher_fullname}
           </CellsTitle>
         }
         <Form radio>
@@ -325,4 +320,9 @@ export default class StudentFeedbackForm extends React.Component {
   }
 }
 
-StudentFeedbackForm.propTypes = propTypes;
+StudentFeedbackForm.propTypes = {
+  reservation: PropTypes.object.isRequired,
+  scores: PropTypes.arrayOf(PropTypes.number).isRequired,
+  handleSubmit: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func.isRequired,
+};

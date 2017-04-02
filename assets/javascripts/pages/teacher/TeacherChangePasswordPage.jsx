@@ -1,25 +1,21 @@
-/**
- * Created by shudi on 2016/11/6.
- */
-import React from 'react';
-import { hashHistory } from 'react-router';
-import { Panel, PanelHeader, PanelBody } from '#react-weui';
 import 'weui';
-
+import { AlertDialog, LoadingHud } from '#coms/Huds';
+import { Panel, PanelBody, PanelHeader } from 'react-weui';
+import React, { PropTypes } from 'react';
 import ChangePasswordForm from '#forms/ChangePasswordForm';
 import PageBottom from '#coms/PageBottom';
-import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { User } from '#models/Models';
 
 export default class TeacherChangePasswordPage extends React.Component {
-  static handleCancel() {
-    hashHistory.goBack();
-  }
-
   constructor(props) {
     super(props);
+    this.handleCancel = this.handleCancel.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.showAlert = this.showAlert.bind(this);
+  }
+
+  handleCancel() {
+    this.props.history.goBack();
   }
 
   handleSubmit(oldPassword, newPassword) {
@@ -41,7 +37,7 @@ export default class TeacherChangePasswordPage extends React.Component {
         });
       }, 500);
     }, () => {
-      hashHistory.push('login');
+      this.props.history.push('/login');
     });
   }
 
@@ -66,7 +62,7 @@ export default class TeacherChangePasswordPage extends React.Component {
               submitText="确认更改"
               cancelText="取消"
               handleSubmit={this.handleSubmit}
-              handleCancel={TeacherChangePasswordPage.handleCancel}
+              handleCancel={this.handleCancel}
               showAlert={this.showAlert}
             />
             <div style={{ color: '#999999', padding: '10px 20px', textAlign: 'center', fontSize: '13px' }}>
@@ -85,3 +81,7 @@ export default class TeacherChangePasswordPage extends React.Component {
     );
   }
 }
+
+TeacherChangePasswordPage.propTypes = {
+  history: PropTypes.object.isRequired,
+};

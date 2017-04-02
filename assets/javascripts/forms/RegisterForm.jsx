@@ -1,29 +1,7 @@
-/**
- * Created by shudi on 2016/10/22.
- */
-import React, { PropTypes } from 'react';
-import { Link } from 'react-router';
-import { CellsTitle, Form, FormCell, CellHeader, Label, CellBody, Input, CellFooter, Icon, Select, ButtonArea, Button, Checkbox } from '#react-weui';
 import 'weui';
-
-const propTypes = {
-  titleTip: PropTypes.string,
-  usernameLabel: PropTypes.string.isRequired,
-  usernamePlaceholder: PropTypes.string,
-  passwordLabel: PropTypes.string.isRequired,
-  passwordPlaceholder: PropTypes.string,
-  confirmPasswordLabel: PropTypes.string.isRequired,
-  confirmPasswordPlaceholder: PropTypes.string,
-  protocol: PropTypes.string,
-  protocolPrefix: PropTypes.string,
-  protocolSuffix: PropTypes.string,
-  protocolLink: PropTypes.string,
-  submitText: PropTypes.string.isRequired,
-  cancelText: PropTypes.string.isRequired,
-  handleSubmit: PropTypes.func.isRequired,
-  handleCancel: PropTypes.func.isRequired,
-  showAlert: PropTypes.func,
-};
+import { Agreement, Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Form, FormCell, Icon, Input, Label, Select } from 'react-weui';
+import React, { PropTypes } from 'react';
+import { Link } from 'react-router-dom';
 
 export default class RegisterForm extends React.Component {
   constructor(props) {
@@ -64,7 +42,6 @@ export default class RegisterForm extends React.Component {
       familyAddressWarn: false,
       mobileWarn: false,
       emailWarn: false,
-      protocolWarn: false,
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -90,7 +67,6 @@ export default class RegisterForm extends React.Component {
       familyAddressWarn: false,
       mobileWarn: false,
       emailWarn: false,
-      protocolWarn: false,
     });
     if (this.state.username === '') {
       this.setState({ usernameWarn: true });
@@ -114,7 +90,7 @@ export default class RegisterForm extends React.Component {
     }
     if (this.state.gender === '') {
       this.setState({ genderWarn: true });
-      this.gradeInput.focus();
+      this.genderSelect.focus();
       return;
     }
     if (this.state.birthday === '') {
@@ -153,7 +129,7 @@ export default class RegisterForm extends React.Component {
       return;
     }
     if (!this.state.protocolChecked) {
-      this.setState({ protocolWarn: true });
+      this.props.showAlert && this.props.showAlert('注册失败', '请阅读并同意咨询协议', '好的');
       return;
     }
     if (this.state.password !== this.state.confirmPassword) {
@@ -177,7 +153,7 @@ export default class RegisterForm extends React.Component {
         {this.props.titleTip && this.props.titleTip !== '' &&
           <CellsTitle>{this.props.titleTip}</CellsTitle>
         }
-        <Form checkbox={this.props.protocol && true} className="weui_cells_form">
+        <Form className="weui-cells_form">
           <FormCell warn={this.state.usernameWarn}>
             <CellHeader>
               <Label>{this.props.usernameLabel}<span style={{ color: 'red' }}>*</span></Label>
@@ -194,7 +170,7 @@ export default class RegisterForm extends React.Component {
             </CellBody>
             {this.state.usernameWarn &&
               <CellFooter>
-                <Icon value="warn" />
+                <Icon size="small" value="warn" />
               </CellFooter>
             }
           </FormCell>
@@ -214,7 +190,7 @@ export default class RegisterForm extends React.Component {
             </CellBody>
             {this.state.passwordWarn &&
               <CellFooter>
-                <Icon value="warn" />
+                <Icon size="small" value="warn" />
               </CellFooter>
             }
           </FormCell>
@@ -234,7 +210,7 @@ export default class RegisterForm extends React.Component {
             </CellBody>
             {this.state.confirmPasswordWarn &&
               <CellFooter>
-                <Icon value="warn" />
+                <Icon size="small" value="warn" />
               </CellFooter>
             }
           </FormCell>
@@ -254,7 +230,7 @@ export default class RegisterForm extends React.Component {
             </CellBody>
             {this.state.fullnameWarn &&
               <CellFooter>
-                <Icon value="warn" />
+                <Icon size="small" value="warn" />
               </CellFooter>
             }
           </FormCell>
@@ -265,6 +241,7 @@ export default class RegisterForm extends React.Component {
             <CellBody>
               <Select
                 name="gender"
+                ref={(genderSelect) => { this.genderSelect = genderSelect; }}
                 value={this.state.gender}
                 onChange={this.handleChange}
               >
@@ -275,7 +252,7 @@ export default class RegisterForm extends React.Component {
             </CellBody>
             {this.state.genderWarn &&
               <CellFooter style={{ marginRight: '25px' }}>
-                <Icon value="warn" />
+                <Icon size="small" value="warn" />
               </CellFooter>
             }
           </FormCell>
@@ -287,7 +264,7 @@ export default class RegisterForm extends React.Component {
               <Input
                 name="birthday"
                 ref={(birthdayInput) => { this.birthdayInput = birthdayInput; }}
-                type="input"
+                type="date"
                 placeholder="请输入出生日期"
                 value={this.state.birthday}
                 onChange={this.handleChange}
@@ -295,7 +272,7 @@ export default class RegisterForm extends React.Component {
             </CellBody>
             {this.state.birthdayWarn &&
               <CellFooter>
-                <Icon value="warn" />
+                <Icon size="small" value="warn" />
               </CellFooter>
             }
           </FormCell>
@@ -315,7 +292,7 @@ export default class RegisterForm extends React.Component {
             </CellBody>
             {this.state.schoolWarn &&
               <CellFooter>
-                <Icon value="warn" />
+                <Icon size="small" value="warn" />
               </CellFooter>
             }
           </FormCell>
@@ -335,7 +312,7 @@ export default class RegisterForm extends React.Component {
             </CellBody>
             {this.state.gradeWarn &&
               <CellFooter>
-                <Icon value="warn" />
+                <Icon size="small" value="warn" />
               </CellFooter>
             }
           </FormCell>
@@ -355,7 +332,7 @@ export default class RegisterForm extends React.Component {
             </CellBody>
             {this.state.currentAddressWarn &&
               <CellFooter>
-                <Icon value="warn" />
+                <Icon size="small" value="warn" />
               </CellFooter>
             }
           </FormCell>
@@ -375,7 +352,7 @@ export default class RegisterForm extends React.Component {
             </CellBody>
             {this.state.familyAddressWarn &&
               <CellFooter>
-                <Icon value="warn" />
+                <Icon size="small" value="warn" />
               </CellFooter>
             }
           </FormCell>
@@ -395,7 +372,7 @@ export default class RegisterForm extends React.Component {
             </CellBody>
             {this.state.mobileWarn &&
               <CellFooter>
-                <Icon value="warn" />
+                <Icon size="small" value="warn" />
               </CellFooter>
             }
           </FormCell>
@@ -415,7 +392,7 @@ export default class RegisterForm extends React.Component {
             </CellBody>
             {this.state.emailWarn &&
               <CellFooter>
-                <Icon value="warn" />
+                <Icon size="small" value="warn" />
               </CellFooter>
             }
           </FormCell>
@@ -565,29 +542,19 @@ export default class RegisterForm extends React.Component {
               </Select>
             </CellBody>
           </FormCell>
-          {this.props.protocol ?
-            <FormCell checkbox warn={this.state.protocolWarn}>
-              <CellHeader>
-                <Checkbox
-                  name="protocolChecked"
-                  defaultChecked
-                  value="protocolChecked"
-                  onChange={this.handleChange}
-                />
-              </CellHeader>
-              <CellBody>
-                {this.props.protocolPrefix}
-                <Link to={this.props.protocolLink}>{this.props.protocol}</Link>
-                {this.props.protocolSuffix}
-              </CellBody>
-              {this.state.protocolWarn &&
-              <CellFooter>
-                <Icon value="warn" />
-              </CellFooter>
-              }
-            </FormCell> : null
-          }
         </Form>
+        {this.props.protocol ?
+          <Agreement
+            name="protocolChecked"
+            defaultChecked
+            value="protoclChecked"
+            onChange={this.handleChange}
+          >
+            {this.props.protocolPrefix}
+            <Link to={this.props.protocolLink} style={{ pointerEvents: 'all' }}>{this.props.protocol}</Link>
+            {this.props.protocolSuffix}
+          </Agreement> : null
+        }
         <ButtonArea direction="horizontal">
           <Button onClick={this.handleSubmit}>{this.props.submitText}</Button>
           <Button type="default" onClick={this.props.handleCancel}>{this.props.cancelText}</Button>
@@ -598,4 +565,33 @@ export default class RegisterForm extends React.Component {
   }
 }
 
-RegisterForm.propTypes = propTypes;
+RegisterForm.propTypes = {
+  titleTip: PropTypes.string,
+  usernameLabel: PropTypes.string.isRequired,
+  usernamePlaceholder: PropTypes.string,
+  passwordLabel: PropTypes.string.isRequired,
+  passwordPlaceholder: PropTypes.string,
+  confirmPasswordLabel: PropTypes.string.isRequired,
+  confirmPasswordPlaceholder: PropTypes.string,
+  protocol: PropTypes.string,
+  protocolPrefix: PropTypes.string,
+  protocolSuffix: PropTypes.string,
+  protocolLink: PropTypes.string,
+  submitText: PropTypes.string.isRequired,
+  cancelText: PropTypes.string.isRequired,
+  handleSubmit: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func.isRequired,
+  showAlert: PropTypes.func,
+};
+
+RegisterForm.defaultProps = {
+  titleTip: '',
+  usernamePlaceholder: '',
+  passwordPlaceholder: '',
+  confirmPasswordPlaceholder: '',
+  protocol: '',
+  protocolPrefix: '',
+  protocolSuffix: '',
+  protocolLink: '',
+  showAlert: undefined,
+};

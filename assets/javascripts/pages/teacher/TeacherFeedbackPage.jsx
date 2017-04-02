@@ -1,25 +1,12 @@
-/**
- * Created by shudi on 2016/11/4.
- */
-import React, { PropTypes } from 'react';
-import { hashHistory } from 'react-router';
-import { Panel, PanelHeader } from '#react-weui';
 import 'weui';
-
-import TeacherFeedbackForm from '#forms/TeacherFeedbackForm';
-import PageBottom from '#coms/PageBottom';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
-import { User, Application } from '#models/Models';
-
-const propTypes = {
-  location: PropTypes.object,
-};
+import { Application, User } from '#models/Models';
+import { Panel, PanelHeader } from 'react-weui';
+import React, { PropTypes } from 'react';
+import PageBottom from '#coms/PageBottom';
+import TeacherFeedbackForm from '#forms/TeacherFeedbackForm';
 
 export default class TeacherFeedbackPage extends React.Component {
-  static handleCancel() {
-    hashHistory.goBack();
-  }
-
   constructor(props) {
     super(props);
     this.state = {
@@ -28,14 +15,15 @@ export default class TeacherFeedbackPage extends React.Component {
       student: null,
       crisisLevel: 0,
     };
+    this.handleCancel = this.handleCancel.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.showAlert = this.showAlert.bind(this);
   }
 
-  componentDidMount() {
-    const reservationId = this.props.location.query.reservation_id;
+  componentWillMount() {
+    const reservationId = this.props.history.location.state.reservation_id || '';
     if (reservationId === '' || !User.teacher || !Application.reservations) {
-      hashHistory.push('reservation');
+      this.props.history.push('/reservation');
       return;
     }
     let i = 0;
@@ -47,25 +35,32 @@ export default class TeacherFeedbackPage extends React.Component {
       }
     }
     if (i === Application.reservations.length) {
-      hashHistory.push('reservation');
+      this.props.history.push('/reservation');
       return;
     }
+    this.setState({ reservation });
+  }
+
+  componentDidMount() {
     this.loading.show('正在加载中');
     setTimeout(() => {
-      Application.getFeedbackByTeacher(reservation.id, reservation.source_id, (data) => {
+      Application.getFeedbackByTeacher(this.state.reservation.id, this.state.reservation.source_id, (data) => {
         this.loading.hide();
         this.setState({
-          reservation,
           feedback: data.feedback,
           student: data.student,
         });
       }, (error) => {
         this.loading.hide();
         this.alert.show('', error, '好的', () => {
-          hashHistory.push('reservation');
+          this.props.history.push('/reservation');
         });
       });
     }, 500);
+  }
+
+  handleCancel() {
+    this.props.history.goBack();
   }
 
   handleSubmit(payload) {
@@ -74,7 +69,7 @@ export default class TeacherFeedbackPage extends React.Component {
       Application.submitFeedbackByTeacher(payload, () => {
         this.loading.hide();
         this.alert.show('提交成功', '您已成功提交反馈', '好的', () => {
-          hashHistory.push('reservation');
+          this.props.history.push('/reservation');
         });
       }, (error) => {
         this.loading.hide();
@@ -96,7 +91,7 @@ export default class TeacherFeedbackPage extends React.Component {
             reservation={this.state.reservation}
             feedback={this.state.feedback}
             handleSubmit={this.handleSubmit}
-            handleCancel={TeacherFeedbackPage.handleCancel}
+            handleCancel={this.handleCancel}
             showAlert={this.showAlert}
           />
           <LoadingHud ref={(loading) => { this.loading = loading; }} />
@@ -112,4 +107,6 @@ export default class TeacherFeedbackPage extends React.Component {
   }
 }
 
-TeacherFeedbackPage.propTypes = propTypes;
+TeacherFeedbackPage.propTypes = {
+  history: PropTypes.object.isRequired,
+};

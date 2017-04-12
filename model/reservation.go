@@ -67,6 +67,10 @@ type TeacherFeedback struct {
 	Severity         []int  `bson:"severity"`          // 严重程度
 	MedicalDiagnosis []int  `bson:"medical_diagnosis"` // 疑似或明确的医疗诊断
 	Crisis           []int  `bson:"crisis"`            // 危急情况
+	HasCrisis        bool   `bson:"has_crisis"`        // 本次会谈是否有危机
+	HasReservated    bool   `bson:"has_reservated"`    // 本次会谈是否有预约
+	IsSendNotify     bool   `bson:"is_send_notify"`    // 是否发危机通告
+	SchoolContact    string `bson:"school_contact"`    // 院系联系人
 	Record           string `bson:"record"`
 }
 
@@ -86,6 +90,10 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	feedback["severity"] = tf.Severity
 	feedback["medical_diagnosis"] = tf.MedicalDiagnosis
 	feedback["crisis"] = tf.Crisis
+	feedback["has_crisis"] = tf.HasCrisis
+	feedback["has_reservated"] = tf.HasReservated
+	feedback["is_send_notify"] = tf.IsSendNotify
+	feedback["school_contact"] = tf.SchoolContact
 	feedback["record"] = tf.Record
 	return feedback
 }
@@ -114,6 +122,10 @@ func (tf TeacherFeedback) ToStringJson() map[string]interface{} {
 		}
 	}
 	json["crisis"] = crisis
+	json["has_crisis"] = tf.HasCrisis
+	json["has_reservated"] = tf.HasReservated
+	json["is_send_notify"] = tf.IsSendNotify
+	json["school_contact"] = tf.SchoolContact
 	json["record"] = tf.Record
 	return json
 }

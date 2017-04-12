@@ -1,6 +1,6 @@
 /* eslint react/no-array-index-key: ["off"] */
 import 'weui';
-import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Checkbox, Form, FormCell, Icon, Label, Select, TextArea } from 'react-weui';
+import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Checkbox, Form, FormCell, Icon, Input, Label, Select, Switch, TextArea } from 'react-weui';
 import React, { PropTypes } from 'react';
 
 export default class TeacherFeedbackForm extends React.Component {
@@ -17,6 +17,10 @@ export default class TeacherFeedbackForm extends React.Component {
       varMedicalDiagnosis: [],
       crisis: [],
       varCrisis: [],
+      hasCrisis: false,
+      hasReservated: false,
+      isSendNotify: false,
+      schoolContact: '',
       record: '',
       crisisLevel: '0',
       firstCategoryWarn: false,
@@ -65,6 +69,10 @@ export default class TeacherFeedbackForm extends React.Component {
         varMedicalDiagnosis,
         crisis,
         varCrisis,
+        hasCrisis: feedback.has_crisis || false,
+        hasReservated: feedback.has_reservated || false,
+        isSendNotify: feedback.is_send_notify || false,
+        schoolContact: feedback.school_contact ? feedback.school_contact : '',
         record: feedback.record ? feedback.record : '',
         crisisLevel: feedback.crisis_level ? feedback.crisis_level.toString() : '0',
       });
@@ -83,7 +91,7 @@ export default class TeacherFeedbackForm extends React.Component {
           return { severity };
         });
         break;
-      case 'medical_diagnosis':
+      case 'medicalDiagnosis':
         this.setState((prevState) => {
           const { medicalDiagnosis } = prevState;
           medicalDiagnosis[Number(value)] = checked ? 1 : 0;
@@ -98,7 +106,11 @@ export default class TeacherFeedbackForm extends React.Component {
         });
         break;
       default:
-        this.setState({ [name]: value });
+        if (e.target.type === 'checkbox') {
+          this.setState({ [name]: checked });
+        } else {
+          this.setState({ [name]: value });
+        }
         if (name === 'firstCategory') {
           this.setState({
             secondCategory: '',
@@ -168,6 +180,10 @@ export default class TeacherFeedbackForm extends React.Component {
       severity: this.state.severity,
       medical_diagnosis: this.state.medicalDiagnosis,
       crisis: this.state.crisis,
+      has_crisis: this.state.hasCrisis,
+      has_reservated: this.state.hasReservated,
+      is_send_notify: this.state.isSendNotify,
+      school_contact: this.state.schoolContact,
       record: this.state.record,
       crisis_level: Number(this.state.crisisLevel),
     };
@@ -225,7 +241,7 @@ export default class TeacherFeedbackForm extends React.Component {
           <FormCell checkbox key={`checkbox-medical-diagnosis-${i}`}>
             <CellHeader>
               <Checkbox
-                name="medical_diagnosis"
+                name="medicalDiagnosis"
                 value={i}
                 checked={this.state.medicalDiagnosis && this.state.medicalDiagnosis.length > i && this.state.medicalDiagnosis[i] === 1}
                 onChange={this.handleChange}
@@ -264,7 +280,7 @@ export default class TeacherFeedbackForm extends React.Component {
             正在反馈：{this.props.reservation.start_time}-{this.props.reservation.end_time.slice(-5)} {this.props.reservation.teacher_fullname}
           </CellsTitle>
         }
-        <Form checkbox>
+        <Form>
           <FormCell warn={this.state.firstCategoryWarn} select selectPos="after">
             <CellHeader>
               <Label>评估分类<span style={{ color: 'red' }}>*</span></Label>
@@ -310,6 +326,75 @@ export default class TeacherFeedbackForm extends React.Component {
               <span style={{ color: 'red' }}>{this.state.categoryShowTips}</span>
             </CellsTitle>
           }
+        </Form>
+        <Form>
+          <CellsTitle>
+            危机与通告
+          </CellsTitle>
+          <FormCell switch>
+            <CellBody>本次会谈是否有危机</CellBody>
+            <CellFooter>
+              <Switch
+                name="hasCrisis"
+                checked={this.state.hasCrisis}
+                onChange={this.handleChange}
+              />
+            </CellFooter>
+          </FormCell>
+          <FormCell switch>
+            <CellBody>本次会谈是否有预约</CellBody>
+            <CellFooter>
+              <Switch
+                name="hasReservated"
+                checked={this.state.hasReservated}
+                onChange={this.handleChange}
+              />
+            </CellFooter>
+          </FormCell>
+          <FormCell switch>
+            <CellBody>是否发危机通告</CellBody>
+            <CellFooter>
+              <Switch
+                name="isSendNotify"
+                checked={this.state.isSendNotify}
+                onChange={this.handleChange}
+              />
+            </CellFooter>
+          </FormCell>
+          <FormCell>
+            <CellHeader>
+              <Label>院系联系人</Label>
+            </CellHeader>
+            <CellBody>
+              <Input
+                name="schoolContact"
+                type="input"
+                placeholder="请填写院系联系人"
+                value={this.state.schoolContact}
+                onChange={this.handleChange}
+              />
+            </CellBody>
+          </FormCell>
+          <FormCell select selectPos="after">
+            <CellHeader>
+              <Label>是否危机个案</Label>
+            </CellHeader>
+            <CellBody>
+              <Select
+                name="crisisLevel"
+                value={this.state.crisisLevel}
+                onChange={this.handleChange}
+                style={{ color: this.state.crisisLevel === '0' ? 'black' : 'red' }}
+              >
+                <option value="0">否</option>
+                <option value="3">三星</option>
+                <option value="4">四星</option>
+                <option value="5">五星</option>
+              </Select>
+            </CellBody>
+          </FormCell>
+        </Form>
+        <Form checkbox>
           {this.renderEmphasis()}
           <CellsTitle>
             咨询记录<span style={{ color: 'red' }}>*</span>
@@ -330,23 +415,6 @@ export default class TeacherFeedbackForm extends React.Component {
                 <Icon value="warn" />
               </CellFooter>
             }
-          </FormCell>
-          <FormCell select selectPos="after">
-            <CellHeader>
-              <Label>是否危机个案</Label>
-            </CellHeader>
-            <CellBody>
-              <Select
-                name="crisisLevel"
-                value={this.state.crisisLevel}
-                onChange={this.handleChange}
-              >
-                <option value="0">否</option>
-                <option value="3">三星</option>
-                <option value="4">四星</option>
-                <option value="5">五星</option>
-              </Select>
-            </CellBody>
           </FormCell>
         </Form>
         <ButtonArea direction="horizontal">

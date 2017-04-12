@@ -1,9 +1,9 @@
 package web
 
 import (
+	"github.com/mijia/sweb/form"
 	"github.com/shudiwsh2009/reservation_thxl_go/model"
 	"github.com/shudiwsh2009/reservation_thxl_go/service"
-	"github.com/mijia/sweb/form"
 	"net/http"
 	"strconv"
 	"time"
@@ -250,13 +250,18 @@ func (rc *ReservationController) SubmitFeedbackByTeacher(w http.ResponseWriter, 
 			crisisInt = append(crisisInt, ci)
 		}
 	}
+	hasCrisis := form.ParamBoolean(r, "has_crisis", false)
+	hasReservated := form.ParamBoolean(r, "has_reservated", false)
+	isSendNotify := form.ParamBoolean(r, "is_send_notify", false)
+	schoolContact := form.ParamString(r, "school_contact", "")
 	record := form.ParamString(r, "record", "")
 	crisisLevel := form.ParamString(r, "crisis_level", "")
 
 	var result = make(map[string]interface{})
 
 	_, err := service.Workflow().SubmitFeedbackByTeacher(reservationId, sourceId, category, severityInt,
-		medicalDiagnosisInt, crisisInt, record, crisisLevel, userId, userType)
+		medicalDiagnosisInt, crisisInt, hasCrisis, hasReservated, isSendNotify, schoolContact, record, crisisLevel,
+		userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
@@ -568,13 +573,18 @@ func (rc *ReservationController) SubmitFeedbackByAdmin(w http.ResponseWriter, r 
 			crisisInt = append(crisisInt, ci)
 		}
 	}
+	hasCrisis := form.ParamBoolean(r, "has_crisis", false)
+	hasReservated := form.ParamBoolean(r, "has_reservated", false)
+	isSendNotify := form.ParamBoolean(r, "is_send_notify", false)
+	schoolContact := form.ParamString(r, "school_contact", "")
 	record := form.ParamString(r, "record", "")
 	crisisLevel := form.ParamString(r, "crisis_level", "")
 
 	var result = make(map[string]interface{})
 
 	_, err := service.Workflow().SubmitFeedbackByAdmin(reservationId, sourceId, category, severityInt,
-		medicalDiagnosisInt, crisisInt, record, crisisLevel, userId, userType)
+		medicalDiagnosisInt, crisisInt, hasCrisis, hasReservated, isSendNotify, schoolContact, record, crisisLevel,
+		userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}

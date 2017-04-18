@@ -86,6 +86,7 @@ var config = {
             '#forms': path.join(__dirname, 'assets/javascripts/forms'),
             '#coms': path.join(__dirname, 'assets/javascripts/components'),
             '#models': path.join(__dirname, 'assets/javascripts/models'),
+            '#utils': path.join(__dirname, 'assets/javascripts/utils'),
             '#imgs': path.join(__dirname, 'assets/images'),
         },
     },

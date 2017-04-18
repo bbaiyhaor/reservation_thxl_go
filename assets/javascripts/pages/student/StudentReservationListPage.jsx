@@ -1,10 +1,12 @@
 /* eslint max-len: ["off"] */
 import 'weui';
+import 'react-weui/lib/react-weui.min.css';
 import { AlertDialog, ConfirmDialog, LoadingHud } from '#coms/Huds';
 import { Application, User } from '#models/Models';
-import { Button, Cell, CellBody, Cells, CellsTitle, MediaBox, Panel, PanelBody, PanelHeader, SearchBar } from 'react-weui';
+import { Button, Cell, CellBody, Cells, CellsTitle, MediaBox, Panel, PanelBody, PanelHeader, SearchBar, Toptips } from 'react-weui';
 import React, { PropTypes } from 'react';
 import LogoutButton from '#coms/LogoutButton';
+import MobileDetect from '#utils/MobileDetect';
 import PageBottom from '#coms/PageBottom';
 
 export default class StudentReservationListPage extends React.Component {
@@ -42,6 +44,14 @@ export default class StudentReservationListPage extends React.Component {
   render() {
     return (
       <div>
+        {
+          MobileDetect.isWechat() ?
+            <div style={{ marginBottom: '25px' }}>
+              <Toptips type="info" show>
+                如遇预约错误，请使用系统自带浏览器。
+              </Toptips>
+            </div> : null
+        }
         <Panel>
           <PanelHeader style={{ fontSize: '18px' }}>
             {User.fullname !== '' ? `${User.fullname}，` : ''}欢迎使用咨询预约系统

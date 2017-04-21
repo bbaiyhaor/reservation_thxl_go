@@ -1,14 +1,14 @@
 package web
 
 import (
-	"github.com/mijia/sweb/server"
-	"golang.org/x/net/context"
-	"net/http"
 	"github.com/mijia/sweb/form"
+	"github.com/mijia/sweb/server"
+	"github.com/shudiwsh2009/reservation_thxl_go/model"
 	"github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"github.com/shudiwsh2009/reservation_thxl_go/service"
-	"github.com/shudiwsh2009/reservation_thxl_go/model"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
+	"golang.org/x/net/context"
+	"net/http"
 )
 
 func RoleCookieInjection(handle func(http.ResponseWriter, *http.Request, string, int) (int, interface{})) JsonHandler {
@@ -40,7 +40,7 @@ func RequestPasswordCheck(r *http.Request, userId string, userType int) error {
 	switch userType {
 	case model.USER_TYPE_STUDENT:
 		student, err := service.MongoClient().GetStudentById(userId)
-		if err == nil {
+		if err == nil && student != nil && student.UserType == model.USER_TYPE_STUDENT {
 			if (student.Salt == "" && utils.ValidatePassword(password, student.EncryptedPassword)) ||
 				(student.Salt != "" && student.Password == model.EncodePassword(student.Salt, password)) {
 				return nil
@@ -48,7 +48,7 @@ func RequestPasswordCheck(r *http.Request, userId string, userType int) error {
 		}
 	case model.USER_TYPE_TEACHER:
 		teacher, err := service.MongoClient().GetTeacherById(userId)
-		if err == nil {
+		if err == nil && teacher != nil && teacher.UserType == model.USER_TYPE_TEACHER {
 			if (teacher.Salt == "" && utils.ValidatePassword(password, teacher.EncryptedPassword)) ||
 				(teacher.Salt != "" && teacher.Password == model.EncodePassword(teacher.Salt, password)) {
 				return nil
@@ -56,7 +56,7 @@ func RequestPasswordCheck(r *http.Request, userId string, userType int) error {
 		}
 	case model.USER_TYPE_ADMIN:
 		admin, err := service.MongoClient().GetAdminById(userId)
-		if err == nil {
+		if err == nil && admin != nil && admin.UserType == model.USER_TYPE_ADMIN {
 			if (admin.Salt == "" && utils.ValidatePassword(password, admin.EncryptedPassword)) ||
 				(admin.Salt != "" && admin.Password == model.EncodePassword(admin.Salt, password)) {
 				return nil

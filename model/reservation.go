@@ -2,6 +2,7 @@ package model
 
 import (
 	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
 	"time"
@@ -171,7 +172,13 @@ func (m *MongoClient) GetReservationById(id string) (*Reservation, error) {
 	}
 	var reservation Reservation
 	err := dbReservation.FindId(bson.ObjectIdHex(id)).One(&reservation)
-	return &reservation, err
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &reservation, nil
+	}
 }
 
 func (m *MongoClient) GetReservationsByStudentId(studentId string) ([]*Reservation, error) {

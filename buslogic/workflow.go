@@ -1,8 +1,8 @@
 package buslogic
 
 import (
-	"github.com/shudiwsh2009/reservation_thxl_go/model"
 	"github.com/mijia/sweb/log"
+	"github.com/shudiwsh2009/reservation_thxl_go/model"
 	"gopkg.in/redis.v5"
 	"time"
 )

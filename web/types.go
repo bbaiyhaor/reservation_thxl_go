@@ -1,10 +1,10 @@
 package web
 
 import (
-	"github.com/shudiwsh2009/reservation_thxl_go/buslogic"
-	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"github.com/mijia/sweb/render"
 	"github.com/mijia/sweb/server"
+	"github.com/shudiwsh2009/reservation_thxl_go/buslogic"
+	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"golang.org/x/net/context"
 	"net/http"
 )

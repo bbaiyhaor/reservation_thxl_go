@@ -4,8 +4,8 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/model"
 	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"strconv"
-	"time"
 	"strings"
+	"time"
 )
 
 // 咨询师拉取反馈
@@ -21,11 +21,11 @@ func (w *Workflow) GetFeedbackByTeacher(reservationId string, sourceId string,
 		return nil, nil, re.NewRErrorCode("cannot get feedback of available reservation", nil, re.ERROR_FEEDBACK_AVAILABLE_RESERVATION)
 	}
 	teacher, err := w.mongoClient.GetTeacherById(userId)
-	if err != nil || teacher.UserType != model.USER_TYPE_TEACHER {
+	if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 	}
 	reservation, err := w.mongoClient.GetReservationById(reservationId)
-	if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
+	if err != nil || reservation == nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 		return nil, nil, re.NewRErrorCode("fail to get reservation", err, re.ERROR_DATABASE)
 	} else if reservation.StartTime.After(time.Now()) {
 		return nil, nil, re.NewRErrorCode("cannot get feedback of future reservation", nil, re.ERROR_FEEDBACK_FUTURE_RESERVATION)
@@ -35,7 +35,7 @@ func (w *Workflow) GetFeedbackByTeacher(reservationId string, sourceId string,
 		return nil, nil, re.NewRErrorCode("cannot get feedback of other one's reservation", nil, re.ERROR_FEEDBACK_OTHER_RESERVATION)
 	}
 	student, err := w.mongoClient.GetStudentById(reservation.StudentId)
-	if err != nil {
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
 	}
 	return student, reservation, nil
@@ -71,11 +71,11 @@ func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string
 		return nil, re.NewRErrorCodeContext("crisis_level is not valid", err, re.ERROR_INVALID_PARAM, "crisis_level")
 	}
 	teacher, err := w.mongoClient.GetTeacherById(userId)
-	if err != nil || teacher.UserType != model.USER_TYPE_TEACHER {
+	if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 	}
 	reservation, err := w.mongoClient.GetReservationById(reservationId)
-	if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
+	if err != nil || reservation == nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 		return nil, re.NewRErrorCode("fail to get reservation", err, re.ERROR_DATABASE)
 	} else if reservation.StartTime.After(time.Now()) {
 		return nil, re.NewRErrorCode("cannot get feedback of future reservation", nil, re.ERROR_FEEDBACK_FUTURE_RESERVATION)
@@ -93,7 +93,7 @@ func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string
 		Record:           record,
 	}
 	student, err := w.mongoClient.GetStudentById(reservation.StudentId)
-	if err != nil {
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
 	}
 	student.CrisisLevel = crisisLevelInt
@@ -117,11 +117,11 @@ func (w *Workflow) GetStudentInfoByTeacher(studentId string,
 		return nil, nil, re.NewRErrorCodeContext("student id is empty", nil, re.ERROR_MISSING_PARAM, "student_id")
 	}
 	teacher, err := w.mongoClient.GetTeacherById(userId)
-	if err != nil || teacher.UserType != model.USER_TYPE_TEACHER {
+	if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 	}
 	student, err := w.mongoClient.GetStudentById(studentId)
-	if err != nil {
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_NO_STUDENT)
 	}
 	if student.BindedTeacherId != teacher.Id.Hex() {
@@ -145,11 +145,11 @@ func (w *Workflow) QueryStudentInfoByTeacher(studentUsername string,
 		return nil, nil, re.NewRErrorCodeContext("student username is empty", nil, re.ERROR_MISSING_PARAM, "student_username")
 	}
 	teacher, err := w.mongoClient.GetTeacherById(userId)
-	if err != nil || teacher.UserType != model.USER_TYPE_TEACHER {
+	if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 	}
 	student, err := w.mongoClient.GetStudentByUsername(studentUsername)
-	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_NO_STUDENT)
 	}
 	if student.BindedTeacherId != teacher.Id.Hex() {

@@ -3,6 +3,7 @@ package model
 import (
 	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"time"
 )
@@ -46,7 +47,13 @@ func (m *MongoClient) GetTimedReservationById(id string) (*TimedReservation, err
 	}
 	var timedReservation TimedReservation
 	err := dbTimetable.FindId(bson.ObjectIdHex(id)).One(&timedReservation)
-	return &timedReservation, err
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &timedReservation, nil
+	}
 }
 
 func (m *MongoClient) GetAllTimedReservations() ([]*TimedReservation, error) {

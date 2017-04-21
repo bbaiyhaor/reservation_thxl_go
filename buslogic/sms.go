@@ -1,14 +1,14 @@
 package buslogic
 
 import (
-	"github.com/shudiwsh2009/reservation_thxl_go/config"
-	"github.com/shudiwsh2009/reservation_thxl_go/model"
-	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
-	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"bytes"
 	"crypto/rand"
 	"fmt"
 	"github.com/mijia/sweb/log"
+	"github.com/shudiwsh2009/reservation_thxl_go/config"
+	"github.com/shudiwsh2009/reservation_thxl_go/model"
+	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
+	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -47,7 +47,7 @@ func (w *Workflow) SendSuccessSMS(reservation *model.Reservation) error {
 	startTime := reservation.StartTime
 	endTime := reservation.EndTime
 	student, err := w.mongoClient.GetStudentById(reservation.StudentId)
-	if err != nil {
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return re.NewRErrorCode("学生未注册", nil, re.ERROR_DATABASE)
 	}
 	studentSMS := fmt.Sprintf(SMS_SUCCESS_STUDENT, student.Fullname, utils.Weekdays[startTime.Weekday()],
@@ -74,7 +74,7 @@ func (w *Workflow) SendCancelSMS(reservation *model.Reservation) error {
 	startTime := reservation.StartTime
 	endTime := reservation.EndTime
 	student, err := w.mongoClient.GetStudentById(reservation.StudentId)
-	if err != nil {
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return re.NewRErrorCode("学生未注册", nil, re.ERROR_DATABASE)
 	}
 	studentSMS := fmt.Sprintf(SMS_CANCEL_STUDENT, student.Fullname, utils.Weekdays[startTime.Weekday()],
@@ -101,7 +101,7 @@ func (w *Workflow) SendReminderSMS(reservation *model.Reservation) error {
 	startTime := reservation.StartTime
 	endTime := reservation.EndTime
 	student, err := w.mongoClient.GetStudentById(reservation.StudentId)
-	if err != nil {
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return re.NewRErrorCode("学生未注册", nil, re.ERROR_DATABASE)
 	}
 	studentSMS := fmt.Sprintf(SMS_REMINDER_STUDENT, student.Fullname, startTime.Format("15:04"), endTime.Format("15:04"))
@@ -124,7 +124,7 @@ func (w *Workflow) SendReminderSMS(reservation *model.Reservation) error {
 
 func (w *Workflow) SendFeedbackSMS(reservation *model.Reservation) error {
 	student, err := w.mongoClient.GetStudentById(reservation.StudentId)
-	if err != nil {
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return re.NewRErrorCode("学生未注册", nil, re.ERROR_DATABASE)
 	}
 	studentSMS := fmt.Sprintf(SMS_FEEDBACK_STUDENT, student.Fullname)

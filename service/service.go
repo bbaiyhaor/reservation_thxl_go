@@ -1,10 +1,10 @@
 package service
 
 import (
+	"github.com/mijia/sweb/log"
 	"github.com/shudiwsh2009/reservation_thxl_go/buslogic"
 	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"github.com/shudiwsh2009/reservation_thxl_go/model"
-	"github.com/mijia/sweb/log"
 	"gopkg.in/redis.v5"
 )
 

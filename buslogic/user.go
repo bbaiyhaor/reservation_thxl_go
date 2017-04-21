@@ -1,10 +1,10 @@
 package buslogic
 
 import (
+	"fmt"
 	"github.com/shudiwsh2009/reservation_thxl_go/model"
 	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
-	"fmt"
 	"gopkg.in/redis.v5"
 	"time"
 )
@@ -35,11 +35,10 @@ func (w *Workflow) StudentLogin(username string, password string) (*model.Studen
 		return nil, re.NewRErrorCodeContext("password is empty", nil, re.ERROR_MISSING_PARAM, "password")
 	}
 	student, err := w.mongoClient.GetStudentByUsername(username)
-	if err == nil && student.Password == model.EncodePassword(student.Salt, password) {
-		return student, nil
-	}
-	if err == nil {
-		if student.Salt == "" && utils.ValidatePassword(password, student.EncryptedPassword) {
+	if err == nil && student != nil && student.UserType == model.USER_TYPE_STUDENT {
+		if student.Password == model.EncodePassword(student.Salt, password) {
+			return student, nil
+		} else if student.Salt == "" && utils.ValidatePassword(password, student.EncryptedPassword) {
 			student.Password = password
 			student.PreInsert()
 			w.mongoClient.UpdateStudent(student)
@@ -86,10 +85,13 @@ func (w *Workflow) StudentRegister(username string, password string, fullname st
 	if !utils.IsStudentId(username) {
 		return nil, re.NewRErrorCode("student id format is wrong", nil, re.ERROR_FORMAT_STUDENTID)
 	}
-	if student, err := w.mongoClient.GetStudentByUsername(username); err == nil && student != nil && student.Id.Valid() {
+	student, err := w.mongoClient.GetStudentByUsername(username)
+	if err != nil {
+		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
+	} else if student != nil && student.UserType == model.USER_TYPE_STUDENT {
 		return nil, re.NewRErrorCode("student already exists", nil, re.ERROR_EXIST_USERNAME)
 	}
-	student := &model.Student{
+	student = &model.Student{
 		Username:       username,
 		Password:       password,
 		UserType:       model.USER_TYPE_STUDENT,
@@ -118,7 +120,9 @@ func (w *Workflow) StudentRegister(username string, password string, fullname st
 		},
 	}
 	archive, err := w.mongoClient.GetArchiveByStudentUsername(username)
-	if err == nil {
+	if err != nil {
+		return nil, re.NewRErrorCode("fail to get archive", err, re.ERROR_DATABASE)
+	} else if archive != nil {
 		student.ArchiveCategory = archive.ArchiveCategory
 		student.ArchiveNumber = archive.ArchiveNumber
 	}
@@ -136,7 +140,7 @@ func (w *Workflow) TeacherLogin(username string, password string) (*model.Teache
 		return nil, re.NewRErrorCodeContext("password is empty", nil, re.ERROR_MISSING_PARAM, "password")
 	}
 	teacher, err := w.mongoClient.GetTeacherByUsername(username)
-	if err == nil {
+	if err == nil && teacher != nil && teacher.UserType == model.USER_TYPE_TEACHER {
 		if teacher.Salt == "" && utils.ValidatePassword(password, teacher.EncryptedPassword) {
 			teacher.Password = password
 			teacher.PreInsert()
@@ -163,7 +167,7 @@ func (w *Workflow) TeacherChangePassword(username, oldPassword, newPassword stri
 		return nil, re.NewRErrorCodeContext("new password is empty", nil, re.ERROR_MISSING_PARAM, "new_password")
 	}
 	teacher, err := w.mongoClient.GetTeacherById(userId)
-	if err != nil || teacher.UserType != model.USER_TYPE_TEACHER {
+	if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 	} else if username != teacher.Username {
 		return nil, re.NewRErrorCode("username not match", nil, re.ERROR_LOGIN_PWDCHANGE_INFO_MISMATCH)
@@ -192,7 +196,7 @@ func (w *Workflow) TeacherResetPasswordSms(username, fullname, mobile string) er
 		return re.NewRErrorCodeContext("mobile is empty", nil, re.ERROR_MISSING_PARAM, "mobile")
 	}
 	teacher, err := w.mongoClient.GetTeacherByUsername(username)
-	if err != nil || teacher.UserType != model.USER_TYPE_TEACHER {
+	if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		return re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 	} else if fullname != teacher.Fullname || mobile != teacher.Mobile {
 		return re.NewRErrorCode("fullname or mobile not match", nil, re.ERROR_LOGIN_PWDCHANGE_INFO_MISMATCH)
@@ -221,7 +225,7 @@ func (w *Workflow) TeacherRestPasswordVerify(username, newPassword, verifyCode s
 		return re.NewRErrorCodeContext("verify code is empty", nil, re.ERROR_MISSING_PARAM, "verify_code")
 	}
 	teacher, err := w.mongoClient.GetTeacherByUsername(username)
-	if err != nil || teacher.UserType != model.USER_TYPE_TEACHER {
+	if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		return re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 	}
 	val, err := w.redisClient.Get(fmt.Sprintf(model.REDIS_KEY_TEACHER_RESET_PASSWORD_VERIFY_CODE, teacher.Id.Hex())).Result()
@@ -246,7 +250,7 @@ func (w *Workflow) AdminLogin(username string, password string) (*model.Admin, e
 		return nil, re.NewRErrorCodeContext("password is empty", nil, re.ERROR_MISSING_PARAM, "password")
 	}
 	admin, err := w.mongoClient.GetAdminByUsername(username)
-	if err == nil {
+	if err == nil && admin != nil && admin.UserType == model.USER_TYPE_ADMIN {
 		if admin.Salt == "" && utils.ValidatePassword(password, admin.EncryptedPassword) {
 			admin.Password = password
 			admin.PreInsert()
@@ -273,7 +277,7 @@ func (w *Workflow) AdminChangePassword(username, oldPassword, newPassword string
 		return nil, re.NewRErrorCodeContext("new password is empty", nil, re.ERROR_MISSING_PARAM, "new_password")
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
-	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+	if err != nil || admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	} else if username != admin.Username {
 		return nil, re.NewRErrorCode("username not match", nil, re.ERROR_LOGIN_PWDCHANGE_INFO_MISMATCH)
@@ -302,19 +306,19 @@ func (w *Workflow) UpdateSession(userId string, userType int) (map[string]interf
 	switch userType {
 	case model.USER_TYPE_ADMIN:
 		admin, err := w.mongoClient.GetAdminById(userId)
-		if err != nil || admin.UserType != userType {
+		if err != nil || admin == nil || admin.UserType != userType {
 			return nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 		}
 		result["user"] = w.WrapAdmin(admin)
 	case model.USER_TYPE_TEACHER:
 		teacher, err := w.mongoClient.GetTeacherById(userId)
-		if err != nil || teacher.UserType != userType {
+		if err != nil || teacher == nil || teacher.UserType != userType {
 			return nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 		}
 		result["user"] = w.WrapTeacher(teacher)
 	case model.USER_TYPE_STUDENT:
 		student, err := w.mongoClient.GetStudentById(userId)
-		if err != nil || student.UserType != userType {
+		if err != nil || student == nil || student.UserType != userType {
 			return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
 		}
 		result["user"] = w.WrapSimpleStudent(student)
@@ -334,7 +338,7 @@ func (w *Workflow) ResetUserPassword(username string, userType int, password str
 	switch userType {
 	case model.USER_TYPE_STUDENT:
 		student, err := w.mongoClient.GetStudentByUsername(username)
-		if err != nil || student.UserType != userType {
+		if err != nil || student == nil || student.UserType != userType {
 			return re.NewRError("fail to get student", err)
 		}
 		student.Password = password
@@ -343,7 +347,7 @@ func (w *Workflow) ResetUserPassword(username string, userType int, password str
 		userId = student.Id.Hex()
 	case model.USER_TYPE_TEACHER:
 		teacher, err := w.mongoClient.GetTeacherByUsername(username)
-		if err != nil || teacher.UserType != userType {
+		if err != nil || teacher == nil || teacher.UserType != userType {
 			return re.NewRError("fail to get teacher", err)
 		}
 		teacher.Password = password
@@ -352,7 +356,7 @@ func (w *Workflow) ResetUserPassword(username string, userType int, password str
 		userId = teacher.Id.Hex()
 	case model.USER_TYPE_ADMIN:
 		admin, err := w.mongoClient.GetAdminByUsername(username)
-		if err != nil || admin.UserType != userType {
+		if err != nil || admin == nil || admin.UserType != userType {
 			return re.NewRError("fail to get student", err)
 		}
 		admin.Password = password
@@ -387,7 +391,9 @@ func (w *Workflow) AddNewAdmin(username string, password string) (*model.Admin, 
 		return nil, re.NewRError("missing parameters", nil)
 	}
 	oldAdmin, err := w.mongoClient.GetAdminByUsername(username)
-	if err == nil && oldAdmin != nil && oldAdmin.Id.Valid() {
+	if err != nil {
+		return nil, re.NewRError("fail to get database", err)
+	} else if oldAdmin != nil && oldAdmin.UserType == model.USER_TYPE_ADMIN {
 		return oldAdmin, re.NewRError(fmt.Sprintf("admin already exists: %+v", oldAdmin), nil)
 	}
 	newAdmin := &model.Admin{

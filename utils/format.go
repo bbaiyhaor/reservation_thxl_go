@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"fmt"
+	"github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"regexp"
 	"time"
 )

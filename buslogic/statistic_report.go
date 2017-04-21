@@ -1,10 +1,10 @@
 package buslogic
 
 import (
+	"fmt"
 	"github.com/shudiwsh2009/reservation_thxl_go/model"
 	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
-	"fmt"
 	"github.com/tealeg/xlsx"
 	"sort"
 	"strings"
@@ -249,7 +249,7 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 			continue
 		}
 		student, err := w.mongoClient.GetStudentById(r.StudentId)
-		if err != nil || student.UserType != model.USER_TYPE_STUDENT {
+		if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 			continue
 		}
 		grade, err := utils.ParseStudentId(student.Username)
@@ -1208,7 +1208,7 @@ func (w *Workflow) ExportWorkloadToFile(reservations []*model.Reservation, path 
 		}
 		if tWork, ok := teacherWorkloadMap[r.TeacherId]; !ok {
 			teacher, err := w.mongoClient.GetTeacherById(r.TeacherId)
-			if err != nil {
+			if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 				continue
 			}
 			tWork = &TeacherWorkload{
@@ -1233,7 +1233,7 @@ func (w *Workflow) ExportWorkloadToFile(reservations []*model.Reservation, path 
 			teacherWorkloadMap[r.TeacherId] = tWork
 		}
 		student, err := w.mongoClient.GetStudentById(r.StudentId)
-		if err != nil {
+		if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 			continue
 		}
 		grade, err := utils.ParseStudentId(student.Username)

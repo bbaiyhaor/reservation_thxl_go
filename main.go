@@ -1,9 +1,9 @@
 package main
 
 import (
+	"flag"
 	"github.com/shudiwsh2009/reservation_thxl_go/service"
 	"github.com/shudiwsh2009/reservation_thxl_go/web"
-	"flag"
 	"log"
 	"os"
 	"os/signal"

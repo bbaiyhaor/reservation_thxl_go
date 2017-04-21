@@ -1,6 +1,7 @@
 package model
 
 import (
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"time"
 )
@@ -40,11 +41,23 @@ func (m *MongoClient) CountByStudentUsername(studentUsername string) (int, error
 func (m *MongoClient) GetArchiveByStudentUsername(studentUsername string) (*Archive, error) {
 	var archive Archive
 	err := dbArchive.Find(bson.M{"student_username": studentUsername}).One(&archive)
-	return &archive, err
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &archive, nil
+	}
 }
 
 func (m *MongoClient) GetArchiveByArchiveCategoryAndNumber(archiveCategory string, archiveNumber string) (*Archive, error) {
 	var archive Archive
 	err := dbArchive.Find(bson.M{"archive_category": archiveCategory, "archive_number": archiveNumber}).One(&archive)
-	return &archive, err
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &archive, nil
+	}
 }

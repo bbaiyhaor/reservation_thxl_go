@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"github.com/mijia/sweb/log"
+	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"gopkg.in/mgo.v2"
 	"time"
 )

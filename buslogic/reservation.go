@@ -1,10 +1,10 @@
 package buslogic
 
 import (
+	"github.com/mijia/sweb/log"
 	"github.com/shudiwsh2009/reservation_thxl_go/model"
 	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
-	"github.com/mijia/sweb/log"
 	"sort"
 	"strings"
 	"time"
@@ -20,7 +20,7 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType int) (*model
 		return nil, nil, re.NewRErrorCode("user is not student", nil, re.ERROR_NOT_AUTHORIZED)
 	}
 	student, err := w.mongoClient.GetStudentById(userId)
-	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
 	}
 	from := time.Now().AddDate(0, 0, -7)
@@ -84,7 +84,7 @@ func (w *Workflow) GetReservationsByTeacher(userId string, userType int) (*model
 		return nil, nil, re.NewRErrorCode("user is not teacher", nil, re.ERROR_NOT_AUTHORIZED)
 	}
 	teacher, err := w.mongoClient.GetTeacherById(userId)
-	if err != nil || teacher.UserType != model.USER_TYPE_TEACHER {
+	if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 	}
 	from := time.Now().AddDate(0, 0, -7)
@@ -138,7 +138,7 @@ func (w *Workflow) GetReservationsByAdmin(userId string, userType int) (*model.A
 		return nil, nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
-	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+	if err != nil || admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, nil, re.NewRErrorCode("fail to get admin", nil, re.ERROR_DATABASE)
 	}
 	from := time.Now().AddDate(0, 0, -7)
@@ -191,7 +191,7 @@ func (w *Workflow) GetReservationsDailyByAdmin(fromDate string, userId string, u
 		return nil, nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
-	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+	if err != nil || admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, nil, re.NewRErrorCode("fail to get admin", nil, re.ERROR_DATABASE)
 	}
 	from, err := time.ParseInLocation("2006-01-02", fromDate, time.Local)
@@ -224,11 +224,11 @@ func (w *Workflow) GetReservationsWithTeacherUsernameByAdmin(teacherUsername str
 		return nil, nil, re.NewRErrorCodeContext("teacher username is empty", nil, re.ERROR_MISSING_PARAM, "teacher_username")
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
-	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+	if err != nil || admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	teacher, err := w.mongoClient.GetTeacherByUsername(teacherUsername)
-	if err != nil {
+	if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 	}
 	from := time.Now().AddDate(0, 0, -7)
@@ -293,7 +293,7 @@ func (w *Workflow) GetReservationsDailyWithTeacherUsernameByAdmin(fromDate strin
 		return nil, nil, err
 	}
 	teacher, err := w.mongoClient.GetTeacherByUsername(teacherUsername)
-	if err != nil {
+	if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		return nil, nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
 	}
 	filteredReservations := make([]*model.Reservation, 0)
@@ -354,7 +354,8 @@ func (w *Workflow) WrapSimpleReservation(reservation *model.Reservation) map[str
 	result["source_id"] = reservation.SourceId
 	if reservation.TeacherId != "" {
 		result["teacher_id"] = reservation.TeacherId
-		if teacher, err := w.mongoClient.GetTeacherById(reservation.TeacherId); err == nil {
+		if teacher, err := w.mongoClient.GetTeacherById(reservation.TeacherId); err == nil &&
+			teacher != nil && teacher.UserType == model.USER_TYPE_TEACHER {
 			result["teacher_fullname"] = teacher.Fullname
 		}
 	}
@@ -367,7 +368,8 @@ func (w *Workflow) WrapReservation(reservation *model.Reservation) map[string]in
 		return result
 	}
 	if reservation.TeacherId != "" {
-		if teacher, err := w.mongoClient.GetTeacherById(reservation.TeacherId); err == nil {
+		if teacher, err := w.mongoClient.GetTeacherById(reservation.TeacherId); err == nil &&
+			teacher != nil && teacher.UserType == model.USER_TYPE_TEACHER {
 			result["teacher_username"] = teacher.Username
 			result["teacher_fullname"] = teacher.Fullname
 			result["teacher_mobile"] = teacher.Mobile
@@ -375,7 +377,8 @@ func (w *Workflow) WrapReservation(reservation *model.Reservation) map[string]in
 	}
 	if reservation.StudentId != "" {
 		result["student_id"] = reservation.StudentId
-		if student, err := w.mongoClient.GetStudentById(reservation.StudentId); err == nil {
+		if student, err := w.mongoClient.GetStudentById(reservation.StudentId); err == nil &&
+			student != nil && student.UserType == model.USER_TYPE_STUDENT {
 			result["student_username"] = student.Username
 			result["student_fullname"] = student.Fullname
 			result["student_crisis_level"] = student.CrisisLevel

@@ -1,8 +1,8 @@
 package utils
 
 import (
-	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"encoding/csv"
+	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 	"os"

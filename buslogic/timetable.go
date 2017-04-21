@@ -1,13 +1,13 @@
 package buslogic
 
 import (
+	"fmt"
+	"github.com/mijia/sweb/log"
+	"github.com/scorredoira/email"
 	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"github.com/shudiwsh2009/reservation_thxl_go/model"
 	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
-	"fmt"
-	"github.com/mijia/sweb/log"
-	"github.com/scorredoira/email"
 	"github.com/tealeg/xlsx"
 	"net/mail"
 	"path/filepath"
@@ -24,7 +24,7 @@ func (w *Workflow) ViewTimetableByAdmin(userId string, userType int) (map[time.W
 		return nil, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
-	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+	if err != nil || admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	timedReservations := make(map[time.Weekday][]*model.TimedReservation)
@@ -59,7 +59,7 @@ func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClo
 		return nil, re.NewRErrorCode("mobile format is wrong", nil, re.ERROR_FORMAT_MOBILE)
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
-	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+	if err != nil || admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	week, err := utils.StringToWeekday(weekday)
@@ -79,6 +79,8 @@ func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClo
 	}
 	teacher, err := w.mongoClient.GetTeacherByUsername(teacherUsername)
 	if err != nil {
+		return nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
+	} else if teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		teacher := &model.Teacher{
 			Username: teacherUsername,
 			Password: TEACHER_DEFAULT_PASSWORD,
@@ -88,8 +90,6 @@ func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClo
 		if err = w.mongoClient.InsertTeacher(teacher); err != nil {
 			return nil, re.NewRErrorCode("fail to insert new teacher", err, re.ERROR_DATABASE)
 		}
-	} else if teacher.UserType != model.USER_TYPE_TEACHER {
-		return nil, re.NewRErrorCode("teacher has wrong user type", nil, re.ERROR_DATABASE)
 	} else if teacher.Fullname != teacherFullname || teacher.Mobile != teacherMobile {
 		if !force {
 			return nil, re.NewRErrorCode("teacher info changes without force symbol", nil, re.CHECK)
@@ -139,11 +139,11 @@ func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday strin
 		return nil, re.NewRErrorCode("mobile format is wrong", nil, re.ERROR_FORMAT_MOBILE)
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
-	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+	if err != nil || admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	timedReservation, err := w.mongoClient.GetTimedReservationById(timedReservationId)
-	if err != nil || timedReservation.Status == model.RESERVATION_STATUS_DELETED {
+	if err != nil || timedReservation == nil || timedReservation.Status == model.RESERVATION_STATUS_DELETED {
 		return nil, re.NewRErrorCode("fail to get timetable", err, re.ERROR_DATABASE)
 	}
 	week, err := utils.StringToWeekday(weekday)
@@ -163,6 +163,8 @@ func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday strin
 	}
 	teacher, err := w.mongoClient.GetTeacherByUsername(teacherUsername)
 	if err != nil {
+		return nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
+	} else if teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 		teacher := &model.Teacher{
 			Username: teacherUsername,
 			Password: TEACHER_DEFAULT_PASSWORD,
@@ -172,8 +174,6 @@ func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday strin
 		if err = w.mongoClient.InsertTeacher(teacher); err != nil {
 			return nil, re.NewRErrorCode("fail to insert new teacher", err, re.ERROR_DATABASE)
 		}
-	} else if teacher.UserType != model.USER_TYPE_TEACHER {
-		return nil, re.NewRErrorCode("teacher has wrong user type", nil, re.ERROR_DATABASE)
 	} else if teacher.Fullname != teacherFullname || teacher.Mobile != teacherMobile {
 		if !force {
 			return nil, re.NewRErrorCode("teacher info changes without force symbol", nil, re.CHECK)
@@ -203,12 +203,13 @@ func (w *Workflow) RemoveTimetablesByAdmin(timedReservationIds []string, userId 
 		return 0, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
-	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+	if err != nil || admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return 0, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	removed := 0
 	for _, id := range timedReservationIds {
-		if timedReservation, err := w.mongoClient.GetTimedReservationById(id); err == nil {
+		if timedReservation, err := w.mongoClient.GetTimedReservationById(id); err == nil &&
+			timedReservation != nil && timedReservation.Status != model.RESERVATION_STATUS_DELETED {
 			timedReservation.Status = model.RESERVATION_STATUS_DELETED
 			if err = w.mongoClient.UpdateTimedReservation(timedReservation); err == nil {
 				removed++
@@ -226,12 +227,13 @@ func (w *Workflow) OpenTimetablesByAdmin(timedReservationIds []string, userId st
 		return 0, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
-	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+	if err != nil || admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return 0, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	opened := 0
 	for _, id := range timedReservationIds {
-		if timedReservation, err := w.mongoClient.GetTimedReservationById(id); err == nil {
+		if timedReservation, err := w.mongoClient.GetTimedReservationById(id); err == nil &&
+			timedReservation != nil && timedReservation.Status != model.RESERVATION_STATUS_DELETED {
 			if timedReservation.Status == model.RESERVATION_STATUS_CLOSED {
 				timedReservation.Status = model.RESERVATION_STATUS_AVAILABLE
 				if err = w.mongoClient.UpdateTimedReservation(timedReservation); err == nil {
@@ -251,12 +253,13 @@ func (w *Workflow) CloseTimetablesByAdmin(timedReservationIds []string, userId s
 		return 0, re.NewRErrorCode("user is not admin", nil, re.ERROR_NOT_AUTHORIZED)
 	}
 	admin, err := w.mongoClient.GetAdminById(userId)
-	if err != nil || admin.UserType != model.USER_TYPE_ADMIN {
+	if err != nil || admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
 		return 0, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
 	}
 	closed := 0
 	for _, id := range timedReservationIds {
-		if timedReservation, err := w.mongoClient.GetTimedReservationById(id); err == nil {
+		if timedReservation, err := w.mongoClient.GetTimedReservationById(id); err == nil &&
+			timedReservation != nil && timedReservation.Status != model.RESERVATION_STATUS_DELETED {
 			if timedReservation.Status == model.RESERVATION_STATUS_AVAILABLE {
 				timedReservation.Status = model.RESERVATION_STATUS_CLOSED
 				if err = w.mongoClient.UpdateTimedReservation(timedReservation); err == nil {
@@ -329,7 +332,7 @@ func (w *Workflow) ExportReservationArrangementsToFile(reservations []*model.Res
 	cell.SetValue("联系方式")
 	for _, r := range reservations {
 		teacher, err := w.mongoClient.GetTeacherById(r.TeacherId)
-		if err != nil {
+		if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 			continue
 		}
 		row = sheet.AddRow()
@@ -337,7 +340,8 @@ func (w *Workflow) ExportReservationArrangementsToFile(reservations []*model.Res
 		cell.SetValue(fmt.Sprintf("%s - %s", r.StartTime.Format("15:04"), r.EndTime.Format("15:04")))
 		cell = row.AddCell()
 		cell.SetValue(teacher.Fullname)
-		if student, err := w.mongoClient.GetStudentById(r.StudentId); err == nil {
+		if student, err := w.mongoClient.GetStudentById(r.StudentId); err == nil &&
+			student != nil && student.UserType == model.USER_TYPE_STUDENT {
 			cell = row.AddCell()
 			cell.SetValue(student.Fullname)
 			cell = row.AddCell()
@@ -385,7 +389,8 @@ func (w *Workflow) WrapTimedReservation(timedReservation *model.TimedReservation
 	result["status"] = timedReservation.Status
 	if timedReservation.TeacherId != "" {
 		result["teacher_id"] = timedReservation.TeacherId
-		if teacher, err := w.mongoClient.GetTeacherById(timedReservation.TeacherId); err == nil {
+		if teacher, err := w.mongoClient.GetTeacherById(timedReservation.TeacherId); err == nil && teacher != nil &&
+			teacher.UserType == model.USER_TYPE_TEACHER {
 			result["teacher_username"] = teacher.Username
 			result["teacher_fullname"] = teacher.Fullname
 			result["teacher_mobile"] = teacher.Mobile

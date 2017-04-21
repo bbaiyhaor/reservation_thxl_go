@@ -47,7 +47,7 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 		return nil, re.NewRErrorCode("email format is wrong", nil, re.ERROR_FORMAT_EMAIL)
 	}
 	student, err := w.mongoClient.GetStudentById(userId)
-	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
 	}
 	studentReservations, err := w.mongoClient.GetReservationsByStudentId(student.Id.Hex())
@@ -63,7 +63,7 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 	if sourceId == "" {
 		// Source为ADD，无SourceId：直接预约
 		reservation, err = w.mongoClient.GetReservationById(reservationId)
-		if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
+		if err != nil || reservation == nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 			return nil, re.NewRErrorCode("fail to get reservation", nil, re.ERROR_DATABASE)
 		} else if reservation.StartTime.Before(time.Now()) {
 			return nil, re.NewRErrorCode("cannot make outdated reservation", nil, re.ERROR_STUDENT_MAKE_OUTDATED_RESERVATION)
@@ -75,7 +75,7 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 	} else if reservationId == sourceId {
 		// Source为TIMETABLE且未被预约
 		timedReservation, err := w.mongoClient.GetTimedReservationById(sourceId)
-		if err != nil || timedReservation.Status == model.RESERVATION_STATUS_DELETED {
+		if err != nil || timedReservation == nil || timedReservation.Status == model.RESERVATION_STATUS_DELETED {
 			return nil, re.NewRErrorCode("fail to get timetable", nil, re.ERROR_DATABASE)
 		}
 		start, err := time.ParseInLocation("2006-01-02 15:04", startTime, time.Local)
@@ -157,11 +157,11 @@ func (w *Workflow) GetFeedbackByStudent(reservationId string, sourceId string,
 		return nil, re.NewRErrorCode("cannot get feedback of available reservation", nil, re.ERROR_FEEDBACK_AVAILABLE_RESERVATION)
 	}
 	student, err := w.mongoClient.GetStudentById(userId)
-	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
 	}
 	reservation, err := w.mongoClient.GetReservationById(reservationId)
-	if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
+	if err != nil || reservation == nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 		return nil, re.NewRErrorCode("fail to get reservation", err, re.ERROR_DATABASE)
 	} else if reservation.StartTime.After(time.Now()) {
 		return nil, re.NewRErrorCode("cannot get feedback of future reservation", nil, re.ERROR_FEEDBACK_FUTURE_RESERVATION)
@@ -188,11 +188,11 @@ func (w *Workflow) SubmitFeedbackByStudent(reservationId string, sourceId string
 		return nil, re.NewRErrorCode("cannot get feedback of available reservation", nil, re.ERROR_FEEDBACK_AVAILABLE_RESERVATION)
 	}
 	student, err := w.mongoClient.GetStudentById(userId)
-	if err != nil || student.UserType != model.USER_TYPE_STUDENT {
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
 	}
 	reservation, err := w.mongoClient.GetReservationById(reservationId)
-	if err != nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
+	if err != nil || reservation == nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
 		return nil, re.NewRErrorCode("fail to get reservation", err, re.ERROR_DATABASE)
 	} else if reservation.StartTime.After(time.Now()) {
 		return nil, re.NewRErrorCode("cannot get feedback of future reservation", nil, re.ERROR_FEEDBACK_FUTURE_RESERVATION)
@@ -236,7 +236,7 @@ func (w *Workflow) ExportStudentInfoToFile(student *model.Student, path string) 
 	data = append(data, []string{"在近三个月里，是否发生了对你有重大意义的事（如亲友的死亡、法律诉讼、失恋等）？", student.Significant})
 	data = append(data, []string{"你现在需要接受帮助的主要问题是什么？", student.Problem})
 	bindedTeacher, err := w.mongoClient.GetTeacherById(student.BindedTeacherId)
-	if err != nil {
+	if err != nil || bindedTeacher == nil || bindedTeacher.UserType != model.USER_TYPE_TEACHER {
 		data = append(data, []string{"匹配咨询师", "无"})
 	} else {
 		data = append(data, []string{"匹配咨询师", bindedTeacher.Username, bindedTeacher.Fullname})
@@ -249,7 +249,7 @@ func (w *Workflow) ExportStudentInfoToFile(student *model.Student, path string) 
 	if reservations, err := w.mongoClient.GetReservationsByStudentId(student.Id.Hex()); err == nil {
 		for i, r := range reservations {
 			teacher, err := w.mongoClient.GetTeacherById(r.TeacherId)
-			if err != nil {
+			if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 				continue
 			}
 			data = append(data, []string{"咨询小结" + strconv.Itoa(i+1)})
@@ -340,7 +340,8 @@ func (w *Workflow) WrapStudent(student *model.Student) map[string]interface{} {
 	result["archive_number"] = student.ArchiveNumber
 	result["crisis_level"] = student.CrisisLevel
 	if student.BindedTeacherId != "" {
-		if bindedTeacher, err := w.mongoClient.GetTeacherById(student.BindedTeacherId); err == nil {
+		if bindedTeacher, err := w.mongoClient.GetTeacherById(student.BindedTeacherId); err == nil &&
+			bindedTeacher != nil && bindedTeacher.UserType == model.USER_TYPE_TEACHER {
 			result["binded_teacher_username"] = bindedTeacher.Username
 			result["binded_teacher_fullname"] = bindedTeacher.Fullname
 		} else {

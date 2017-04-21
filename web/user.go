@@ -1,10 +1,10 @@
 package web
 
 import (
-	"github.com/shudiwsh2009/reservation_thxl_go/model"
-	"github.com/shudiwsh2009/reservation_thxl_go/service"
 	"github.com/mijia/sweb/form"
 	"github.com/mijia/sweb/render"
+	"github.com/shudiwsh2009/reservation_thxl_go/model"
+	"github.com/shudiwsh2009/reservation_thxl_go/service"
 	"golang.org/x/net/context"
 	"net/http"
 )
@@ -95,7 +95,8 @@ func (uc *UserController) GetAdminPageLegacy(ctx context.Context, w http.Respons
 	if userType != model.USER_TYPE_ADMIN {
 		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
 		return ctx
-	} else if _, err := service.MongoClient().GetAdminById(userId); err != nil {
+	} else if admin, err := service.MongoClient().GetAdminById(userId); err != nil ||
+		admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
 		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
 		return ctx
 	}
@@ -108,7 +109,8 @@ func (uc *UserController) GetAdminTimetablePageLegacy(ctx context.Context, w htt
 	if userType != model.USER_TYPE_ADMIN {
 		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
 		return ctx
-	} else if _, err := service.MongoClient().GetAdminById(userId); err != nil {
+	} else if admin, err := service.MongoClient().GetAdminById(userId); err != nil ||
+		admin == nil || admin.UserType == model.USER_TYPE_ADMIN {
 		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
 		return ctx
 	}

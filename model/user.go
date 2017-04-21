@@ -1,9 +1,10 @@
 package model
 
 import (
-	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"crypto/sha256"
 	"encoding/base64"
+	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"math/rand"
 	"strconv"
@@ -111,19 +112,37 @@ func (m *MongoClient) GetStudentById(id string) (*Student, error) {
 	}
 	var student Student
 	err := dbStudent.FindId(bson.ObjectIdHex(id)).One(&student)
-	return &student, err
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &student, nil
+	}
 }
 
 func (m *MongoClient) GetStudentByUsername(username string) (*Student, error) {
 	var student Student
 	err := dbStudent.Find(bson.M{"username": username, "user_type": USER_TYPE_STUDENT}).One(&student)
-	return &student, err
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &student, nil
+	}
 }
 
 func (m *MongoClient) GetStudentByArchiveCategoryAndNumber(archiveCategory string, archiveNumber string) (*Student, error) {
 	var student Student
 	err := dbStudent.Find(bson.M{"archive_category": archiveCategory, "archive_number": archiveNumber, "user_type": USER_TYPE_STUDENT}).One(&student)
-	return &student, err
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &student, nil
+	}
 }
 
 func (m *MongoClient) GetStudentsByBindedTeacherId(teacherId string) ([]*Student, error) {
@@ -181,25 +200,49 @@ func (m *MongoClient) GetTeacherById(id string) (*Teacher, error) {
 	}
 	var teacher Teacher
 	err := dbTeacher.FindId(bson.ObjectIdHex(id)).One(&teacher)
-	return &teacher, err
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &teacher, nil
+	}
 }
 
 func (m *MongoClient) GetTeacherByUsername(username string) (*Teacher, error) {
 	var teacher Teacher
 	err := dbTeacher.Find(bson.M{"username": username, "user_type": USER_TYPE_TEACHER}).One(&teacher)
-	return &teacher, err
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &teacher, nil
+	}
 }
 
 func (m *MongoClient) GetTeacherByFullname(fullname string) (*Teacher, error) {
 	var teacher Teacher
 	err := dbTeacher.Find(bson.M{"fullname": fullname, "user_type": USER_TYPE_TEACHER}).One(&teacher)
-	return &teacher, err
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &teacher, nil
+	}
 }
 
 func (m *MongoClient) GetTeacherByMobile(mobile string) (*Teacher, error) {
 	var teacher Teacher
 	err := dbTeacher.Find(bson.M{"mobile": mobile, "user_type": USER_TYPE_TEACHER}).One(&teacher)
-	return &teacher, err
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &teacher, nil
+	}
 }
 
 // Index: username + user_type
@@ -249,13 +292,25 @@ func (m *MongoClient) GetAdminById(id string) (*Admin, error) {
 	}
 	var admin Admin
 	err := dbAdmin.FindId(bson.ObjectIdHex(id)).One(&admin)
-	return &admin, err
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &admin, nil
+	}
 }
 
 func (m *MongoClient) GetAdminByUsername(username string) (*Admin, error) {
 	var admin Admin
 	err := dbAdmin.Find(bson.M{"username": username, "user_type": USER_TYPE_ADMIN}).One(&admin)
-	return &admin, err
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &admin, nil
+	}
 }
 
 func EncodePassword(salt, passwd string) string {

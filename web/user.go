@@ -110,7 +110,7 @@ func (uc *UserController) GetAdminTimetablePageLegacy(ctx context.Context, w htt
 		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
 		return ctx
 	} else if admin, err := service.MongoClient().GetAdminById(userId); err != nil ||
-		admin == nil || admin.UserType == model.USER_TYPE_ADMIN {
+		admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
 		http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
 		return ctx
 	}

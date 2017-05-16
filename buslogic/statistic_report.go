@@ -146,6 +146,7 @@ type FeedbackGroup struct {
 	NumTotal                             int
 	CountTotal                           int     // 会谈总计
 	Ratio                                float64 // 比例（需转成百分比）
+	CountHasEmphasis                     int     // 含有重点标记的咨询数量
 	CountUnderGraduateEmphasisInCategory int     // 脏代码：交叉统计评估分类中重点情况的频次
 	CountGraduateEmphasisInCategory      int
 	CountEmphasisInCategory              int
@@ -436,6 +437,7 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 		categoryTotalGroup.TotalIdMap[studentId]++
 
 		// 重点情况汇总
+		hasEmphasis := false
 		severity := r.TeacherFeedback.Severity
 		medicalDiagnosis := r.TeacherFeedback.MedicalDiagnosis
 		crisis := r.TeacherFeedback.Crisis
@@ -535,6 +537,7 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 				emphasisTotalGroup.CountTotal++
 				emphasisTotalGroup.TotalIdMap[studentId]++
 
+				hasEmphasis = true
 				if strings.HasSuffix(grade, "级") {
 					categorySCGroupMap[category].CountUnderGraduateEmphasisInCategory++
 					categoryFCGroupMap[category[0:1]].CountUnderGraduateEmphasisInCategory++
@@ -642,6 +645,7 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 				emphasisTotalGroup.CountTotal++
 				emphasisTotalGroup.TotalIdMap[studentId]++
 
+				hasEmphasis = true
 				if strings.HasSuffix(grade, "级") {
 					categorySCGroupMap[category].CountUnderGraduateEmphasisInCategory++
 					categoryFCGroupMap[category[0:1]].CountUnderGraduateEmphasisInCategory++
@@ -749,6 +753,7 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 				emphasisTotalGroup.CountTotal++
 				emphasisTotalGroup.TotalIdMap[studentId]++
 
+				hasEmphasis = true
 				if strings.HasSuffix(grade, "级") {
 					categorySCGroupMap[category].CountUnderGraduateEmphasisInCategory++
 					categoryFCGroupMap[category[0:1]].CountUnderGraduateEmphasisInCategory++
@@ -759,6 +764,10 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 				categorySCGroupMap[category].CountEmphasisInCategory++
 				categoryFCGroupMap[category[0:1]].CountEmphasisInCategory++
 			}
+		}
+		if hasEmphasis {
+			categorySCGroupMap[category].CountHasEmphasis++
+			categoryFCGroupMap[category[0:1]].CountHasEmphasis++
 		}
 	}
 	for _, scGroup := range categorySCGroupMap {
@@ -1124,7 +1133,7 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 			cell.SetValue(fcGroup.CountEmphasisInCategory)
 			cell = row.AddCell()
 			cell.SetStyle(bgGreenStyle)
-			cell.SetValue(fmt.Sprintf("%.2f", float64(fcGroup.CountEmphasisInCategory)/float64(fcGroup.CountTotal)))
+			cell.SetValue(fmt.Sprintf("%.2f", float64(fcGroup.CountEmphasisInCategory)/float64(fcGroup.CountHasEmphasis)))
 			cell = row.AddCell()
 			cell.SetStyle(bgGreenStyle)
 			cell.SetValue(fcGroup.CountUnderGraduates)

@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"github.com/mijia/sweb/log"
+	"github.com/shudiwsh2009/reservation_thxl_go/config"
 	"gopkg.in/mgo.v2"
 	"time"
 )
@@ -14,7 +14,6 @@ var (
 	dbArchive     *mgo.Collection
 	dbReservation *mgo.Collection
 	dbTimetable   *mgo.Collection
-	dbTxn         *mgo.Collection
 )
 
 type MongoClient struct {
@@ -26,6 +25,14 @@ func NewMongoClient() *MongoClient {
 	var err error
 	if config.Instance().IsSmockServer() {
 		session, err = mgo.Dial("127.0.0.1:27017")
+		//mongoDbDialInfo := mgo.DialInfo{
+		//	Addrs:    []string{"123.56.190.91:20171"},
+		//	Timeout:  60 * time.Second,
+		//	Database: "reservation_thxl",
+		//	Username: "reservation_readonly",
+		//	Password: "CczzgMv^Cfr9Gh*G^K6nz6G@xaQ/(yYYcDXFu3Eq*ryW6xg2JN3++8D7aFc]2DcB",
+		//}
+		//session, err = mgo.DialWithInfo(&mongoDbDialInfo)
 	} else {
 		mongoDbDialInfo := mgo.DialInfo{
 			Addrs:    []string{config.Instance().MongoHost},
@@ -48,7 +55,6 @@ func NewMongoClient() *MongoClient {
 	dbArchive = mongo.C("archive")
 	dbReservation = mongo.C("reservation")
 	dbTimetable = mongo.C("timetable")
-	dbTxn = mongo.C("txn")
 	ret := &MongoClient{
 		mongo: mongo,
 	}

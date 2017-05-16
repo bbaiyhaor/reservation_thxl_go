@@ -71,6 +71,14 @@ var (
 		Fill:           greenFill,
 		Border:         border,
 	}
+	textRightOrangeStyle *xlsx.Style = &xlsx.Style{
+		ApplyAlignment: true,
+		ApplyFill:      true,
+		ApplyBorder:    true,
+		Alignment:      textRightAlignment,
+		Fill:           orangeFill,
+		Border:         border,
+	}
 	textCenterOrangeStyle *xlsx.Style = &xlsx.Style{
 		ApplyAlignment: true,
 		ApplyFill:      true,
@@ -114,72 +122,60 @@ var (
 //================================================================
 //===========================咨询月报==============================
 //================================================================
-type FirstClassReport struct {
-	FirstClass          string
-	SecondClassReports  []*SecondClassReport
-	MaleIdMap           map[string]int
-	NumMale             int // 合计人数（男）
-	CountMale           int // 合计人次（男）
-	FemaleIdMap         map[string]int
-	NumFemale           int
-	CountFemale         int // 合计（女）
-	UnderGraduateIdMap  map[string]int
-	NumUnderGraduates   int
-	CountUnderGraduates int // 合计（本科生）
-	GraduateIdMap       map[string]int
-	NumGraduates        int
-	CountGraduates      int // 合计（研究生）
+type FeedbackGroup struct {
+	GroupName                            string
+	SecondaryGroups                      []*FeedbackGroup
+	Grades                               map[string]int // 本科生、硕士生、博士生
+	Instructor                           int            // 辅导员
+	Teacher                              int            // 教师
+	Family                               int            // 家属
+	Others                               int            // 其他
+	MaleIdMap                            map[string]int
+	NumMale                              int // 合计人数（男）
+	CountMale                            int // 合计人次（男）
+	FemaleIdMap                          map[string]int
+	NumFemale                            int
+	CountFemale                          int // 合计（女）
+	UnderGraduateIdMap                   map[string]int
+	NumUnderGraduates                    int
+	CountUnderGraduates                  int // 合计（本科生）
+	GraduateIdMap                        map[string]int
+	NumGraduates                         int
+	CountGraduates                       int // 合计（研究生）
+	TotalIdMap                           map[string]int
+	NumTotal                             int
+	CountTotal                           int     // 会谈总计
+	Ratio                                float64 // 比例（需转成百分比）
+	CountUnderGraduateEmphasisInCategory int     // 脏代码：交叉统计评估分类中重点情况的频次
+	CountGraduateEmphasisInCategory      int
+	CountEmphasisInCategory              int
 }
 
-type SecondClassReport struct {
-	SecondClass         string
-	Grades              map[string]int // 本科生、硕士生、博士生
-	Instructor          int            // 辅导员
-	Teacher             int            // 教师
-	Family              int            // 家属
-	Others              int            // 其他
-	MaleIdMap           map[string]int
-	NumMale             int // 合计人数（男）
-	CountMale           int // 合计人次（男）
-	FemaleIdMap         map[string]int
-	NumFemale           int
-	CountFemale         int // 合计（女）
-	UnderGraduateIdMap  map[string]int
-	NumUnderGraduates   int
-	CountUnderGraduates int // 合计（本科生）
-	GraduateIdMap       map[string]int
-	NumGraduates        int
-	CountGraduates      int // 合计（研究生）
-	TotalIdMap          map[string]int
-	NumTotal            int
-	CountTotal          int     // 会谈总计
-	Ratio               float64 // 比例（需转成百分比）
-}
-
-func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path string) error {
+func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.Reservation, path string) error {
 	// 建立存储结构
 	// 咨询情况汇总
-	categoryFCReport := make([]*FirstClassReport, 0)
-	categoryFCReportMap := make(map[string]*FirstClassReport)
-	categorySCReportMap := make(map[string]*SecondClassReport)
+	categoryFCGroup := make([]*FeedbackGroup, 0)
+	categoryFCGroupMap := make(map[string]*FeedbackGroup)
+	categorySCGroupMap := make(map[string]*FeedbackGroup)
 	for fi, firstCategory := range model.FeedbackFirstCategoryMap {
 		if fi == "" {
 			continue
 		}
-		fcReport := &FirstClassReport{
-			FirstClass:         firstCategory,
-			SecondClassReports: make([]*SecondClassReport, 0),
+		fcGroup := &FeedbackGroup{
+			GroupName:          firstCategory,
+			SecondaryGroups:    make([]*FeedbackGroup, 0),
 			MaleIdMap:          make(map[string]int),
 			FemaleIdMap:        make(map[string]int),
 			UnderGraduateIdMap: make(map[string]int),
 			GraduateIdMap:      make(map[string]int),
+			TotalIdMap:         make(map[string]int),
 		}
 		for si, secondCategory := range model.FeedbackSecondCategoryMap[fi] {
 			if si == "" {
 				continue
 			}
-			scReport := &SecondClassReport{
-				SecondClass:        secondCategory,
+			scGroup := &FeedbackGroup{
+				GroupName:          secondCategory,
 				Grades:             make(map[string]int),
 				MaleIdMap:          make(map[string]int),
 				FemaleIdMap:        make(map[string]int),
@@ -187,20 +183,20 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 				GraduateIdMap:      make(map[string]int),
 				TotalIdMap:         make(map[string]int),
 			}
-			fcReport.SecondClassReports = append(fcReport.SecondClassReports, scReport)
-			categorySCReportMap[si] = scReport
+			fcGroup.SecondaryGroups = append(fcGroup.SecondaryGroups, scGroup)
+			categorySCGroupMap[si] = scGroup
 		}
-		sort.Slice(fcReport.SecondClassReports, func(i, j int) bool {
-			return fcReport.SecondClassReports[i].SecondClass < fcReport.SecondClassReports[j].SecondClass
+		sort.Slice(fcGroup.SecondaryGroups, func(i, j int) bool {
+			return fcGroup.SecondaryGroups[i].GroupName < fcGroup.SecondaryGroups[j].GroupName
 		})
-		categoryFCReportMap[fi] = fcReport
-		categoryFCReport = append(categoryFCReport, fcReport)
+		categoryFCGroupMap[fi] = fcGroup
+		categoryFCGroup = append(categoryFCGroup, fcGroup)
 	}
-	sort.Slice(categoryFCReport, func(i, j int) bool {
-		return categoryFCReport[i].FirstClass < categoryFCReport[j].FirstClass
+	sort.Slice(categoryFCGroup, func(i, j int) bool {
+		return categoryFCGroup[i].GroupName < categoryFCGroup[j].GroupName
 	})
-	categoryTotalReport := &SecondClassReport{
-		SecondClass: "总计",
+	categoryTotalGroup := &FeedbackGroup{
+		GroupName: "总计",
 		Grades: map[string]int{
 			"16级": 0,
 			"15级": 0,
@@ -221,18 +217,19 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 		TotalIdMap:         make(map[string]int),
 	}
 	// 重点情况汇总
-	emphasisSCReportMap := make(map[string]*SecondClassReport)
-	severityFCReport := &FirstClassReport{
-		FirstClass:         "严重程度",
-		SecondClassReports: make([]*SecondClassReport, 0),
+	emphasisSCGroupMap := make(map[string]*FeedbackGroup)
+	severityFCGroup := &FeedbackGroup{
+		GroupName:          "严重程度",
+		SecondaryGroups:    make([]*FeedbackGroup, 0),
 		MaleIdMap:          make(map[string]int),
 		FemaleIdMap:        make(map[string]int),
 		UnderGraduateIdMap: make(map[string]int),
 		GraduateIdMap:      make(map[string]int),
+		TotalIdMap:         make(map[string]int),
 	}
 	for _, sc := range model.FeedbackSeverity {
-		scReport := &SecondClassReport{
-			SecondClass:        sc,
+		scGroup := &FeedbackGroup{
+			GroupName:          sc,
 			Grades:             make(map[string]int),
 			MaleIdMap:          make(map[string]int),
 			FemaleIdMap:        make(map[string]int),
@@ -240,20 +237,21 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 			GraduateIdMap:      make(map[string]int),
 			TotalIdMap:         make(map[string]int),
 		}
-		severityFCReport.SecondClassReports = append(severityFCReport.SecondClassReports, scReport)
-		emphasisSCReportMap[sc] = scReport
+		severityFCGroup.SecondaryGroups = append(severityFCGroup.SecondaryGroups, scGroup)
+		emphasisSCGroupMap[sc] = scGroup
 	}
-	medicalDiagnosisFCReport := &FirstClassReport{
-		FirstClass:         "疑似或明确的医疗诊断",
-		SecondClassReports: make([]*SecondClassReport, 0),
+	medicalDiagnosisFCGroup := &FeedbackGroup{
+		GroupName:          "疑似或明确的医疗诊断",
+		SecondaryGroups:    make([]*FeedbackGroup, 0),
 		MaleIdMap:          make(map[string]int),
 		FemaleIdMap:        make(map[string]int),
 		UnderGraduateIdMap: make(map[string]int),
 		GraduateIdMap:      make(map[string]int),
+		TotalIdMap:         make(map[string]int),
 	}
 	for _, sc := range model.FeedbackMedicalDiagnosis {
-		scReport := &SecondClassReport{
-			SecondClass:        sc,
+		scGroup := &FeedbackGroup{
+			GroupName:          sc,
 			Grades:             make(map[string]int),
 			MaleIdMap:          make(map[string]int),
 			FemaleIdMap:        make(map[string]int),
@@ -261,20 +259,21 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 			GraduateIdMap:      make(map[string]int),
 			TotalIdMap:         make(map[string]int),
 		}
-		medicalDiagnosisFCReport.SecondClassReports = append(medicalDiagnosisFCReport.SecondClassReports, scReport)
-		emphasisSCReportMap[sc] = scReport
+		medicalDiagnosisFCGroup.SecondaryGroups = append(medicalDiagnosisFCGroup.SecondaryGroups, scGroup)
+		emphasisSCGroupMap[sc] = scGroup
 	}
-	crisisFCReport := &FirstClassReport{
-		FirstClass:         "危急情况",
-		SecondClassReports: make([]*SecondClassReport, 0),
+	crisisFCGroup := &FeedbackGroup{
+		GroupName:          "危急情况",
+		SecondaryGroups:    make([]*FeedbackGroup, 0),
 		MaleIdMap:          make(map[string]int),
 		FemaleIdMap:        make(map[string]int),
 		UnderGraduateIdMap: make(map[string]int),
 		GraduateIdMap:      make(map[string]int),
+		TotalIdMap:         make(map[string]int),
 	}
 	for _, sc := range model.FeedbackCrisis {
-		scReport := &SecondClassReport{
-			SecondClass:        sc,
+		scGroup := &FeedbackGroup{
+			GroupName:          sc,
 			Grades:             make(map[string]int),
 			MaleIdMap:          make(map[string]int),
 			FemaleIdMap:        make(map[string]int),
@@ -282,11 +281,11 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 			GraduateIdMap:      make(map[string]int),
 			TotalIdMap:         make(map[string]int),
 		}
-		crisisFCReport.SecondClassReports = append(crisisFCReport.SecondClassReports, scReport)
-		emphasisSCReportMap[sc] = scReport
+		crisisFCGroup.SecondaryGroups = append(crisisFCGroup.SecondaryGroups, scGroup)
+		emphasisSCGroupMap[sc] = scGroup
 	}
-	emphasisTotalReport := &SecondClassReport{
-		SecondClass: "总计",
+	emphasisTotalGroup := &FeedbackGroup{
+		GroupName: "总计",
 		Grades: map[string]int{
 			"16级": 0,
 			"15级": 0,
@@ -326,109 +325,115 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 		// 来访情况，H分类中的来访人员特殊处理
 		switch category {
 		case "H1":
-			categorySCReportMap[category].Instructor++
-			categoryTotalReport.Instructor++
+			categorySCGroupMap[category].Instructor++
+			categoryTotalGroup.Instructor++
 		case "H2", "H6":
-			categorySCReportMap[category].Teacher++
-			categoryTotalReport.Teacher++
+			categorySCGroupMap[category].Teacher++
+			categoryTotalGroup.Teacher++
 		case "H3":
-			categorySCReportMap[category].Family++
-			categoryTotalReport.Family++
+			categorySCGroupMap[category].Family++
+			categoryTotalGroup.Family++
 		case "H4", "H5":
-			categorySCReportMap[category].Others++
-			categoryTotalReport.Others++
+			categorySCGroupMap[category].Others++
+			categoryTotalGroup.Others++
 		default:
-			categorySCReportMap[category].Grades[grade]++
-			categoryTotalReport.Grades[grade]++
+			categorySCGroupMap[category].Grades[grade]++
+			categoryTotalGroup.Grades[grade]++
 		}
 		// 性别统计
 		if student.Gender == "男" {
-			if _, ok := categorySCReportMap[category].MaleIdMap[studentId]; !ok {
-				categorySCReportMap[category].NumMale++
+			if _, ok := categorySCGroupMap[category].MaleIdMap[studentId]; !ok {
+				categorySCGroupMap[category].NumMale++
 			}
-			categorySCReportMap[category].CountMale++
-			categorySCReportMap[category].MaleIdMap[studentId]++
+			categorySCGroupMap[category].CountMale++
+			categorySCGroupMap[category].MaleIdMap[studentId]++
 
-			if _, ok := categoryFCReportMap[category[0:1]].MaleIdMap[studentId]; !ok {
-				categoryFCReportMap[category[0:1]].NumMale++
+			if _, ok := categoryFCGroupMap[category[0:1]].MaleIdMap[studentId]; !ok {
+				categoryFCGroupMap[category[0:1]].NumMale++
 			}
-			categoryFCReportMap[category[0:1]].CountMale++
-			categoryFCReportMap[category[0:1]].MaleIdMap[studentId]++
+			categoryFCGroupMap[category[0:1]].CountMale++
+			categoryFCGroupMap[category[0:1]].MaleIdMap[studentId]++
 
-			if _, ok := categoryTotalReport.MaleIdMap[studentId]; !ok {
-				categoryTotalReport.NumMale++
+			if _, ok := categoryTotalGroup.MaleIdMap[studentId]; !ok {
+				categoryTotalGroup.NumMale++
 			}
-			categoryTotalReport.CountMale++
-			categoryTotalReport.MaleIdMap[studentId]++
+			categoryTotalGroup.CountMale++
+			categoryTotalGroup.MaleIdMap[studentId]++
 		} else if student.Gender == "女" {
-			if _, ok := categorySCReportMap[category].FemaleIdMap[studentId]; !ok {
-				categorySCReportMap[category].NumFemale++
+			if _, ok := categorySCGroupMap[category].FemaleIdMap[studentId]; !ok {
+				categorySCGroupMap[category].NumFemale++
 			}
-			categorySCReportMap[category].CountFemale++
-			categorySCReportMap[category].FemaleIdMap[studentId]++
+			categorySCGroupMap[category].CountFemale++
+			categorySCGroupMap[category].FemaleIdMap[studentId]++
 
-			if _, ok := categoryFCReportMap[category[0:1]].FemaleIdMap[studentId]; !ok {
-				categoryFCReportMap[category[0:1]].NumFemale++
+			if _, ok := categoryFCGroupMap[category[0:1]].FemaleIdMap[studentId]; !ok {
+				categoryFCGroupMap[category[0:1]].NumFemale++
 			}
-			categoryFCReportMap[category[0:1]].CountFemale++
-			categoryFCReportMap[category[0:1]].FemaleIdMap[studentId]++
+			categoryFCGroupMap[category[0:1]].CountFemale++
+			categoryFCGroupMap[category[0:1]].FemaleIdMap[studentId]++
 
-			if _, ok := categoryTotalReport.FemaleIdMap[studentId]; !ok {
-				categoryTotalReport.NumFemale++
+			if _, ok := categoryTotalGroup.FemaleIdMap[studentId]; !ok {
+				categoryTotalGroup.NumFemale++
 			}
-			categoryTotalReport.CountFemale++
-			categoryTotalReport.FemaleIdMap[studentId]++
+			categoryTotalGroup.CountFemale++
+			categoryTotalGroup.FemaleIdMap[studentId]++
 		}
 		// 本科生/研究生统计
 		if strings.HasSuffix(grade, "级") {
-			if _, ok := categorySCReportMap[category].UnderGraduateIdMap[studentId]; !ok {
-				categorySCReportMap[category].NumUnderGraduates++
+			if _, ok := categorySCGroupMap[category].UnderGraduateIdMap[studentId]; !ok {
+				categorySCGroupMap[category].NumUnderGraduates++
 			}
-			categorySCReportMap[category].CountUnderGraduates++
-			categorySCReportMap[category].UnderGraduateIdMap[studentId]++
+			categorySCGroupMap[category].CountUnderGraduates++
+			categorySCGroupMap[category].UnderGraduateIdMap[studentId]++
 
-			if _, ok := categoryFCReportMap[category[0:1]].UnderGraduateIdMap[studentId]; !ok {
-				categoryFCReportMap[category[0:1]].NumUnderGraduates++
+			if _, ok := categoryFCGroupMap[category[0:1]].UnderGraduateIdMap[studentId]; !ok {
+				categoryFCGroupMap[category[0:1]].NumUnderGraduates++
 			}
-			categoryFCReportMap[category[0:1]].CountUnderGraduates++
-			categoryFCReportMap[category[0:1]].UnderGraduateIdMap[studentId]++
+			categoryFCGroupMap[category[0:1]].CountUnderGraduates++
+			categoryFCGroupMap[category[0:1]].UnderGraduateIdMap[studentId]++
 
-			if _, ok := categoryTotalReport.UnderGraduateIdMap[studentId]; !ok {
-				categoryTotalReport.NumUnderGraduates++
+			if _, ok := categoryTotalGroup.UnderGraduateIdMap[studentId]; !ok {
+				categoryTotalGroup.NumUnderGraduates++
 			}
-			categoryTotalReport.CountUnderGraduates++
-			categoryTotalReport.UnderGraduateIdMap[studentId]++
+			categoryTotalGroup.CountUnderGraduates++
+			categoryTotalGroup.UnderGraduateIdMap[studentId]++
 		} else if strings.HasSuffix(grade, "硕") || strings.HasSuffix(grade, "博") {
-			if _, ok := categorySCReportMap[category].GraduateIdMap[studentId]; !ok {
-				categorySCReportMap[category].NumGraduates++
+			if _, ok := categorySCGroupMap[category].GraduateIdMap[studentId]; !ok {
+				categorySCGroupMap[category].NumGraduates++
 			}
-			categorySCReportMap[category].CountGraduates++
-			categorySCReportMap[category].GraduateIdMap[studentId]++
+			categorySCGroupMap[category].CountGraduates++
+			categorySCGroupMap[category].GraduateIdMap[studentId]++
 
-			if _, ok := categoryFCReportMap[category[0:1]].GraduateIdMap[studentId]; !ok {
-				categoryFCReportMap[category[0:1]].NumGraduates++
+			if _, ok := categoryFCGroupMap[category[0:1]].GraduateIdMap[studentId]; !ok {
+				categoryFCGroupMap[category[0:1]].NumGraduates++
 			}
-			categoryFCReportMap[category[0:1]].CountGraduates++
-			categoryFCReportMap[category[0:1]].GraduateIdMap[studentId]++
+			categoryFCGroupMap[category[0:1]].CountGraduates++
+			categoryFCGroupMap[category[0:1]].GraduateIdMap[studentId]++
 
-			if _, ok := categoryTotalReport.GraduateIdMap[studentId]; !ok {
-				categoryTotalReport.NumGraduates++
+			if _, ok := categoryTotalGroup.GraduateIdMap[studentId]; !ok {
+				categoryTotalGroup.NumGraduates++
 			}
-			categoryTotalReport.CountGraduates++
-			categoryTotalReport.GraduateIdMap[studentId]++
+			categoryTotalGroup.CountGraduates++
+			categoryTotalGroup.GraduateIdMap[studentId]++
 		}
 		// 总计
-		if _, ok := categorySCReportMap[category].TotalIdMap[studentId]; !ok {
-			categorySCReportMap[category].NumTotal++
+		if _, ok := categorySCGroupMap[category].TotalIdMap[studentId]; !ok {
+			categorySCGroupMap[category].NumTotal++
 		}
-		categorySCReportMap[category].CountTotal++
-		categorySCReportMap[category].TotalIdMap[studentId]++
+		categorySCGroupMap[category].CountTotal++
+		categorySCGroupMap[category].TotalIdMap[studentId]++
 
-		if _, ok := categoryTotalReport.TotalIdMap[studentId]; !ok {
-			categoryTotalReport.NumTotal++
+		if _, ok := categoryFCGroupMap[category[0:1]].TotalIdMap[studentId]; !ok {
+			categoryFCGroupMap[category[0:1]].NumTotal++
 		}
-		categoryTotalReport.CountTotal++
-		categoryTotalReport.TotalIdMap[studentId]++
+		categoryFCGroupMap[category[0:1]].CountTotal++
+		categoryFCGroupMap[category[0:1]].TotalIdMap[studentId]++
+
+		if _, ok := categoryTotalGroup.TotalIdMap[studentId]; !ok {
+			categoryTotalGroup.NumTotal++
+		}
+		categoryTotalGroup.CountTotal++
+		categoryTotalGroup.TotalIdMap[studentId]++
 
 		// 重点情况汇总
 		severity := r.TeacherFeedback.Severity
@@ -436,287 +441,338 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 		crisis := r.TeacherFeedback.Crisis
 		for i, s := range severity {
 			if s == 1 {
-				emphasisSCReportMap[model.FeedbackSeverity[i]].Grades[grade]++
-				emphasisTotalReport.Grades[grade]++
+				emphasisSCGroupMap[model.FeedbackSeverity[i]].Grades[grade]++
+				emphasisTotalGroup.Grades[grade]++
 				if student.Gender == "男" {
-					if _, ok := emphasisSCReportMap[model.FeedbackSeverity[i]].MaleIdMap[studentId]; !ok {
-						emphasisSCReportMap[model.FeedbackSeverity[i]].NumMale++
+					if _, ok := emphasisSCGroupMap[model.FeedbackSeverity[i]].MaleIdMap[studentId]; !ok {
+						emphasisSCGroupMap[model.FeedbackSeverity[i]].NumMale++
 					}
-					emphasisSCReportMap[model.FeedbackSeverity[i]].CountMale++
-					emphasisSCReportMap[model.FeedbackSeverity[i]].MaleIdMap[studentId]++
+					emphasisSCGroupMap[model.FeedbackSeverity[i]].CountMale++
+					emphasisSCGroupMap[model.FeedbackSeverity[i]].MaleIdMap[studentId]++
 
-					if _, ok := emphasisTotalReport.MaleIdMap[studentId]; !ok {
-						emphasisTotalReport.NumMale++
+					if _, ok := emphasisTotalGroup.MaleIdMap[studentId]; !ok {
+						emphasisTotalGroup.NumMale++
 					}
-					emphasisTotalReport.CountMale++
-					emphasisTotalReport.MaleIdMap[studentId]++
+					emphasisTotalGroup.CountMale++
+					emphasisTotalGroup.MaleIdMap[studentId]++
 
-					if _, ok := severityFCReport.MaleIdMap[studentId]; !ok {
-						severityFCReport.NumMale++
+					if _, ok := severityFCGroup.MaleIdMap[studentId]; !ok {
+						severityFCGroup.NumMale++
 					}
-					severityFCReport.CountMale++
-					severityFCReport.MaleIdMap[studentId]++
+					severityFCGroup.CountMale++
+					severityFCGroup.MaleIdMap[studentId]++
 				} else if student.Gender == "女" {
-					if _, ok := emphasisSCReportMap[model.FeedbackSeverity[i]].FemaleIdMap[studentId]; !ok {
-						emphasisSCReportMap[model.FeedbackSeverity[i]].NumFemale++
+					if _, ok := emphasisSCGroupMap[model.FeedbackSeverity[i]].FemaleIdMap[studentId]; !ok {
+						emphasisSCGroupMap[model.FeedbackSeverity[i]].NumFemale++
 					}
-					emphasisSCReportMap[model.FeedbackSeverity[i]].CountFemale++
-					emphasisSCReportMap[model.FeedbackSeverity[i]].FemaleIdMap[studentId]++
+					emphasisSCGroupMap[model.FeedbackSeverity[i]].CountFemale++
+					emphasisSCGroupMap[model.FeedbackSeverity[i]].FemaleIdMap[studentId]++
 
-					if _, ok := emphasisTotalReport.FemaleIdMap[studentId]; !ok {
-						emphasisTotalReport.NumFemale++
+					if _, ok := emphasisTotalGroup.FemaleIdMap[studentId]; !ok {
+						emphasisTotalGroup.NumFemale++
 					}
-					emphasisTotalReport.CountFemale++
-					emphasisTotalReport.FemaleIdMap[studentId]++
+					emphasisTotalGroup.CountFemale++
+					emphasisTotalGroup.FemaleIdMap[studentId]++
 
-					if _, ok := severityFCReport.FemaleIdMap[studentId]; !ok {
-						severityFCReport.NumFemale++
+					if _, ok := severityFCGroup.FemaleIdMap[studentId]; !ok {
+						severityFCGroup.NumFemale++
 					}
-					severityFCReport.CountFemale++
-					severityFCReport.FemaleIdMap[studentId]++
+					severityFCGroup.CountFemale++
+					severityFCGroup.FemaleIdMap[studentId]++
 				}
 				if strings.HasSuffix(grade, "级") {
-					if _, ok := emphasisSCReportMap[model.FeedbackSeverity[i]].UnderGraduateIdMap[studentId]; !ok {
-						emphasisSCReportMap[model.FeedbackSeverity[i]].NumUnderGraduates++
+					if _, ok := emphasisSCGroupMap[model.FeedbackSeverity[i]].UnderGraduateIdMap[studentId]; !ok {
+						emphasisSCGroupMap[model.FeedbackSeverity[i]].NumUnderGraduates++
 					}
-					emphasisSCReportMap[model.FeedbackSeverity[i]].CountUnderGraduates++
-					emphasisSCReportMap[model.FeedbackSeverity[i]].UnderGraduateIdMap[studentId]++
+					emphasisSCGroupMap[model.FeedbackSeverity[i]].CountUnderGraduates++
+					emphasisSCGroupMap[model.FeedbackSeverity[i]].UnderGraduateIdMap[studentId]++
 
-					if _, ok := emphasisTotalReport.UnderGraduateIdMap[studentId]; !ok {
-						emphasisTotalReport.NumUnderGraduates++
+					if _, ok := emphasisTotalGroup.UnderGraduateIdMap[studentId]; !ok {
+						emphasisTotalGroup.NumUnderGraduates++
 					}
-					emphasisTotalReport.CountUnderGraduates++
-					emphasisTotalReport.UnderGraduateIdMap[studentId]++
+					emphasisTotalGroup.CountUnderGraduates++
+					emphasisTotalGroup.UnderGraduateIdMap[studentId]++
 
-					if _, ok := severityFCReport.UnderGraduateIdMap[studentId]; !ok {
-						severityFCReport.NumUnderGraduates++
+					if _, ok := severityFCGroup.UnderGraduateIdMap[studentId]; !ok {
+						severityFCGroup.NumUnderGraduates++
 					}
-					severityFCReport.CountUnderGraduates++
-					severityFCReport.UnderGraduateIdMap[studentId]++
+					severityFCGroup.CountUnderGraduates++
+					severityFCGroup.UnderGraduateIdMap[studentId]++
 				} else if strings.HasSuffix(grade, "硕") || strings.HasSuffix(grade, "博") {
-					if _, ok := emphasisSCReportMap[model.FeedbackSeverity[i]].GraduateIdMap[studentId]; !ok {
-						emphasisSCReportMap[model.FeedbackSeverity[i]].NumGraduates++
+					if _, ok := emphasisSCGroupMap[model.FeedbackSeverity[i]].GraduateIdMap[studentId]; !ok {
+						emphasisSCGroupMap[model.FeedbackSeverity[i]].NumGraduates++
 					}
-					emphasisSCReportMap[model.FeedbackSeverity[i]].CountGraduates++
-					emphasisSCReportMap[model.FeedbackSeverity[i]].GraduateIdMap[studentId]++
+					emphasisSCGroupMap[model.FeedbackSeverity[i]].CountGraduates++
+					emphasisSCGroupMap[model.FeedbackSeverity[i]].GraduateIdMap[studentId]++
 
-					if _, ok := emphasisTotalReport.GraduateIdMap[studentId]; !ok {
-						emphasisTotalReport.NumGraduates++
+					if _, ok := emphasisTotalGroup.GraduateIdMap[studentId]; !ok {
+						emphasisTotalGroup.NumGraduates++
 					}
-					emphasisTotalReport.CountGraduates++
-					emphasisTotalReport.GraduateIdMap[studentId]++
+					emphasisTotalGroup.CountGraduates++
+					emphasisTotalGroup.GraduateIdMap[studentId]++
 
-					if _, ok := severityFCReport.GraduateIdMap[studentId]; !ok {
-						severityFCReport.NumGraduates++
+					if _, ok := severityFCGroup.GraduateIdMap[studentId]; !ok {
+						severityFCGroup.NumGraduates++
 					}
-					severityFCReport.CountGraduates++
-					severityFCReport.GraduateIdMap[studentId]++
+					severityFCGroup.CountGraduates++
+					severityFCGroup.GraduateIdMap[studentId]++
 				}
-				if _, ok := emphasisSCReportMap[model.FeedbackSeverity[i]].TotalIdMap[studentId]; !ok {
-					emphasisSCReportMap[model.FeedbackSeverity[i]].NumTotal++
+				if _, ok := emphasisSCGroupMap[model.FeedbackSeverity[i]].TotalIdMap[studentId]; !ok {
+					emphasisSCGroupMap[model.FeedbackSeverity[i]].NumTotal++
 				}
-				emphasisSCReportMap[model.FeedbackSeverity[i]].CountTotal++
-				emphasisSCReportMap[model.FeedbackSeverity[i]].TotalIdMap[studentId]++
+				emphasisSCGroupMap[model.FeedbackSeverity[i]].CountTotal++
+				emphasisSCGroupMap[model.FeedbackSeverity[i]].TotalIdMap[studentId]++
 
-				if _, ok := emphasisTotalReport.TotalIdMap[studentId]; !ok {
-					emphasisTotalReport.NumTotal++
+				if _, ok := severityFCGroup.TotalIdMap[studentId]; !ok {
+					severityFCGroup.NumTotal++
 				}
-				emphasisTotalReport.CountTotal++
-				emphasisTotalReport.TotalIdMap[studentId]++
+				severityFCGroup.CountTotal++
+				severityFCGroup.TotalIdMap[studentId]++
+
+				if _, ok := emphasisTotalGroup.TotalIdMap[studentId]; !ok {
+					emphasisTotalGroup.NumTotal++
+				}
+				emphasisTotalGroup.CountTotal++
+				emphasisTotalGroup.TotalIdMap[studentId]++
+
+				if strings.HasSuffix(grade, "级") {
+					categorySCGroupMap[category].CountUnderGraduateEmphasisInCategory++
+					categoryFCGroupMap[category[0:1]].CountUnderGraduateEmphasisInCategory++
+				} else if strings.HasSuffix(grade, "硕") || strings.HasSuffix(grade, "博") {
+					categorySCGroupMap[category].CountGraduateEmphasisInCategory++
+					categoryFCGroupMap[category[0:1]].CountGraduateEmphasisInCategory++
+				}
+				categorySCGroupMap[category].CountEmphasisInCategory++
+				categoryFCGroupMap[category[0:1]].CountEmphasisInCategory++
 			}
 		}
 		for i, m := range medicalDiagnosis {
 			if m == 1 {
-				emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].Grades[grade]++
-				emphasisTotalReport.Grades[grade]++
+				emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].Grades[grade]++
+				emphasisTotalGroup.Grades[grade]++
 				if student.Gender == "男" {
-					if _, ok := emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].MaleIdMap[studentId]; !ok {
-						emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].NumMale++
+					if _, ok := emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].MaleIdMap[studentId]; !ok {
+						emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].NumMale++
 					}
-					emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].CountMale++
-					emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].MaleIdMap[studentId]++
+					emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].CountMale++
+					emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].MaleIdMap[studentId]++
 
-					if _, ok := emphasisTotalReport.MaleIdMap[studentId]; !ok {
-						emphasisTotalReport.NumMale++
+					if _, ok := emphasisTotalGroup.MaleIdMap[studentId]; !ok {
+						emphasisTotalGroup.NumMale++
 					}
-					emphasisTotalReport.CountMale++
-					emphasisTotalReport.MaleIdMap[studentId]++
+					emphasisTotalGroup.CountMale++
+					emphasisTotalGroup.MaleIdMap[studentId]++
 
-					if _, ok := medicalDiagnosisFCReport.MaleIdMap[studentId]; !ok {
-						medicalDiagnosisFCReport.NumMale++
+					if _, ok := medicalDiagnosisFCGroup.MaleIdMap[studentId]; !ok {
+						medicalDiagnosisFCGroup.NumMale++
 					}
-					medicalDiagnosisFCReport.CountMale++
-					medicalDiagnosisFCReport.MaleIdMap[studentId]++
+					medicalDiagnosisFCGroup.CountMale++
+					medicalDiagnosisFCGroup.MaleIdMap[studentId]++
 				} else if student.Gender == "女" {
-					if _, ok := emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].FemaleIdMap[studentId]; !ok {
-						emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].NumFemale++
+					if _, ok := emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].FemaleIdMap[studentId]; !ok {
+						emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].NumFemale++
 					}
-					emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].CountFemale++
-					emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].FemaleIdMap[studentId]++
+					emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].CountFemale++
+					emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].FemaleIdMap[studentId]++
 
-					if _, ok := emphasisTotalReport.FemaleIdMap[studentId]; !ok {
-						emphasisTotalReport.NumFemale++
+					if _, ok := emphasisTotalGroup.FemaleIdMap[studentId]; !ok {
+						emphasisTotalGroup.NumFemale++
 					}
-					emphasisTotalReport.CountFemale++
-					emphasisTotalReport.FemaleIdMap[studentId]++
+					emphasisTotalGroup.CountFemale++
+					emphasisTotalGroup.FemaleIdMap[studentId]++
 
-					if _, ok := medicalDiagnosisFCReport.FemaleIdMap[studentId]; !ok {
-						medicalDiagnosisFCReport.NumFemale++
+					if _, ok := medicalDiagnosisFCGroup.FemaleIdMap[studentId]; !ok {
+						medicalDiagnosisFCGroup.NumFemale++
 					}
-					medicalDiagnosisFCReport.CountFemale++
-					medicalDiagnosisFCReport.FemaleIdMap[studentId]++
+					medicalDiagnosisFCGroup.CountFemale++
+					medicalDiagnosisFCGroup.FemaleIdMap[studentId]++
 				}
 				if strings.HasSuffix(grade, "级") {
-					if _, ok := emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].UnderGraduateIdMap[studentId]; !ok {
-						emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].NumUnderGraduates++
+					if _, ok := emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].UnderGraduateIdMap[studentId]; !ok {
+						emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].NumUnderGraduates++
 					}
-					emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].CountUnderGraduates++
-					emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].UnderGraduateIdMap[studentId]++
+					emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].CountUnderGraduates++
+					emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].UnderGraduateIdMap[studentId]++
 
-					if _, ok := emphasisTotalReport.UnderGraduateIdMap[studentId]; !ok {
-						emphasisTotalReport.NumUnderGraduates++
+					if _, ok := emphasisTotalGroup.UnderGraduateIdMap[studentId]; !ok {
+						emphasisTotalGroup.NumUnderGraduates++
 					}
-					emphasisTotalReport.CountUnderGraduates++
-					emphasisTotalReport.UnderGraduateIdMap[studentId]++
+					emphasisTotalGroup.CountUnderGraduates++
+					emphasisTotalGroup.UnderGraduateIdMap[studentId]++
 
-					if _, ok := medicalDiagnosisFCReport.UnderGraduateIdMap[studentId]; !ok {
-						medicalDiagnosisFCReport.NumUnderGraduates++
+					if _, ok := medicalDiagnosisFCGroup.UnderGraduateIdMap[studentId]; !ok {
+						medicalDiagnosisFCGroup.NumUnderGraduates++
 					}
-					medicalDiagnosisFCReport.CountUnderGraduates++
-					medicalDiagnosisFCReport.UnderGraduateIdMap[studentId]++
+					medicalDiagnosisFCGroup.CountUnderGraduates++
+					medicalDiagnosisFCGroup.UnderGraduateIdMap[studentId]++
 				} else if strings.HasSuffix(grade, "硕") || strings.HasSuffix(grade, "博") {
-					if _, ok := emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].GraduateIdMap[studentId]; !ok {
-						emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].NumGraduates++
+					if _, ok := emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].GraduateIdMap[studentId]; !ok {
+						emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].NumGraduates++
 					}
-					emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].CountGraduates++
-					emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].GraduateIdMap[studentId]++
+					emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].CountGraduates++
+					emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].GraduateIdMap[studentId]++
 
-					if _, ok := emphasisTotalReport.GraduateIdMap[studentId]; !ok {
-						emphasisTotalReport.NumGraduates++
+					if _, ok := emphasisTotalGroup.GraduateIdMap[studentId]; !ok {
+						emphasisTotalGroup.NumGraduates++
 					}
-					emphasisTotalReport.CountGraduates++
-					emphasisTotalReport.GraduateIdMap[studentId]++
+					emphasisTotalGroup.CountGraduates++
+					emphasisTotalGroup.GraduateIdMap[studentId]++
 
-					if _, ok := medicalDiagnosisFCReport.GraduateIdMap[studentId]; !ok {
-						medicalDiagnosisFCReport.NumGraduates++
+					if _, ok := medicalDiagnosisFCGroup.GraduateIdMap[studentId]; !ok {
+						medicalDiagnosisFCGroup.NumGraduates++
 					}
-					medicalDiagnosisFCReport.CountGraduates++
-					medicalDiagnosisFCReport.GraduateIdMap[studentId]++
+					medicalDiagnosisFCGroup.CountGraduates++
+					medicalDiagnosisFCGroup.GraduateIdMap[studentId]++
 				}
-				if _, ok := emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].TotalIdMap[studentId]; !ok {
-					emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].NumTotal++
+				if _, ok := emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].TotalIdMap[studentId]; !ok {
+					emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].NumTotal++
 				}
-				emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].CountTotal++
-				emphasisSCReportMap[model.FeedbackMedicalDiagnosis[i]].TotalIdMap[studentId]++
+				emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].CountTotal++
+				emphasisSCGroupMap[model.FeedbackMedicalDiagnosis[i]].TotalIdMap[studentId]++
 
-				if _, ok := emphasisTotalReport.TotalIdMap[studentId]; !ok {
-					emphasisTotalReport.NumTotal++
+				if _, ok := medicalDiagnosisFCGroup.TotalIdMap[studentId]; !ok {
+					medicalDiagnosisFCGroup.NumTotal++
 				}
-				emphasisTotalReport.CountTotal++
-				emphasisTotalReport.TotalIdMap[studentId]++
+				medicalDiagnosisFCGroup.CountTotal++
+				medicalDiagnosisFCGroup.TotalIdMap[studentId]++
+
+				if _, ok := emphasisTotalGroup.TotalIdMap[studentId]; !ok {
+					emphasisTotalGroup.NumTotal++
+				}
+				emphasisTotalGroup.CountTotal++
+				emphasisTotalGroup.TotalIdMap[studentId]++
+
+				if strings.HasSuffix(grade, "级") {
+					categorySCGroupMap[category].CountUnderGraduateEmphasisInCategory++
+					categoryFCGroupMap[category[0:1]].CountUnderGraduateEmphasisInCategory++
+				} else if strings.HasSuffix(grade, "硕") || strings.HasSuffix(grade, "博") {
+					categorySCGroupMap[category].CountGraduateEmphasisInCategory++
+					categoryFCGroupMap[category[0:1]].CountGraduateEmphasisInCategory++
+				}
+				categorySCGroupMap[category].CountEmphasisInCategory++
+				categoryFCGroupMap[category[0:1]].CountEmphasisInCategory++
 			}
 		}
 		for i, c := range crisis {
 			if c == 1 {
-				emphasisSCReportMap[model.FeedbackCrisis[i]].Grades[grade]++
-				emphasisTotalReport.Grades[grade]++
+				emphasisSCGroupMap[model.FeedbackCrisis[i]].Grades[grade]++
+				emphasisTotalGroup.Grades[grade]++
 				if student.Gender == "男" {
-					if _, ok := emphasisSCReportMap[model.FeedbackCrisis[i]].MaleIdMap[studentId]; !ok {
-						emphasisSCReportMap[model.FeedbackCrisis[i]].NumMale++
+					if _, ok := emphasisSCGroupMap[model.FeedbackCrisis[i]].MaleIdMap[studentId]; !ok {
+						emphasisSCGroupMap[model.FeedbackCrisis[i]].NumMale++
 					}
-					emphasisSCReportMap[model.FeedbackCrisis[i]].CountMale++
-					emphasisSCReportMap[model.FeedbackCrisis[i]].MaleIdMap[studentId]++
+					emphasisSCGroupMap[model.FeedbackCrisis[i]].CountMale++
+					emphasisSCGroupMap[model.FeedbackCrisis[i]].MaleIdMap[studentId]++
 
-					if _, ok := emphasisTotalReport.MaleIdMap[studentId]; !ok {
-						emphasisTotalReport.NumMale++
+					if _, ok := emphasisTotalGroup.MaleIdMap[studentId]; !ok {
+						emphasisTotalGroup.NumMale++
 					}
-					emphasisTotalReport.CountMale++
-					emphasisTotalReport.MaleIdMap[studentId]++
+					emphasisTotalGroup.CountMale++
+					emphasisTotalGroup.MaleIdMap[studentId]++
 
-					if _, ok := crisisFCReport.MaleIdMap[studentId]; !ok {
-						crisisFCReport.NumMale++
+					if _, ok := crisisFCGroup.MaleIdMap[studentId]; !ok {
+						crisisFCGroup.NumMale++
 					}
-					crisisFCReport.CountMale++
-					crisisFCReport.MaleIdMap[studentId]++
+					crisisFCGroup.CountMale++
+					crisisFCGroup.MaleIdMap[studentId]++
 				} else if student.Gender == "女" {
-					if _, ok := emphasisSCReportMap[model.FeedbackCrisis[i]].FemaleIdMap[studentId]; !ok {
-						emphasisSCReportMap[model.FeedbackCrisis[i]].NumFemale++
+					if _, ok := emphasisSCGroupMap[model.FeedbackCrisis[i]].FemaleIdMap[studentId]; !ok {
+						emphasisSCGroupMap[model.FeedbackCrisis[i]].NumFemale++
 					}
-					emphasisSCReportMap[model.FeedbackCrisis[i]].CountFemale++
-					emphasisSCReportMap[model.FeedbackCrisis[i]].FemaleIdMap[studentId]++
+					emphasisSCGroupMap[model.FeedbackCrisis[i]].CountFemale++
+					emphasisSCGroupMap[model.FeedbackCrisis[i]].FemaleIdMap[studentId]++
 
-					if _, ok := emphasisTotalReport.FemaleIdMap[studentId]; !ok {
-						emphasisTotalReport.NumFemale++
+					if _, ok := emphasisTotalGroup.FemaleIdMap[studentId]; !ok {
+						emphasisTotalGroup.NumFemale++
 					}
-					emphasisTotalReport.CountFemale++
-					emphasisTotalReport.FemaleIdMap[studentId]++
+					emphasisTotalGroup.CountFemale++
+					emphasisTotalGroup.FemaleIdMap[studentId]++
 
-					if _, ok := crisisFCReport.FemaleIdMap[studentId]; !ok {
-						crisisFCReport.NumFemale++
+					if _, ok := crisisFCGroup.FemaleIdMap[studentId]; !ok {
+						crisisFCGroup.NumFemale++
 					}
-					crisisFCReport.CountFemale++
-					crisisFCReport.FemaleIdMap[studentId]++
+					crisisFCGroup.CountFemale++
+					crisisFCGroup.FemaleIdMap[studentId]++
 				}
 				if strings.HasSuffix(grade, "级") {
-					if _, ok := emphasisSCReportMap[model.FeedbackCrisis[i]].UnderGraduateIdMap[studentId]; !ok {
-						emphasisSCReportMap[model.FeedbackCrisis[i]].NumUnderGraduates++
+					if _, ok := emphasisSCGroupMap[model.FeedbackCrisis[i]].UnderGraduateIdMap[studentId]; !ok {
+						emphasisSCGroupMap[model.FeedbackCrisis[i]].NumUnderGraduates++
 					}
-					emphasisSCReportMap[model.FeedbackCrisis[i]].CountUnderGraduates++
-					emphasisSCReportMap[model.FeedbackCrisis[i]].UnderGraduateIdMap[studentId]++
+					emphasisSCGroupMap[model.FeedbackCrisis[i]].CountUnderGraduates++
+					emphasisSCGroupMap[model.FeedbackCrisis[i]].UnderGraduateIdMap[studentId]++
 
-					if _, ok := emphasisTotalReport.UnderGraduateIdMap[studentId]; !ok {
-						emphasisTotalReport.NumUnderGraduates++
+					if _, ok := emphasisTotalGroup.UnderGraduateIdMap[studentId]; !ok {
+						emphasisTotalGroup.NumUnderGraduates++
 					}
-					emphasisTotalReport.CountUnderGraduates++
-					emphasisTotalReport.UnderGraduateIdMap[studentId]++
+					emphasisTotalGroup.CountUnderGraduates++
+					emphasisTotalGroup.UnderGraduateIdMap[studentId]++
 
-					if _, ok := crisisFCReport.UnderGraduateIdMap[studentId]; !ok {
-						crisisFCReport.NumUnderGraduates++
+					if _, ok := crisisFCGroup.UnderGraduateIdMap[studentId]; !ok {
+						crisisFCGroup.NumUnderGraduates++
 					}
-					crisisFCReport.CountUnderGraduates++
-					crisisFCReport.UnderGraduateIdMap[studentId]++
+					crisisFCGroup.CountUnderGraduates++
+					crisisFCGroup.UnderGraduateIdMap[studentId]++
 				} else if strings.HasSuffix(grade, "硕") || strings.HasSuffix(grade, "博") {
-					if _, ok := emphasisSCReportMap[model.FeedbackCrisis[i]].GraduateIdMap[studentId]; !ok {
-						emphasisSCReportMap[model.FeedbackCrisis[i]].NumGraduates++
+					if _, ok := emphasisSCGroupMap[model.FeedbackCrisis[i]].GraduateIdMap[studentId]; !ok {
+						emphasisSCGroupMap[model.FeedbackCrisis[i]].NumGraduates++
 					}
-					emphasisSCReportMap[model.FeedbackCrisis[i]].CountGraduates++
-					emphasisSCReportMap[model.FeedbackCrisis[i]].GraduateIdMap[studentId]++
+					emphasisSCGroupMap[model.FeedbackCrisis[i]].CountGraduates++
+					emphasisSCGroupMap[model.FeedbackCrisis[i]].GraduateIdMap[studentId]++
 
-					if _, ok := emphasisTotalReport.GraduateIdMap[studentId]; !ok {
-						emphasisTotalReport.NumGraduates++
+					if _, ok := emphasisTotalGroup.GraduateIdMap[studentId]; !ok {
+						emphasisTotalGroup.NumGraduates++
 					}
-					emphasisTotalReport.CountGraduates++
-					emphasisTotalReport.GraduateIdMap[studentId]++
+					emphasisTotalGroup.CountGraduates++
+					emphasisTotalGroup.GraduateIdMap[studentId]++
 
-					if _, ok := crisisFCReport.GraduateIdMap[studentId]; !ok {
-						crisisFCReport.NumGraduates++
+					if _, ok := crisisFCGroup.GraduateIdMap[studentId]; !ok {
+						crisisFCGroup.NumGraduates++
 					}
-					crisisFCReport.CountGraduates++
-					crisisFCReport.GraduateIdMap[studentId]++
+					crisisFCGroup.CountGraduates++
+					crisisFCGroup.GraduateIdMap[studentId]++
 				}
-				if _, ok := emphasisSCReportMap[model.FeedbackCrisis[i]].TotalIdMap[studentId]; !ok {
-					emphasisSCReportMap[model.FeedbackCrisis[i]].NumTotal++
+				if _, ok := emphasisSCGroupMap[model.FeedbackCrisis[i]].TotalIdMap[studentId]; !ok {
+					emphasisSCGroupMap[model.FeedbackCrisis[i]].NumTotal++
 				}
-				emphasisSCReportMap[model.FeedbackCrisis[i]].CountTotal++
-				emphasisSCReportMap[model.FeedbackCrisis[i]].TotalIdMap[studentId]++
+				emphasisSCGroupMap[model.FeedbackCrisis[i]].CountTotal++
+				emphasisSCGroupMap[model.FeedbackCrisis[i]].TotalIdMap[studentId]++
 
-				if _, ok := emphasisTotalReport.TotalIdMap[studentId]; !ok {
-					emphasisTotalReport.NumTotal++
+				if _, ok := crisisFCGroup.TotalIdMap[studentId]; !ok {
+					crisisFCGroup.NumTotal++
 				}
-				emphasisTotalReport.CountTotal++
-				emphasisTotalReport.TotalIdMap[studentId]++
+				crisisFCGroup.CountTotal++
+				crisisFCGroup.TotalIdMap[studentId]++
+
+				if _, ok := emphasisTotalGroup.TotalIdMap[studentId]; !ok {
+					emphasisTotalGroup.NumTotal++
+				}
+				emphasisTotalGroup.CountTotal++
+				emphasisTotalGroup.TotalIdMap[studentId]++
+
+				if strings.HasSuffix(grade, "级") {
+					categorySCGroupMap[category].CountUnderGraduateEmphasisInCategory++
+					categoryFCGroupMap[category[0:1]].CountUnderGraduateEmphasisInCategory++
+				} else if strings.HasSuffix(grade, "硕") || strings.HasSuffix(grade, "博") {
+					categorySCGroupMap[category].CountGraduateEmphasisInCategory++
+					categoryFCGroupMap[category[0:1]].CountGraduateEmphasisInCategory++
+				}
+				categorySCGroupMap[category].CountEmphasisInCategory++
+				categoryFCGroupMap[category[0:1]].CountEmphasisInCategory++
 			}
 		}
 	}
-	for _, scReport := range categorySCReportMap {
-		scReport.Ratio = float64(scReport.CountTotal) / float64(categoryTotalReport.CountTotal)
+	for _, scGroup := range categorySCGroupMap {
+		scGroup.Ratio = float64(scGroup.CountTotal) / float64(categoryTotalGroup.CountTotal)
 	}
-	for _, scReport := range emphasisSCReportMap {
-		scReport.Ratio = float64(scReport.CountTotal) / float64(emphasisTotalReport.CountTotal)
+	for _, fcGroup := range categoryFCGroupMap {
+		fcGroup.Ratio = float64(fcGroup.CountTotal) / float64(categoryTotalGroup.CountTotal)
+	}
+	for _, scGroup := range emphasisSCGroupMap {
+		scGroup.Ratio = float64(scGroup.CountTotal) / float64(emphasisTotalGroup.CountTotal)
 	}
 	// 分析年级数据
 	allGrades := make([]string, 0)
-	for g := range categoryTotalReport.Grades {
+	for g := range categoryTotalGroup.Grades {
 		allGrades = append(allGrades, g)
 	}
 	sort.Slice(allGrades, func(i, j int) bool {
@@ -786,9 +842,42 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 	}
 	cell = row.AddCell()
 	cell.SetStyle(borderStyle)
-	cell.SetValue("总计")
+	cell.SetValue("大类人数统计")
+	for i := 0; i < 2; i++ {
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+	}
 	cell = row.AddCell()
 	cell.SetStyle(borderStyle)
+	cell.SetValue("总计")
+	for i := 0; i < 3; i++ {
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+	}
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell.SetValue("重点情况频次大类分项统计")
+	for i := 0; i < 2; i++ {
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+	}
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell.SetValue("平均标记值")
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell.SetValue("重点情况人次统计")
+	for i := 0; i < 2; i++ {
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+	}
+	cell = row.AddCell()
+	cell.SetStyle(borderStyle)
+	cell.SetValue("重点情况人数统计")
+	for i := 0; i < 2; i++ {
+		cell = row.AddCell()
+		cell.SetStyle(borderStyle)
+	}
 	// 合并第一表头
 	cell = row.Cells[0]
 	cell.Merge(1, 0)
@@ -803,8 +892,22 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 	cell.Merge(3, 0)
 	cell.SetStyle(textCenterGreenStyle)
 	cell = row.Cells[len(allGrades)+14]
-	cell.Merge(1, 0)
+	cell.Merge(2, 0)
+	cell.SetStyle(textCenterGreenStyle)
+	cell = row.Cells[len(allGrades)+17]
+	cell.Merge(3, 0)
 	cell.SetStyle(textCenterOrangeStyle)
+	cell = row.Cells[len(allGrades)+21]
+	cell.Merge(2, 0)
+	cell.SetStyle(textCenterGreenStyle)
+	cell = row.Cells[len(allGrades)+24]
+	cell.SetStyle(textCenterGreenStyle)
+	cell = row.Cells[len(allGrades)+25]
+	cell.Merge(2, 0)
+	cell.SetStyle(textCenterGreenStyle)
+	cell = row.Cells[len(allGrades)+28]
+	cell.Merge(2, 0)
+	cell.SetStyle(textCenterGreenStyle)
 	// 第二表头
 	row = sheet.AddRow()
 	cell = row.AddCell()
@@ -855,113 +958,254 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 	cell.SetStyle(bgGreenStyle)
 	cell.SetValue("合计（研究生）")
 	cell = row.AddCell()
+	cell.SetStyle(bgGreenStyle)
+	cell.SetValue("本科生")
+	cell = row.AddCell()
+	cell.SetStyle(bgGreenStyle)
+	cell.SetValue("研究生")
+	cell = row.AddCell()
+	cell.SetStyle(bgGreenStyle)
+	cell.SetValue("小计")
+	cell = row.AddCell()
 	cell.SetStyle(bgOrangeStyle)
 	cell.SetValue("会谈总计")
 	cell = row.AddCell()
 	cell.SetStyle(bgOrangeStyle)
 	cell.SetValue("百分比")
+	cell = row.AddCell()
+	cell.SetStyle(bgOrangeStyle)
+	cell.SetValue("大类总计")
+	cell = row.AddCell()
+	cell.SetStyle(bgOrangeStyle)
+	cell.SetValue("大类百分比")
+	cell = row.AddCell()
+	cell.SetStyle(bgGreenStyle)
+	cell.SetValue("本科生")
+	cell = row.AddCell()
+	cell.SetStyle(bgGreenStyle)
+	cell.SetValue("研究生")
+	cell = row.AddCell()
+	cell.SetStyle(bgGreenStyle)
+	cell.SetValue("小计")
+	cell = row.AddCell()
+	cell.SetStyle(bgGreenStyle)
+	cell.SetValue("频次/会谈")
+	cell = row.AddCell()
+	cell.SetStyle(bgGreenStyle)
+	cell.SetValue("本科生")
+	cell = row.AddCell()
+	cell.SetStyle(bgGreenStyle)
+	cell.SetValue("研究生")
+	cell = row.AddCell()
+	cell.SetStyle(bgGreenStyle)
+	cell.SetValue("小计")
+	cell = row.AddCell()
+	cell.SetStyle(bgGreenStyle)
+	cell.SetValue("本科生")
+	cell = row.AddCell()
+	cell.SetStyle(bgGreenStyle)
+	cell.SetValue("研究生")
+	cell = row.AddCell()
+	cell.SetStyle(bgGreenStyle)
+	cell.SetValue("小计")
 	// 咨询情况数据
-	firstRowOfFcReport := 2 // 标记当前fcReport的行号，以便最后合并单元格
-	for _, fcReport := range categoryFCReport {
-		for _, scReport := range fcReport.SecondClassReports {
+	firstRowOfFcGroup := 2 // 标记当前fcGroup的行号，以便最后合并单元格
+	for _, fcGroup := range categoryFCGroup {
+		for _, scGroup := range fcGroup.SecondaryGroups {
 			row = sheet.AddRow()
 			cell = row.AddCell()
 			cell.SetStyle(borderStyle)
-			cell.SetValue(strings.Split(fcReport.FirstClass, " ")[1])
+			cell.SetValue(strings.Split(fcGroup.GroupName, " ")[1])
 			cell = row.AddCell()
 			cell.SetStyle(borderStyle)
-			cell.SetValue(scReport.SecondClass)
+			cell.SetValue(scGroup.GroupName)
 			for _, g := range allGrades {
 				cell = row.AddCell()
 				cell.SetStyle(borderStyle)
-				if scReport.Grades[g] > 0 {
-					cell.SetValue(scReport.Grades[g])
+				if scGroup.Grades[g] > 0 {
+					cell.SetValue(scGroup.Grades[g])
 				}
 			}
 			cell = row.AddCell()
 			cell.SetStyle(borderStyle)
-			if scReport.Instructor > 0 {
-				cell.SetValue(scReport.Instructor)
+			if scGroup.Instructor > 0 {
+				cell.SetValue(scGroup.Instructor)
 			}
 			cell = row.AddCell()
 			cell.SetStyle(borderStyle)
-			if scReport.Teacher > 0 {
-				cell.SetValue(scReport.Teacher)
+			if scGroup.Teacher > 0 {
+				cell.SetValue(scGroup.Teacher)
 			}
 			cell = row.AddCell()
 			cell.SetStyle(borderStyle)
-			if scReport.Family > 0 {
-				cell.SetValue(scReport.Family)
+			if scGroup.Family > 0 {
+				cell.SetValue(scGroup.Family)
 			}
 			cell = row.AddCell()
 			cell.SetStyle(borderStyle)
-			if scReport.Others > 0 {
-				cell.SetValue(scReport.Others)
+			if scGroup.Others > 0 {
+				cell.SetValue(scGroup.Others)
 			}
 			cell = row.AddCell()
 			cell.SetStyle(bgGrayStyle)
-			if scReport.CountMale > 0 {
-				cell.SetValue(scReport.CountMale)
+			if scGroup.CountMale > 0 {
+				cell.SetValue(scGroup.CountMale)
 			}
 			cell = row.AddCell()
 			cell.SetStyle(bgGrayStyle)
-			if scReport.CountFemale > 0 {
-				cell.SetValue(scReport.CountFemale)
+			if scGroup.CountFemale > 0 {
+				cell.SetValue(scGroup.CountFemale)
 			}
 			cell = row.AddCell()
 			cell.SetStyle(bgGrayStyle)
-			if scReport.CountUnderGraduates > 0 {
-				cell.SetValue(scReport.CountUnderGraduates)
+			if scGroup.CountUnderGraduates > 0 {
+				cell.SetValue(scGroup.CountUnderGraduates)
 			}
 			cell = row.AddCell()
 			cell.SetStyle(bgGrayStyle)
-			if scReport.CountGraduates > 0 {
-				cell.SetValue(scReport.CountGraduates)
+			if scGroup.CountGraduates > 0 {
+				cell.SetValue(scGroup.CountGraduates)
 			}
 			cell = row.AddCell()
 			cell.SetStyle(bgGreenStyle)
-			if fcReport.CountMale > 0 {
-				cell.SetValue(fcReport.CountMale)
+			if fcGroup.CountMale > 0 {
+				cell.SetValue(fcGroup.CountMale)
 			}
 			cell = row.AddCell()
 			cell.SetStyle(bgGreenStyle)
-			if fcReport.CountFemale > 0 {
-				cell.SetValue(fcReport.CountFemale)
+			if fcGroup.CountFemale > 0 {
+				cell.SetValue(fcGroup.CountFemale)
 			}
 			cell = row.AddCell()
 			cell.SetStyle(bgGreenStyle)
-			if fcReport.CountUnderGraduates > 0 {
-				cell.SetValue(fcReport.CountUnderGraduates)
+			if fcGroup.CountUnderGraduates > 0 {
+				cell.SetValue(fcGroup.CountUnderGraduates)
 			}
 			cell = row.AddCell()
 			cell.SetStyle(bgGreenStyle)
-			if fcReport.CountGraduates > 0 {
-				cell.SetValue(fcReport.CountGraduates)
+			if fcGroup.CountGraduates > 0 {
+				cell.SetValue(fcGroup.CountGraduates)
+			}
+			cell = row.AddCell()
+			cell.SetStyle(bgGreenStyle)
+			if fcGroup.NumUnderGraduates > 0 {
+				cell.SetValue(fcGroup.NumUnderGraduates)
+			}
+			cell = row.AddCell()
+			cell.SetStyle(bgGreenStyle)
+			if fcGroup.NumGraduates > 0 {
+				cell.SetValue(fcGroup.NumGraduates)
+			}
+			cell = row.AddCell()
+			cell.SetStyle(bgGreenStyle)
+			if fcGroup.NumTotal > 0 {
+				cell.SetValue(fcGroup.NumTotal)
 			}
 			cell = row.AddCell()
 			cell.SetStyle(bgOrangeStyle)
-			cell.SetValue(scReport.CountTotal)
+			cell.SetValue(scGroup.CountTotal)
 			cell = row.AddCell()
 			cell.SetStyle(bgOrangeStyle)
-			cell.SetValue(fmt.Sprintf("%.2f%%", scReport.Ratio*100))
+			cell.SetValue(fmt.Sprintf("%.2f%%", scGroup.Ratio*100))
+			cell = row.AddCell()
+			cell.SetStyle(bgOrangeStyle)
+			cell.SetValue(fcGroup.CountTotal)
+			cell = row.AddCell()
+			cell.SetStyle(bgOrangeStyle)
+			cell.SetValue(fmt.Sprintf("%.2f%%", fcGroup.Ratio*100))
+			cell = row.AddCell()
+			cell.SetStyle(bgGreenStyle)
+			cell.SetValue(fcGroup.CountUnderGraduateEmphasisInCategory)
+			cell = row.AddCell()
+			cell.SetStyle(bgGreenStyle)
+			cell.SetValue(fcGroup.CountGraduateEmphasisInCategory)
+			cell = row.AddCell()
+			cell.SetStyle(bgGreenStyle)
+			cell.SetValue(fcGroup.CountEmphasisInCategory)
+			cell = row.AddCell()
+			cell.SetStyle(bgGreenStyle)
+			cell.SetValue(fmt.Sprintf("%.2f", float64(fcGroup.CountEmphasisInCategory)/float64(fcGroup.CountTotal)))
+			cell = row.AddCell()
+			cell.SetStyle(bgGreenStyle)
+			cell.SetValue(fcGroup.CountUnderGraduates)
+			cell = row.AddCell()
+			cell.SetStyle(bgGreenStyle)
+			cell.SetValue(fcGroup.CountGraduates)
+			cell = row.AddCell()
+			cell.SetStyle(bgGreenStyle)
+			cell.SetValue(fcGroup.CountTotal)
+			cell = row.AddCell()
+			cell.SetStyle(bgGreenStyle)
+			cell.SetValue(fcGroup.NumUnderGraduates)
+			cell = row.AddCell()
+			cell.SetStyle(bgGreenStyle)
+			cell.SetValue(fcGroup.NumGraduates)
+			cell = row.AddCell()
+			cell.SetStyle(bgGreenStyle)
+			cell.SetValue(fcGroup.NumTotal)
 		}
-		row = sheet.Rows[firstRowOfFcReport]
+		row = sheet.Rows[firstRowOfFcGroup]
 		cell = row.Cells[0]
-		cell.Merge(0, len(fcReport.SecondClassReports)-1)
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
 		cell.SetStyle(textCenterStyle)
 		cell = row.Cells[len(allGrades)+10]
-		cell.Merge(0, len(fcReport.SecondClassReports)-1)
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
 		cell.SetStyle(textRightGreenStyle)
 		cell = row.Cells[len(allGrades)+11]
-		cell.Merge(0, len(fcReport.SecondClassReports)-1)
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
 		cell.SetStyle(textRightGreenStyle)
 		cell = row.Cells[len(allGrades)+12]
-		cell.Merge(0, len(fcReport.SecondClassReports)-1)
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
 		cell.SetStyle(textRightGreenStyle)
 		cell = row.Cells[len(allGrades)+13]
-		cell.Merge(0, len(fcReport.SecondClassReports)-1)
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
 		cell.SetStyle(textRightGreenStyle)
-		firstRowOfFcReport += len(fcReport.SecondClassReports)
+		cell = row.Cells[len(allGrades)+14]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightGreenStyle)
+		cell = row.Cells[len(allGrades)+15]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightGreenStyle)
+		cell = row.Cells[len(allGrades)+16]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightGreenStyle)
+		cell = row.Cells[len(allGrades)+19]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightOrangeStyle)
+		cell = row.Cells[len(allGrades)+20]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightOrangeStyle)
+		cell = row.Cells[len(allGrades)+21]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightGreenStyle)
+		cell = row.Cells[len(allGrades)+22]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightGreenStyle)
+		cell = row.Cells[len(allGrades)+23]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightGreenStyle)
+		cell = row.Cells[len(allGrades)+24]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightGreenStyle)
+		cell = row.Cells[len(allGrades)+25]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightGreenStyle)
+		cell = row.Cells[len(allGrades)+26]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightGreenStyle)
+		cell = row.Cells[len(allGrades)+27]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightGreenStyle)
+		cell = row.Cells[len(allGrades)+28]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightGreenStyle)
+		cell = row.Cells[len(allGrades)+29]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightGreenStyle)
+		cell = row.Cells[len(allGrades)+30]
+		cell.Merge(0, len(fcGroup.SecondaryGroups)-1)
+		cell.SetStyle(textRightGreenStyle)
+		firstRowOfFcGroup += len(fcGroup.SecondaryGroups)
 	}
 	// 总计
 	row = sheet.AddRow()
@@ -969,51 +1213,60 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 	cell.SetStyle(bgYellowStyle)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(categoryTotalReport.SecondClass)
+	cell.SetValue(categoryTotalGroup.GroupName)
 	for _, g := range allGrades {
 		cell = row.AddCell()
 		cell.SetStyle(bgYellowStyle)
-		cell.SetValue(categoryTotalReport.Grades[g])
+		cell.SetValue(categoryTotalGroup.Grades[g])
 	}
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(categoryTotalReport.Instructor)
+	cell.SetValue(categoryTotalGroup.Instructor)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(categoryTotalReport.Teacher)
+	cell.SetValue(categoryTotalGroup.Teacher)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(categoryTotalReport.Family)
+	cell.SetValue(categoryTotalGroup.Family)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(categoryTotalReport.Others)
+	cell.SetValue(categoryTotalGroup.Others)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(categoryTotalReport.CountMale)
+	cell.SetValue(categoryTotalGroup.CountMale)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(categoryTotalReport.CountFemale)
+	cell.SetValue(categoryTotalGroup.CountFemale)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(categoryTotalReport.CountUnderGraduates)
+	cell.SetValue(categoryTotalGroup.CountUnderGraduates)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(categoryTotalReport.CountGraduates)
+	cell.SetValue(categoryTotalGroup.CountGraduates)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(categoryTotalReport.CountMale)
+	cell.SetValue(categoryTotalGroup.CountMale)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(categoryTotalReport.CountFemale)
+	cell.SetValue(categoryTotalGroup.CountFemale)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(categoryTotalReport.CountUnderGraduates)
+	cell.SetValue(categoryTotalGroup.CountUnderGraduates)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(categoryTotalReport.CountGraduates)
+	cell.SetValue(categoryTotalGroup.CountGraduates)
+	cell = row.AddCell()
+	cell.SetStyle(bgYellowStyle)
+	cell.SetValue(categoryTotalGroup.NumUnderGraduates)
+	cell = row.AddCell()
+	cell.SetStyle(bgYellowStyle)
+	cell.SetValue(categoryTotalGroup.NumGraduates)
+	cell = row.AddCell()
+	cell.SetStyle(bgYellowStyle)
+	cell.SetValue(categoryTotalGroup.NumTotal)
 	cell = row.AddCell()
 	cell.SetStyle(bgRedStyle)
-	cell.SetValue(categoryTotalReport.CountTotal)
+	cell.SetValue(categoryTotalGroup.CountTotal)
 	// 百分比
 	row = sheet.AddRow()
 	cell = row.AddCell()
@@ -1024,44 +1277,53 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 	for _, g := range allGrades {
 		cell = row.AddCell()
 		cell.SetStyle(bgYellowStyle)
-		cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalReport.Grades[g])/float64(categoryTotalReport.CountTotal)*100))
+		cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.Grades[g])/float64(categoryTotalGroup.CountTotal)*100))
 	}
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalReport.Instructor)/float64(categoryTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.Instructor)/float64(categoryTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalReport.Teacher)/float64(categoryTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.Teacher)/float64(categoryTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalReport.Family)/float64(categoryTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.Family)/float64(categoryTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalReport.Others)/float64(categoryTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.Others)/float64(categoryTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalReport.CountMale)/float64(categoryTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.CountMale)/float64(categoryTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalReport.CountFemale)/float64(categoryTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.CountFemale)/float64(categoryTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalReport.CountUnderGraduates)/float64(categoryTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.CountUnderGraduates)/float64(categoryTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalReport.CountGraduates)/float64(categoryTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.CountGraduates)/float64(categoryTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalReport.CountMale)/float64(categoryTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.CountMale)/float64(categoryTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalReport.CountFemale)/float64(categoryTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.CountFemale)/float64(categoryTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalReport.CountUnderGraduates)/float64(categoryTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.CountUnderGraduates)/float64(categoryTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalReport.CountGraduates)/float64(categoryTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.CountGraduates)/float64(categoryTotalGroup.CountTotal)*100))
+	cell = row.AddCell()
+	cell.SetStyle(bgYellowStyle)
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.NumUnderGraduates)/float64(categoryTotalGroup.NumTotal)*100))
+	cell = row.AddCell()
+	cell.SetStyle(bgYellowStyle)
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.NumGraduates)/float64(categoryTotalGroup.NumTotal)*100))
+	cell = row.AddCell()
+	cell.SetStyle(bgYellowStyle)
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(categoryTotalGroup.NumUnderGraduates+categoryTotalGroup.NumGraduates)/float64(categoryTotalGroup.NumTotal)*100))
 	// 调整列宽
 	sheet.SetColWidth(0, 0, 11)
 	sheet.SetColWidth(1, 1, 22)
@@ -1166,286 +1428,286 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 	cell.SetStyle(bgOrangeStyle)
 	cell.SetValue("百分比")
 	// 重点情况数据
-	firstRowOfFcReport = 2
+	firstRowOfFcGroup = 2
 	// 严重程度
-	for _, scReport := range severityFCReport.SecondClassReports {
+	for _, scGroup := range severityFCGroup.SecondaryGroups {
 		row = sheet.AddRow()
 		cell = row.AddCell()
 		cell.SetStyle(borderStyle)
-		cell.SetValue(severityFCReport.FirstClass)
+		cell.SetValue(severityFCGroup.GroupName)
 		cell = row.AddCell()
 		cell.SetStyle(borderStyle)
-		cell.SetValue(scReport.SecondClass)
+		cell.SetValue(scGroup.GroupName)
 		for _, g := range allGrades {
 			cell = row.AddCell()
 			cell.SetStyle(borderStyle)
-			if scReport.Grades[g] > 0 {
-				cell.SetValue(scReport.Grades[g])
+			if scGroup.Grades[g] > 0 {
+				cell.SetValue(scGroup.Grades[g])
 			}
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGrayStyle)
-		if scReport.CountMale > 0 {
-			cell.SetValue(scReport.CountMale)
+		if scGroup.CountMale > 0 {
+			cell.SetValue(scGroup.CountMale)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGrayStyle)
-		if scReport.CountFemale > 0 {
-			cell.SetValue(scReport.CountFemale)
+		if scGroup.CountFemale > 0 {
+			cell.SetValue(scGroup.CountFemale)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGrayStyle)
-		if scReport.CountUnderGraduates > 0 {
-			cell.SetValue(scReport.CountUnderGraduates)
+		if scGroup.CountUnderGraduates > 0 {
+			cell.SetValue(scGroup.CountUnderGraduates)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGrayStyle)
-		if scReport.CountGraduates > 0 {
-			cell.SetValue(scReport.CountGraduates)
+		if scGroup.CountGraduates > 0 {
+			cell.SetValue(scGroup.CountGraduates)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGreenStyle)
-		if severityFCReport.CountMale > 0 {
-			cell.SetValue(severityFCReport.CountMale)
+		if severityFCGroup.CountMale > 0 {
+			cell.SetValue(severityFCGroup.CountMale)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGreenStyle)
-		if severityFCReport.CountFemale > 0 {
-			cell.SetValue(severityFCReport.CountFemale)
+		if severityFCGroup.CountFemale > 0 {
+			cell.SetValue(severityFCGroup.CountFemale)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGreenStyle)
-		if severityFCReport.CountUnderGraduates > 0 {
-			cell.SetValue(severityFCReport.CountUnderGraduates)
+		if severityFCGroup.CountUnderGraduates > 0 {
+			cell.SetValue(severityFCGroup.CountUnderGraduates)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGreenStyle)
-		if severityFCReport.CountGraduates > 0 {
-			cell.SetValue(severityFCReport.CountGraduates)
+		if severityFCGroup.CountGraduates > 0 {
+			cell.SetValue(severityFCGroup.CountGraduates)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgOrangeStyle)
-		cell.SetValue(scReport.CountTotal)
+		cell.SetValue(scGroup.CountTotal)
 		cell = row.AddCell()
 		cell.SetStyle(bgOrangeStyle)
-		cell.SetValue(fmt.Sprintf("%.2f%%", scReport.Ratio*100))
+		cell.SetValue(fmt.Sprintf("%.2f%%", scGroup.Ratio*100))
 	}
-	row = sheet.Rows[firstRowOfFcReport]
+	row = sheet.Rows[firstRowOfFcGroup]
 	cell = row.Cells[0]
-	cell.Merge(0, len(severityFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(severityFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textCenterStyle)
 	cell = row.Cells[len(allGrades)+6]
-	cell.Merge(0, len(severityFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(severityFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textRightGreenStyle)
 	cell = row.Cells[len(allGrades)+7]
-	cell.Merge(0, len(severityFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(severityFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textRightGreenStyle)
 	cell = row.Cells[len(allGrades)+8]
-	cell.Merge(0, len(severityFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(severityFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textRightGreenStyle)
 	cell = row.Cells[len(allGrades)+9]
-	cell.Merge(0, len(severityFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(severityFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textRightGreenStyle)
-	firstRowOfFcReport += len(severityFCReport.SecondClassReports)
+	firstRowOfFcGroup += len(severityFCGroup.SecondaryGroups)
 	// 疑似或明确的医疗诊断
-	for _, scReport := range medicalDiagnosisFCReport.SecondClassReports {
+	for _, scGroup := range medicalDiagnosisFCGroup.SecondaryGroups {
 		row = sheet.AddRow()
 		cell = row.AddCell()
 		cell.SetStyle(borderStyle)
-		cell.SetValue(medicalDiagnosisFCReport.FirstClass)
+		cell.SetValue(medicalDiagnosisFCGroup.GroupName)
 		cell = row.AddCell()
 		cell.SetStyle(borderStyle)
-		cell.SetValue(scReport.SecondClass)
+		cell.SetValue(scGroup.GroupName)
 		for _, g := range allGrades {
 			cell = row.AddCell()
 			cell.SetStyle(borderStyle)
-			if scReport.Grades[g] > 0 {
-				cell.SetValue(scReport.Grades[g])
+			if scGroup.Grades[g] > 0 {
+				cell.SetValue(scGroup.Grades[g])
 			}
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGrayStyle)
-		if scReport.CountMale > 0 {
-			cell.SetValue(scReport.CountMale)
+		if scGroup.CountMale > 0 {
+			cell.SetValue(scGroup.CountMale)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGrayStyle)
-		if scReport.CountFemale > 0 {
-			cell.SetValue(scReport.CountFemale)
+		if scGroup.CountFemale > 0 {
+			cell.SetValue(scGroup.CountFemale)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGrayStyle)
-		if scReport.CountUnderGraduates > 0 {
-			cell.SetValue(scReport.CountUnderGraduates)
+		if scGroup.CountUnderGraduates > 0 {
+			cell.SetValue(scGroup.CountUnderGraduates)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGrayStyle)
-		if scReport.CountGraduates > 0 {
-			cell.SetValue(scReport.CountGraduates)
+		if scGroup.CountGraduates > 0 {
+			cell.SetValue(scGroup.CountGraduates)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGreenStyle)
-		if medicalDiagnosisFCReport.CountMale > 0 {
-			cell.SetValue(medicalDiagnosisFCReport.CountMale)
+		if medicalDiagnosisFCGroup.CountMale > 0 {
+			cell.SetValue(medicalDiagnosisFCGroup.CountMale)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGreenStyle)
-		if medicalDiagnosisFCReport.CountFemale > 0 {
-			cell.SetValue(medicalDiagnosisFCReport.CountFemale)
+		if medicalDiagnosisFCGroup.CountFemale > 0 {
+			cell.SetValue(medicalDiagnosisFCGroup.CountFemale)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGreenStyle)
-		if medicalDiagnosisFCReport.CountUnderGraduates > 0 {
-			cell.SetValue(medicalDiagnosisFCReport.CountUnderGraduates)
+		if medicalDiagnosisFCGroup.CountUnderGraduates > 0 {
+			cell.SetValue(medicalDiagnosisFCGroup.CountUnderGraduates)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGreenStyle)
-		if medicalDiagnosisFCReport.CountGraduates > 0 {
-			cell.SetValue(medicalDiagnosisFCReport.CountGraduates)
+		if medicalDiagnosisFCGroup.CountGraduates > 0 {
+			cell.SetValue(medicalDiagnosisFCGroup.CountGraduates)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgOrangeStyle)
-		cell.SetValue(scReport.CountTotal)
+		cell.SetValue(scGroup.CountTotal)
 		cell = row.AddCell()
 		cell.SetStyle(bgOrangeStyle)
-		cell.SetValue(fmt.Sprintf("%.2f%%", scReport.Ratio*100))
+		cell.SetValue(fmt.Sprintf("%.2f%%", scGroup.Ratio*100))
 	}
-	row = sheet.Rows[firstRowOfFcReport]
+	row = sheet.Rows[firstRowOfFcGroup]
 	cell = row.Cells[0]
-	cell.Merge(0, len(medicalDiagnosisFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(medicalDiagnosisFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textCenterStyle)
 	cell = row.Cells[len(allGrades)+6]
-	cell.Merge(0, len(medicalDiagnosisFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(medicalDiagnosisFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textRightGreenStyle)
 	cell = row.Cells[len(allGrades)+7]
-	cell.Merge(0, len(medicalDiagnosisFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(medicalDiagnosisFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textRightGreenStyle)
 	cell = row.Cells[len(allGrades)+8]
-	cell.Merge(0, len(medicalDiagnosisFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(medicalDiagnosisFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textRightGreenStyle)
 	cell = row.Cells[len(allGrades)+9]
-	cell.Merge(0, len(medicalDiagnosisFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(medicalDiagnosisFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textRightGreenStyle)
-	firstRowOfFcReport += len(medicalDiagnosisFCReport.SecondClassReports)
+	firstRowOfFcGroup += len(medicalDiagnosisFCGroup.SecondaryGroups)
 	// 危急情况
-	for _, scReport := range crisisFCReport.SecondClassReports {
+	for _, scGroup := range crisisFCGroup.SecondaryGroups {
 		row = sheet.AddRow()
 		cell = row.AddCell()
 		cell.SetStyle(borderStyle)
-		cell.SetValue(crisisFCReport.FirstClass)
+		cell.SetValue(crisisFCGroup.GroupName)
 		cell = row.AddCell()
 		cell.SetStyle(borderStyle)
-		cell.SetValue(scReport.SecondClass)
+		cell.SetValue(scGroup.GroupName)
 		for _, g := range allGrades {
 			cell = row.AddCell()
 			cell.SetStyle(borderStyle)
-			if scReport.Grades[g] > 0 {
-				cell.SetValue(scReport.Grades[g])
+			if scGroup.Grades[g] > 0 {
+				cell.SetValue(scGroup.Grades[g])
 			}
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGrayStyle)
-		if scReport.CountMale > 0 {
-			cell.SetValue(scReport.CountMale)
+		if scGroup.CountMale > 0 {
+			cell.SetValue(scGroup.CountMale)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGrayStyle)
-		if scReport.CountFemale > 0 {
-			cell.SetValue(scReport.CountFemale)
+		if scGroup.CountFemale > 0 {
+			cell.SetValue(scGroup.CountFemale)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGrayStyle)
-		if scReport.CountUnderGraduates > 0 {
-			cell.SetValue(scReport.CountUnderGraduates)
+		if scGroup.CountUnderGraduates > 0 {
+			cell.SetValue(scGroup.CountUnderGraduates)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGrayStyle)
-		if scReport.CountGraduates > 0 {
-			cell.SetValue(scReport.CountGraduates)
+		if scGroup.CountGraduates > 0 {
+			cell.SetValue(scGroup.CountGraduates)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGreenStyle)
-		if crisisFCReport.CountMale > 0 {
-			cell.SetValue(crisisFCReport.CountMale)
+		if crisisFCGroup.CountMale > 0 {
+			cell.SetValue(crisisFCGroup.CountMale)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGreenStyle)
-		if crisisFCReport.CountFemale > 0 {
-			cell.SetValue(crisisFCReport.CountFemale)
+		if crisisFCGroup.CountFemale > 0 {
+			cell.SetValue(crisisFCGroup.CountFemale)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGreenStyle)
-		if crisisFCReport.CountUnderGraduates > 0 {
-			cell.SetValue(crisisFCReport.CountUnderGraduates)
+		if crisisFCGroup.CountUnderGraduates > 0 {
+			cell.SetValue(crisisFCGroup.CountUnderGraduates)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgGreenStyle)
-		if crisisFCReport.CountGraduates > 0 {
-			cell.SetValue(crisisFCReport.CountGraduates)
+		if crisisFCGroup.CountGraduates > 0 {
+			cell.SetValue(crisisFCGroup.CountGraduates)
 		}
 		cell = row.AddCell()
 		cell.SetStyle(bgOrangeStyle)
-		cell.SetValue(scReport.CountTotal)
+		cell.SetValue(scGroup.CountTotal)
 		cell = row.AddCell()
 		cell.SetStyle(bgOrangeStyle)
-		cell.SetValue(fmt.Sprintf("%.2f%%", scReport.Ratio*100))
+		cell.SetValue(fmt.Sprintf("%.2f%%", scGroup.Ratio*100))
 	}
-	row = sheet.Rows[firstRowOfFcReport]
+	row = sheet.Rows[firstRowOfFcGroup]
 	cell = row.Cells[0]
-	cell.Merge(0, len(crisisFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(crisisFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textCenterStyle)
 	cell = row.Cells[len(allGrades)+6]
-	cell.Merge(0, len(crisisFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(crisisFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textRightGreenStyle)
 	cell = row.Cells[len(allGrades)+7]
-	cell.Merge(0, len(crisisFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(crisisFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textRightGreenStyle)
 	cell = row.Cells[len(allGrades)+8]
-	cell.Merge(0, len(crisisFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(crisisFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textRightGreenStyle)
 	cell = row.Cells[len(allGrades)+9]
-	cell.Merge(0, len(crisisFCReport.SecondClassReports)-1)
+	cell.Merge(0, len(crisisFCGroup.SecondaryGroups)-1)
 	cell.SetStyle(textRightGreenStyle)
-	firstRowOfFcReport += len(crisisFCReport.SecondClassReports)
+	firstRowOfFcGroup += len(crisisFCGroup.SecondaryGroups)
 	// 总计
 	row = sheet.AddRow()
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(emphasisTotalReport.SecondClass)
+	cell.SetValue(emphasisTotalGroup.GroupName)
 	for _, g := range allGrades {
 		cell = row.AddCell()
 		cell.SetStyle(bgYellowStyle)
-		cell.SetValue(emphasisTotalReport.Grades[g])
+		cell.SetValue(emphasisTotalGroup.Grades[g])
 	}
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(emphasisTotalReport.CountMale)
+	cell.SetValue(emphasisTotalGroup.CountMale)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(emphasisTotalReport.CountFemale)
+	cell.SetValue(emphasisTotalGroup.CountFemale)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(emphasisTotalReport.CountUnderGraduates)
+	cell.SetValue(emphasisTotalGroup.CountUnderGraduates)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(emphasisTotalReport.CountGraduates)
+	cell.SetValue(emphasisTotalGroup.CountGraduates)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(emphasisTotalReport.CountMale)
+	cell.SetValue(emphasisTotalGroup.CountMale)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(emphasisTotalReport.CountFemale)
+	cell.SetValue(emphasisTotalGroup.CountFemale)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(emphasisTotalReport.CountUnderGraduates)
+	cell.SetValue(emphasisTotalGroup.CountUnderGraduates)
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(emphasisTotalReport.CountGraduates)
+	cell.SetValue(emphasisTotalGroup.CountGraduates)
 	cell = row.AddCell()
 	cell.SetStyle(bgRedStyle)
-	cell.SetValue(emphasisTotalReport.CountTotal)
+	cell.SetValue(emphasisTotalGroup.CountTotal)
 	// 百分比
 	row = sheet.AddRow()
 	cell = row.AddCell()
@@ -1456,32 +1718,32 @@ func (w *Workflow) ExportReportToFile(reservations []*model.Reservation, path st
 	for _, g := range allGrades {
 		cell = row.AddCell()
 		cell.SetStyle(bgYellowStyle)
-		cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalReport.Grades[g])/float64(emphasisTotalReport.CountTotal)*100))
+		cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalGroup.Grades[g])/float64(emphasisTotalGroup.CountTotal)*100))
 	}
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalReport.CountMale)/float64(emphasisTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalGroup.CountMale)/float64(emphasisTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalReport.CountFemale)/float64(emphasisTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalGroup.CountFemale)/float64(emphasisTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalReport.CountUnderGraduates)/float64(emphasisTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalGroup.CountUnderGraduates)/float64(emphasisTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalReport.CountGraduates)/float64(emphasisTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalGroup.CountGraduates)/float64(emphasisTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalReport.CountMale)/float64(emphasisTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalGroup.CountMale)/float64(emphasisTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalReport.CountFemale)/float64(emphasisTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalGroup.CountFemale)/float64(emphasisTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalReport.CountUnderGraduates)/float64(emphasisTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalGroup.CountUnderGraduates)/float64(emphasisTotalGroup.CountTotal)*100))
 	cell = row.AddCell()
 	cell.SetStyle(bgYellowStyle)
-	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalReport.CountGraduates)/float64(emphasisTotalReport.CountTotal)*100))
+	cell.SetValue(fmt.Sprintf("%.2f%%", float64(emphasisTotalGroup.CountGraduates)/float64(emphasisTotalGroup.CountTotal)*100))
 	// 调整列宽
 	sheet.SetColWidth(0, 0, 15.5)
 	sheet.SetColWidth(1, 1, 24)

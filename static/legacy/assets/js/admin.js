@@ -1182,13 +1182,12 @@ function exportWorkload() {
 }
 
 function exportReport() {
-  $.post('/api/admin/reservation/export/report', {
+  $.post('/api/admin/reservation/export/feedback/report', {
     from_date: $('#report_from').val(),
     to_date: $('#report_to').val(),
   }, function(data, textStatus, xhr) {
     if (data.status === 'OK') {
       window.open(data.payload.report_url);
-      // window.open(data.payload.key_case_url);
     } else {
       alert(data.err_msg);
     }

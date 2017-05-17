@@ -161,6 +161,21 @@ type FeedbackGroup struct {
 	CountEmphasisInCategory              int
 }
 
+// 来访&危机情况
+type ReservationCrisis struct {
+	CountOnlyReservated int // 有预约，无危机
+	CountOnlyCrisis     int // 无预约，有危机
+	CountNeither        int // 无预约，无危机
+	CountBoth           int // 有预约，有危机
+	CountSendNotify     int // 发危机通报人次
+}
+
+type AdvisoryConsultation struct {
+	Advisory     ReservationCrisis // 咨询
+	Consultation ReservationCrisis // 会商
+	Total        ReservationCrisis // 总数
+}
+
 func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.Reservation, path string) error {
 	// 建立存储结构
 	// 咨询情况汇总
@@ -345,6 +360,8 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 		HasEmphasisGraduateIdMap:      make(map[string]int),
 		HasEmphasisIdMap:              make(map[string]int),
 	}
+	// 来访&危机
+	var advisoryConsulation AdvisoryConsultation
 
 	// 分析咨询数据
 	for _, r := range reservations {
@@ -842,6 +859,45 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 			}
 			categoryFCGroupMap[category[0:1]].CountHasEmphasis++
 			categoryFCGroupMap[category[0:1]].HasEmphasisIdMap[studentId]++
+		}
+
+		// 来访&危机
+		if r.TeacherFeedback.HasReservated && r.TeacherFeedback.HasCrisis {
+			if strings.HasPrefix(r.TeacherFeedback.Category, "H") {
+				advisoryConsulation.Consultation.CountBoth++
+			} else {
+				advisoryConsulation.Advisory.CountBoth++
+			}
+			advisoryConsulation.Total.CountBoth++
+		} else if r.TeacherFeedback.HasReservated && !r.TeacherFeedback.HasCrisis {
+			if strings.HasPrefix(r.TeacherFeedback.Category, "H") {
+				advisoryConsulation.Consultation.CountOnlyReservated++
+			} else {
+				advisoryConsulation.Advisory.CountOnlyReservated++
+			}
+			advisoryConsulation.Total.CountOnlyReservated++
+		} else if !r.TeacherFeedback.HasReservated && r.TeacherFeedback.HasCrisis {
+			if strings.HasPrefix(r.TeacherFeedback.Category, "H") {
+				advisoryConsulation.Consultation.CountOnlyCrisis++
+			} else {
+				advisoryConsulation.Advisory.CountOnlyCrisis++
+			}
+			advisoryConsulation.Total.CountOnlyCrisis++
+		} else if !r.TeacherFeedback.HasReservated && !r.TeacherFeedback.HasCrisis {
+			if strings.HasPrefix(r.TeacherFeedback.Category, "H") {
+				advisoryConsulation.Consultation.CountNeither++
+			} else {
+				advisoryConsulation.Advisory.CountNeither++
+			}
+			advisoryConsulation.Total.CountNeither++
+		}
+		if r.TeacherFeedback.IsSendNotify {
+			if strings.HasPrefix(r.TeacherFeedback.Category, "H") {
+				advisoryConsulation.Consultation.CountSendNotify++
+			} else {
+				advisoryConsulation.Advisory.CountSendNotify++
+			}
+			advisoryConsulation.Total.CountSendNotify++
 		}
 	}
 	for _, scGroup := range categorySCGroupMap {
@@ -1832,6 +1888,107 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 	sheet.SetColWidth(1, 1, 24)
 	sheet.SetColWidth(len(allGrades)+4, len(allGrades)+5, 11)
 	sheet.SetColWidth(len(allGrades)+8, len(allGrades)+9, 11)
+
+	//==========来访&危机情况表==========
+	sheet, err = file.AddSheet("来访&危机情况表")
+	if err != nil {
+		return re.NewRError("fail to create reservation crisis sheet", err)
+	}
+
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("咨询")
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell = row.AddCell()
+	cell.SetValue("无危机")
+	cell = row.AddCell()
+	cell.SetValue("有危机")
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("有预约")
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Advisory.CountOnlyReservated)
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Advisory.CountBoth)
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("无预约")
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Advisory.CountNeither)
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Advisory.CountOnlyCrisis)
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("发危机通报人次")
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Advisory.CountSendNotify)
+
+	row = sheet.AddRow()
+	row = sheet.AddRow()
+
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("会商")
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell = row.AddCell()
+	cell.SetValue("无危机")
+	cell = row.AddCell()
+	cell.SetValue("有危机")
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("有预约")
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Consultation.CountOnlyReservated)
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Consultation.CountBoth)
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("无预约")
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Consultation.CountNeither)
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Consultation.CountOnlyCrisis)
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("发危机通报人次")
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Consultation.CountSendNotify)
+
+	row = sheet.AddRow()
+	row = sheet.AddRow()
+
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("总数")
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell = row.AddCell()
+	cell.SetValue("无危机")
+	cell = row.AddCell()
+	cell.SetValue("有危机")
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("有预约")
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Total.CountOnlyReservated)
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Total.CountBoth)
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("无预约")
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Total.CountNeither)
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Total.CountOnlyCrisis)
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("发危机通报人次")
+	cell = row.AddCell()
+	cell.SetValue(advisoryConsulation.Total.CountSendNotify)
+	// 调整列宽
+	sheet.SetColWidth(0, 0, 15)
 
 	err = file.Save(path)
 	if err != nil {

@@ -123,32 +123,41 @@ var (
 //===========================咨询月报==============================
 //================================================================
 type FeedbackGroup struct {
-	GroupName                            string
-	SecondaryGroups                      []*FeedbackGroup
-	Grades                               map[string]int // 本科生、硕士生、博士生
-	Instructor                           int            // 辅导员
-	Teacher                              int            // 教师
-	Family                               int            // 家属
-	Others                               int            // 其他
-	MaleIdMap                            map[string]int
-	NumMale                              int // 合计人数（男）
-	CountMale                            int // 合计人次（男）
-	FemaleIdMap                          map[string]int
-	NumFemale                            int
-	CountFemale                          int // 合计（女）
-	UnderGraduateIdMap                   map[string]int
-	NumUnderGraduates                    int
-	CountUnderGraduates                  int // 合计（本科生）
-	GraduateIdMap                        map[string]int
-	NumGraduates                         int
-	CountGraduates                       int // 合计（研究生）
-	TotalIdMap                           map[string]int
-	NumTotal                             int
-	CountTotal                           int     // 会谈总计
-	Ratio                                float64 // 比例（需转成百分比）
-	CountHasEmphasis                     int     // 含有重点标记的咨询数量
-	CountUnderGraduateEmphasisInCategory int     // 脏代码：交叉统计评估分类中重点情况的频次
-	CountGraduateEmphasisInCategory      int
+	GroupName           string
+	SecondaryGroups     []*FeedbackGroup
+	Grades              map[string]int // 本科生、硕士生、博士生
+	Instructor          int            // 辅导员
+	Teacher             int            // 教师
+	Family              int            // 家属
+	Others              int            // 其他
+	MaleIdMap           map[string]int // 学生（男）咨询次数表
+	NumMale             int            // 合计人数（男）
+	CountMale           int            // 合计人次（男）
+	FemaleIdMap         map[string]int
+	NumFemale           int
+	CountFemale         int
+	UnderGraduateIdMap  map[string]int
+	NumUnderGraduates   int
+	CountUnderGraduates int
+	GraduateIdMap       map[string]int
+	NumGraduates        int
+	CountGraduates      int
+	TotalIdMap          map[string]int // 学生咨询次数表
+	NumTotal            int            // 会谈总人数
+	CountTotal          int            // 会谈总人次
+	Ratio               float64        // 比例（需转成百分比）
+	// 交叉统计
+	HasEmphasisUnderGraduateIdMap        map[string]int // 含有重点标记的本科生次数表
+	NumHasEmphasisUnderGraduate          int            // 含有重点标记的本科生人数
+	CountHasEmphasisUnderGraduate        int            // 含有重点标记的本科生人次
+	HasEmphasisGraduateIdMap             map[string]int
+	NumHasEmphasisGraduate               int
+	CountHasEmphasisGraduate             int
+	HasEmphasisIdMap                     map[string]int // 含有重点标记的学生次数表
+	NumHasEmphasis                       int            // 含有重点标记的咨询人数
+	CountHasEmphasis                     int            // 含有重点标记的咨询人次
+	CountUnderGraduateEmphasisInCategory int            // 评估分类中本科生重点情况的频次
+	CountGraduateEmphasisInCategory      int            // 评估分类中研究生重点情况的频次
 	CountEmphasisInCategory              int
 }
 
@@ -163,26 +172,32 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 			continue
 		}
 		fcGroup := &FeedbackGroup{
-			GroupName:          firstCategory,
-			SecondaryGroups:    make([]*FeedbackGroup, 0),
-			MaleIdMap:          make(map[string]int),
-			FemaleIdMap:        make(map[string]int),
-			UnderGraduateIdMap: make(map[string]int),
-			GraduateIdMap:      make(map[string]int),
-			TotalIdMap:         make(map[string]int),
+			GroupName:                     firstCategory,
+			SecondaryGroups:               make([]*FeedbackGroup, 0),
+			MaleIdMap:                     make(map[string]int),
+			FemaleIdMap:                   make(map[string]int),
+			UnderGraduateIdMap:            make(map[string]int),
+			GraduateIdMap:                 make(map[string]int),
+			TotalIdMap:                    make(map[string]int),
+			HasEmphasisUnderGraduateIdMap: make(map[string]int),
+			HasEmphasisGraduateIdMap:      make(map[string]int),
+			HasEmphasisIdMap:              make(map[string]int),
 		}
 		for si, secondCategory := range model.FeedbackSecondCategoryMap[fi] {
 			if si == "" {
 				continue
 			}
 			scGroup := &FeedbackGroup{
-				GroupName:          secondCategory,
-				Grades:             make(map[string]int),
-				MaleIdMap:          make(map[string]int),
-				FemaleIdMap:        make(map[string]int),
-				UnderGraduateIdMap: make(map[string]int),
-				GraduateIdMap:      make(map[string]int),
-				TotalIdMap:         make(map[string]int),
+				GroupName:                     secondCategory,
+				Grades:                        make(map[string]int),
+				MaleIdMap:                     make(map[string]int),
+				FemaleIdMap:                   make(map[string]int),
+				UnderGraduateIdMap:            make(map[string]int),
+				GraduateIdMap:                 make(map[string]int),
+				TotalIdMap:                    make(map[string]int),
+				HasEmphasisUnderGraduateIdMap: make(map[string]int),
+				HasEmphasisGraduateIdMap:      make(map[string]int),
+				HasEmphasisIdMap:              make(map[string]int),
 			}
 			fcGroup.SecondaryGroups = append(fcGroup.SecondaryGroups, scGroup)
 			categorySCGroupMap[si] = scGroup
@@ -211,76 +226,97 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 			"15博": 0,
 			"14博": 0,
 		},
-		MaleIdMap:          make(map[string]int),
-		FemaleIdMap:        make(map[string]int),
-		UnderGraduateIdMap: make(map[string]int),
-		GraduateIdMap:      make(map[string]int),
-		TotalIdMap:         make(map[string]int),
+		MaleIdMap:                     make(map[string]int),
+		FemaleIdMap:                   make(map[string]int),
+		UnderGraduateIdMap:            make(map[string]int),
+		GraduateIdMap:                 make(map[string]int),
+		TotalIdMap:                    make(map[string]int),
+		HasEmphasisUnderGraduateIdMap: make(map[string]int),
+		HasEmphasisGraduateIdMap:      make(map[string]int),
+		HasEmphasisIdMap:              make(map[string]int),
 	}
 	// 重点情况汇总
 	emphasisSCGroupMap := make(map[string]*FeedbackGroup)
 	severityFCGroup := &FeedbackGroup{
-		GroupName:          "严重程度",
-		SecondaryGroups:    make([]*FeedbackGroup, 0),
-		MaleIdMap:          make(map[string]int),
-		FemaleIdMap:        make(map[string]int),
-		UnderGraduateIdMap: make(map[string]int),
-		GraduateIdMap:      make(map[string]int),
-		TotalIdMap:         make(map[string]int),
+		GroupName:                     "严重程度",
+		SecondaryGroups:               make([]*FeedbackGroup, 0),
+		MaleIdMap:                     make(map[string]int),
+		FemaleIdMap:                   make(map[string]int),
+		UnderGraduateIdMap:            make(map[string]int),
+		GraduateIdMap:                 make(map[string]int),
+		TotalIdMap:                    make(map[string]int),
+		HasEmphasisUnderGraduateIdMap: make(map[string]int),
+		HasEmphasisGraduateIdMap:      make(map[string]int),
+		HasEmphasisIdMap:              make(map[string]int),
 	}
 	for _, sc := range model.FeedbackSeverity {
 		scGroup := &FeedbackGroup{
-			GroupName:          sc,
-			Grades:             make(map[string]int),
-			MaleIdMap:          make(map[string]int),
-			FemaleIdMap:        make(map[string]int),
-			UnderGraduateIdMap: make(map[string]int),
-			GraduateIdMap:      make(map[string]int),
-			TotalIdMap:         make(map[string]int),
+			GroupName:                     sc,
+			Grades:                        make(map[string]int),
+			MaleIdMap:                     make(map[string]int),
+			FemaleIdMap:                   make(map[string]int),
+			UnderGraduateIdMap:            make(map[string]int),
+			GraduateIdMap:                 make(map[string]int),
+			TotalIdMap:                    make(map[string]int),
+			HasEmphasisUnderGraduateIdMap: make(map[string]int),
+			HasEmphasisGraduateIdMap:      make(map[string]int),
+			HasEmphasisIdMap:              make(map[string]int),
 		}
 		severityFCGroup.SecondaryGroups = append(severityFCGroup.SecondaryGroups, scGroup)
 		emphasisSCGroupMap[sc] = scGroup
 	}
 	medicalDiagnosisFCGroup := &FeedbackGroup{
-		GroupName:          "疑似或明确的医疗诊断",
-		SecondaryGroups:    make([]*FeedbackGroup, 0),
-		MaleIdMap:          make(map[string]int),
-		FemaleIdMap:        make(map[string]int),
-		UnderGraduateIdMap: make(map[string]int),
-		GraduateIdMap:      make(map[string]int),
-		TotalIdMap:         make(map[string]int),
+		GroupName:                     "疑似或明确的医疗诊断",
+		SecondaryGroups:               make([]*FeedbackGroup, 0),
+		MaleIdMap:                     make(map[string]int),
+		FemaleIdMap:                   make(map[string]int),
+		UnderGraduateIdMap:            make(map[string]int),
+		GraduateIdMap:                 make(map[string]int),
+		TotalIdMap:                    make(map[string]int),
+		HasEmphasisUnderGraduateIdMap: make(map[string]int),
+		HasEmphasisGraduateIdMap:      make(map[string]int),
+		HasEmphasisIdMap:              make(map[string]int),
 	}
 	for _, sc := range model.FeedbackMedicalDiagnosis {
 		scGroup := &FeedbackGroup{
-			GroupName:          sc,
-			Grades:             make(map[string]int),
-			MaleIdMap:          make(map[string]int),
-			FemaleIdMap:        make(map[string]int),
-			UnderGraduateIdMap: make(map[string]int),
-			GraduateIdMap:      make(map[string]int),
-			TotalIdMap:         make(map[string]int),
+			GroupName:                     sc,
+			Grades:                        make(map[string]int),
+			MaleIdMap:                     make(map[string]int),
+			FemaleIdMap:                   make(map[string]int),
+			UnderGraduateIdMap:            make(map[string]int),
+			GraduateIdMap:                 make(map[string]int),
+			TotalIdMap:                    make(map[string]int),
+			HasEmphasisUnderGraduateIdMap: make(map[string]int),
+			HasEmphasisGraduateIdMap:      make(map[string]int),
+			HasEmphasisIdMap:              make(map[string]int),
 		}
 		medicalDiagnosisFCGroup.SecondaryGroups = append(medicalDiagnosisFCGroup.SecondaryGroups, scGroup)
 		emphasisSCGroupMap[sc] = scGroup
 	}
 	crisisFCGroup := &FeedbackGroup{
-		GroupName:          "危急情况",
-		SecondaryGroups:    make([]*FeedbackGroup, 0),
-		MaleIdMap:          make(map[string]int),
-		FemaleIdMap:        make(map[string]int),
-		UnderGraduateIdMap: make(map[string]int),
-		GraduateIdMap:      make(map[string]int),
-		TotalIdMap:         make(map[string]int),
+		GroupName:                     "危急情况",
+		SecondaryGroups:               make([]*FeedbackGroup, 0),
+		MaleIdMap:                     make(map[string]int),
+		FemaleIdMap:                   make(map[string]int),
+		UnderGraduateIdMap:            make(map[string]int),
+		GraduateIdMap:                 make(map[string]int),
+		TotalIdMap:                    make(map[string]int),
+		HasEmphasisUnderGraduateIdMap: make(map[string]int),
+		HasEmphasisGraduateIdMap:      make(map[string]int),
+		HasEmphasisIdMap:              make(map[string]int),
 	}
 	for _, sc := range model.FeedbackCrisis {
 		scGroup := &FeedbackGroup{
-			GroupName:          sc,
-			Grades:             make(map[string]int),
-			MaleIdMap:          make(map[string]int),
-			FemaleIdMap:        make(map[string]int),
-			UnderGraduateIdMap: make(map[string]int),
-			GraduateIdMap:      make(map[string]int),
-			TotalIdMap:         make(map[string]int),
+			GroupName:                     sc,
+			Grades:                        make(map[string]int),
+			MaleIdMap:                     make(map[string]int),
+			FemaleIdMap:                   make(map[string]int),
+			UnderGraduateIdMap:            make(map[string]int),
+			GraduateIdMap:                 make(map[string]int),
+			TotalIdMap:                    make(map[string]int),
+			HasEmphasisUnderGraduateIdMap: make(map[string]int),
+			HasEmphasisGraduateIdMap:      make(map[string]int),
+			HasEmphasisIdMap:              make(map[string]int),
 		}
 		crisisFCGroup.SecondaryGroups = append(crisisFCGroup.SecondaryGroups, scGroup)
 		emphasisSCGroupMap[sc] = scGroup
@@ -300,11 +336,14 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 			"15博": 0,
 			"14博": 0,
 		},
-		MaleIdMap:          make(map[string]int),
-		FemaleIdMap:        make(map[string]int),
-		UnderGraduateIdMap: make(map[string]int),
-		GraduateIdMap:      make(map[string]int),
-		TotalIdMap:         make(map[string]int),
+		MaleIdMap:                     make(map[string]int),
+		FemaleIdMap:                   make(map[string]int),
+		UnderGraduateIdMap:            make(map[string]int),
+		GraduateIdMap:                 make(map[string]int),
+		TotalIdMap:                    make(map[string]int),
+		HasEmphasisUnderGraduateIdMap: make(map[string]int),
+		HasEmphasisGraduateIdMap:      make(map[string]int),
+		HasEmphasisIdMap:              make(map[string]int),
 	}
 
 	// 分析咨询数据
@@ -766,8 +805,43 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 			}
 		}
 		if hasEmphasis {
+			if strings.HasSuffix(grade, "级") {
+				if _, ok := categorySCGroupMap[category].HasEmphasisUnderGraduateIdMap[studentId]; !ok {
+					categorySCGroupMap[category].NumHasEmphasisUnderGraduate++
+				}
+				categorySCGroupMap[category].CountHasEmphasisUnderGraduate++
+				categorySCGroupMap[category].HasEmphasisUnderGraduateIdMap[studentId]++
+
+				if _, ok := categoryFCGroupMap[category[0:1]].HasEmphasisUnderGraduateIdMap[studentId]; !ok {
+					categoryFCGroupMap[category[0:1]].NumHasEmphasisUnderGraduate++
+				}
+				categoryFCGroupMap[category[0:1]].CountHasEmphasisUnderGraduate++
+				categoryFCGroupMap[category[0:1]].HasEmphasisUnderGraduateIdMap[studentId]++
+			} else if strings.HasSuffix(grade, "硕") || strings.HasSuffix(grade, "博") {
+				if _, ok := categorySCGroupMap[category].HasEmphasisGraduateIdMap[studentId]; !ok {
+					categorySCGroupMap[category].NumHasEmphasisGraduate++
+				}
+				categorySCGroupMap[category].CountHasEmphasisGraduate++
+				categorySCGroupMap[category].HasEmphasisGraduateIdMap[studentId]++
+
+				if _, ok := categoryFCGroupMap[category[0:1]].HasEmphasisGraduateIdMap[studentId]; !ok {
+					categoryFCGroupMap[category[0:1]].NumHasEmphasisGraduate++
+				}
+				categoryFCGroupMap[category[0:1]].CountHasEmphasisGraduate++
+				categoryFCGroupMap[category[0:1]].HasEmphasisGraduateIdMap[studentId]++
+			}
+
+			if _, ok := categorySCGroupMap[category].HasEmphasisIdMap[studentId]; !ok {
+				categorySCGroupMap[category].NumHasEmphasis++
+			}
 			categorySCGroupMap[category].CountHasEmphasis++
+			categorySCGroupMap[category].HasEmphasisIdMap[studentId]++
+
+			if _, ok := categoryFCGroupMap[category[0:1]].HasEmphasisIdMap[studentId]; !ok {
+				categoryFCGroupMap[category[0:1]].NumHasEmphasis++
+			}
 			categoryFCGroupMap[category[0:1]].CountHasEmphasis++
+			categoryFCGroupMap[category[0:1]].HasEmphasisIdMap[studentId]++
 		}
 	}
 	for _, scGroup := range categorySCGroupMap {
@@ -1136,22 +1210,22 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 			cell.SetValue(fmt.Sprintf("%.2f", float64(fcGroup.CountEmphasisInCategory)/float64(fcGroup.CountHasEmphasis)))
 			cell = row.AddCell()
 			cell.SetStyle(bgGreenStyle)
-			cell.SetValue(fcGroup.CountUnderGraduates)
+			cell.SetValue(fcGroup.CountHasEmphasisUnderGraduate)
 			cell = row.AddCell()
 			cell.SetStyle(bgGreenStyle)
-			cell.SetValue(fcGroup.CountGraduates)
+			cell.SetValue(fcGroup.CountHasEmphasisGraduate)
 			cell = row.AddCell()
 			cell.SetStyle(bgGreenStyle)
-			cell.SetValue(fcGroup.CountTotal)
+			cell.SetValue(fcGroup.CountHasEmphasis)
 			cell = row.AddCell()
 			cell.SetStyle(bgGreenStyle)
-			cell.SetValue(fcGroup.NumUnderGraduates)
+			cell.SetValue(fcGroup.NumHasEmphasisUnderGraduate)
 			cell = row.AddCell()
 			cell.SetStyle(bgGreenStyle)
-			cell.SetValue(fcGroup.NumGraduates)
+			cell.SetValue(fcGroup.NumHasEmphasisGraduate)
 			cell = row.AddCell()
 			cell.SetStyle(bgGreenStyle)
-			cell.SetValue(fcGroup.NumTotal)
+			cell.SetValue(fcGroup.NumHasEmphasis)
 		}
 		row = sheet.Rows[firstRowOfFcGroup]
 		cell = row.Cells[0]

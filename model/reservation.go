@@ -4,6 +4,7 @@ import (
 	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -84,6 +85,53 @@ func (tf TeacherFeedback) IsEmpty() bool {
 	return tf.Category == "" || len(tf.Severity) == 0 || len(tf.MedicalDiagnosis) == 0 || len(tf.Crisis) == 0 || tf.Record == ""
 }
 
+func (tf TeacherFeedback) GetServerityStr() string {
+	var severity []string
+	for i := 0; i < len(tf.Severity); i++ {
+		if tf.Severity[i] > 0 {
+			severity = append(severity, FeedbackSeverity[i])
+		}
+	}
+	return strings.Join(severity, "、")
+}
+
+func (tf TeacherFeedback) GetMedicalDiagnosisStr() string {
+	var medicalDiagnosis []string
+	for i := 0; i < len(tf.MedicalDiagnosis); i++ {
+		if tf.MedicalDiagnosis[i] > 0 {
+			medicalDiagnosis = append(medicalDiagnosis, FeedbackMedicalDiagnosis[i])
+		}
+	}
+	return strings.Join(medicalDiagnosis, "、")
+}
+
+func (tf TeacherFeedback) GetCrisisStr() string {
+	var crisis []string
+	for i := 0; i < len(tf.Crisis); i++ {
+		if tf.Crisis[i] > 0 {
+			crisis = append(crisis, FeedbackCrisis[i])
+		}
+	}
+	return strings.Join(crisis, "、")
+}
+
+func (tf TeacherFeedback) GetEmphasisStr() string {
+	severity := tf.GetServerityStr()
+	medicalDiagnosis := tf.GetMedicalDiagnosisStr()
+	crisis := tf.GetCrisisStr()
+	var emphasis []string
+	if severity != "" {
+		emphasis = append(emphasis, severity)
+	}
+	if medicalDiagnosis != "" {
+		emphasis = append(emphasis, medicalDiagnosis)
+	}
+	if crisis != "" {
+		emphasis = append(emphasis, crisis)
+	}
+	return strings.Join(emphasis, "、")
+}
+
 func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	var feedback = make(map[string]interface{})
 	feedback["category"] = tf.Category
@@ -101,27 +149,9 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 func (tf TeacherFeedback) ToStringJson() map[string]interface{} {
 	var json = make(map[string]interface{})
 	json["category"] = FeedbackAllCategoryMap[tf.Category]
-	var severity string
-	for i := 0; i < len(tf.Severity); i++ {
-		if tf.Severity[i] > 0 {
-			severity += FeedbackSeverity[i] + " "
-		}
-	}
-	json["severity"] = severity
-	var medicalDiagnosis string
-	for i := 0; i < len(tf.MedicalDiagnosis); i++ {
-		if tf.MedicalDiagnosis[i] > 0 {
-			medicalDiagnosis += FeedbackMedicalDiagnosis[i] + " "
-		}
-	}
-	json["medical_diagnosis"] = medicalDiagnosis
-	var crisis string
-	for i := 0; i < len(tf.Crisis); i++ {
-		if tf.Crisis[i] > 0 {
-			crisis += FeedbackCrisis[i] + " "
-		}
-	}
-	json["crisis"] = crisis
+	json["severity"] = tf.GetServerityStr()
+	json["medical_diagnosis"] = tf.GetMedicalDiagnosisStr()
+	json["crisis"] = tf.GetCrisisStr()
 	json["has_crisis"] = tf.HasCrisis
 	json["has_reservated"] = tf.HasReservated
 	json["is_send_notify"] = tf.IsSendNotify

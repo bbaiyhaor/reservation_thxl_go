@@ -7,6 +7,7 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"github.com/tealeg/xlsx"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -174,6 +175,24 @@ type AdvisoryConsultation struct {
 	Advisory     ReservationCrisis // 咨询
 	Consultation ReservationCrisis // 会商
 	Total        ReservationCrisis // 总数
+}
+
+// 会商与危机干预
+type ConsultationCrisis struct {
+	Date                 string   // 日期
+	Fullname             string   // 姓名
+	Username             string   // 学号
+	Gender               string   // 性别
+	Academic             string   // 学历
+	School               string   // 院系
+	TeacherFullname      string   // 接待咨询师
+	SchoolContact        string   // 院系联系人
+	ConsultationOrCrisis []string // 会商or危机处理
+	ReservationStatus    string   // 来访情况（是否预约）
+	Category             string   // 评估分类
+	EmphasisStr          string   // 重点标记
+	CrisisLevel          string   // 星级
+	IsSendNotify         string   // 是否发危机通报
 }
 
 func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.Reservation, path string) error {
@@ -362,6 +381,8 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 	}
 	// 来访&危机
 	var advisoryConsulation AdvisoryConsultation
+	// 会商与危机干预
+	consultationCrisisList := make([]*ConsultationCrisis, 0)
 
 	// 分析咨询数据
 	for _, r := range reservations {
@@ -375,6 +396,10 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 		studentId := student.Id.Hex()
 		grade, err := utils.ParseStudentId(student.Username)
 		if err != nil {
+			continue
+		}
+		teacher, err := w.mongoClient.GetTeacherById(r.TeacherId)
+		if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 			continue
 		}
 		// 咨询情况汇总
@@ -898,6 +923,45 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 				advisoryConsulation.Advisory.CountSendNotify++
 			}
 			advisoryConsulation.Total.CountSendNotify++
+		}
+
+		// 会商与危机干预
+		if strings.HasPrefix(r.TeacherFeedback.Category, "H") || r.TeacherFeedback.HasCrisis {
+			cc := &ConsultationCrisis{
+				Date:                 r.StartTime.Format("2006/01/02"),
+				Fullname:             student.Fullname,
+				Username:             student.Username,
+				Gender:               student.Gender,
+				School:               student.School,
+				TeacherFullname:      teacher.Fullname,
+				SchoolContact:        r.TeacherFeedback.SchoolContact,
+				ConsultationOrCrisis: make([]string, 0),
+				Category:             r.TeacherFeedback.Category,
+				EmphasisStr:          r.TeacherFeedback.GetEmphasisStr(),
+				CrisisLevel:          strconv.Itoa(student.CrisisLevel),
+			}
+			if strings.HasSuffix(grade, "级") {
+				cc.Academic = "本科生"
+			} else if strings.HasSuffix(grade, "硕") || strings.HasSuffix(grade, "博") {
+				cc.Academic = "研究生"
+			}
+			if strings.HasPrefix(r.TeacherFeedback.Category, "H") {
+				cc.ConsultationOrCrisis = append(cc.ConsultationOrCrisis, "会商")
+			}
+			if r.TeacherFeedback.HasCrisis {
+				cc.ConsultationOrCrisis = append(cc.ConsultationOrCrisis, "危机处理")
+			}
+			if r.TeacherFeedback.HasReservated {
+				cc.ReservationStatus = "有预约"
+			} else {
+				cc.ReservationStatus = "未预约"
+			}
+			if r.TeacherFeedback.IsSendNotify {
+				cc.IsSendNotify = "是"
+			} else {
+				cc.IsSendNotify = "否"
+			}
+			consultationCrisisList = append(consultationCrisisList, cc)
 		}
 	}
 	for _, scGroup := range categorySCGroupMap {
@@ -1989,6 +2053,82 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 	cell.SetValue(advisoryConsulation.Total.CountSendNotify)
 	// 调整列宽
 	sheet.SetColWidth(0, 0, 15)
+
+	//==========会商与危机干预表==========
+	sheet, err = file.AddSheet("会商与危机干预表")
+	if err != nil {
+		return re.NewRError("fail to create consultation and crisis sheet", err)
+	}
+	// 表头
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("日期")
+	cell = row.AddCell()
+	cell.SetValue("姓名")
+	cell = row.AddCell()
+	cell.SetValue("学号")
+	cell = row.AddCell()
+	cell.SetValue("性别")
+	cell = row.AddCell()
+	cell.SetValue("学历")
+	cell = row.AddCell()
+	cell.SetValue("院系")
+	cell = row.AddCell()
+	cell.SetValue("接待咨询师")
+	cell = row.AddCell()
+	cell.SetValue("院系联系人")
+	cell = row.AddCell()
+	cell.SetValue("会商or危机处理")
+	cell = row.AddCell()
+	cell.SetValue("来访情况")
+	cell = row.AddCell()
+	cell.SetValue("评估分类")
+	cell = row.AddCell()
+	cell.SetValue("重点标记")
+	cell = row.AddCell()
+	cell.SetValue("星级")
+	cell = row.AddCell()
+	cell.SetValue("是否发危机通报")
+	for _, cc := range consultationCrisisList {
+		row = sheet.AddRow()
+		cell = row.AddCell()
+		cell.SetValue(cc.Date)
+		cell = row.AddCell()
+		cell.SetValue(cc.Fullname)
+		cell = row.AddCell()
+		cell.SetValue(cc.Username)
+		cell = row.AddCell()
+		cell.SetValue(cc.Gender)
+		cell = row.AddCell()
+		cell.SetValue(cc.Academic)
+		cell = row.AddCell()
+		cell.SetValue(cc.School)
+		cell = row.AddCell()
+		cell.SetValue(cc.TeacherFullname)
+		cell = row.AddCell()
+		cell.SetValue(cc.SchoolContact)
+		cell = row.AddCell()
+		cell.SetValue(strings.Join(cc.ConsultationOrCrisis, "、"))
+		cell = row.AddCell()
+		cell.SetValue(cc.ReservationStatus)
+		cell = row.AddCell()
+		cell.SetValue(model.FeedbackAllCategoryMap[cc.Category])
+		cell = row.AddCell()
+		cell.SetValue(cc.EmphasisStr)
+		cell = row.AddCell()
+		cell.SetValue(cc.CrisisLevel)
+		cell = row.AddCell()
+		cell.SetValue(cc.IsSendNotify)
+	}
+	// 调整列宽
+	sheet.SetColWidth(0, 0, 10)
+	sheet.SetColWidth(2, 2, 10)
+	sheet.SetColWidth(5, 5, 15)
+	sheet.SetColWidth(6, 6, 10)
+	sheet.SetColWidth(7, 7, 10)
+	sheet.SetColWidth(8, 8, 13.5)
+	sheet.SetColWidth(10, 10, 20)
+	sheet.SetColWidth(11, 11, 20)
 
 	err = file.Save(path)
 	if err != nil {

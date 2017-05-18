@@ -42,8 +42,8 @@ func (w *Workflow) GetFeedbackByTeacher(reservationId string, sourceId string,
 }
 
 // 咨询师提交反馈
-func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string,
-	category string, severity []int, medicalDiagnosis []int, crisis []int,
+func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string, category string, severity []int,
+	medicalDiagnosis []int, crisis []int, hasCrisis bool, hasReservated bool, isSendNotify bool, schoolContact string,
 	record string, crisisLevel string, userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
 		return nil, re.NewRErrorCode("teacher not login", nil, re.ERROR_NO_LOGIN)
@@ -90,6 +90,10 @@ func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string
 		Severity:         severity,
 		MedicalDiagnosis: medicalDiagnosis,
 		Crisis:           crisis,
+		HasCrisis:        hasCrisis,
+		HasReservated:    hasReservated,
+		IsSendNotify:     isSendNotify,
+		SchoolContact:    schoolContact,
 		Record:           record,
 	}
 	student, err := w.mongoClient.GetStudentById(reservation.StudentId)

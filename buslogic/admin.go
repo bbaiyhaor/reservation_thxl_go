@@ -359,8 +359,8 @@ func (w *Workflow) GetFeedbackByAdmin(reservationId string, sourceId string,
 }
 
 // 管理员提交反馈
-func (w *Workflow) SubmitFeedbackByAdmin(reservationId string, sourceId string,
-	category string, severity []int, medicalDiagnosis []int, crisis []int,
+func (w *Workflow) SubmitFeedbackByAdmin(reservationId string, sourceId string, category string, severity []int,
+	medicalDiagnosis []int, crisis []int, hasCrisis bool, hasReservated bool, isSendNotify bool, schoolContact string,
 	record string, crisisLevel string, userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
 		return nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
@@ -405,6 +405,10 @@ func (w *Workflow) SubmitFeedbackByAdmin(reservationId string, sourceId string,
 		Severity:         severity,
 		MedicalDiagnosis: medicalDiagnosis,
 		Crisis:           crisis,
+		HasCrisis:        hasCrisis,
+		HasReservated:    hasReservated,
+		IsSendNotify:     isSendNotify,
+		SchoolContact:    schoolContact,
 		Record:           record,
 	}
 	student, err := w.mongoClient.GetStudentById(reservation.StudentId)
@@ -728,7 +732,8 @@ func (w *Workflow) ExportStudentByAdmin(studentId string, userId string, userTyp
 	if student.ArchiveNumber == "" {
 		return "", re.NewRErrorCode("lack archive number", nil, re.ERROR_ADMIN_EXPORT_STUDENT_NO_ARCHIVE_NUMBER)
 	}
-	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("student_%s_%s_%s%s", student.ArchiveNumber, student.Username, time.Now().Format("20060102"), utils.CSV_FILE_SUFFIX))
+	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("student_%s_%s_%s%s",
+		student.ArchiveNumber, student.Username, time.Now().Format("20060102150405"), utils.CSV_FILE_SUFFIX))
 	if err = w.ExportStudentInfoToFile(student, path); err != nil {
 		return "", err
 	}
@@ -879,7 +884,8 @@ func (w *Workflow) ExportTodayReservationArrangementsByAdmin(userId string, user
 	if len(reservations) == 0 {
 		return "", re.NewRErrorCode("no reservations today", nil, re.ERROR_ADMIN_NO_RESERVATIONS_TODAY)
 	}
-	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("timetable_%s%s", today.Format("20060102"), utils.EXCEL_FILE_SUFFIX))
+	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("timetable_%s_%s%s",
+		today.Format("20060102"), time.Now().Format("20060102150405"), utils.EXCEL_FILE_SUFFIX))
 	if err = w.ExportReservationArrangementsToFile(reservations, today, path); err != nil {
 		return "", err
 	}
@@ -920,7 +926,8 @@ func (w *Workflow) ExportReservationArrangementsByAdmin(fromDate string, userId 
 	if len(reservations) == 0 {
 		return "", re.NewRErrorCode("no reservations today", nil, re.ERROR_ADMIN_NO_RESERVATIONS_TODAY)
 	}
-	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("timetable_%s%s", from.Format("20060102"), utils.EXCEL_FILE_SUFFIX))
+	path := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("timetable_%s_%s%s",
+		from.Format("20060102"), time.Now().Format("20060102150405"), utils.EXCEL_FILE_SUFFIX))
 	if err = w.ExportReservationArrangementsToFile(reservations, from, path); err != nil {
 		return "", err
 	}
@@ -1052,7 +1059,8 @@ func (w *Workflow) ExportTeacherWorkloadByAdmin(fromDate string, toDate string, 
 	if len(reservations) == 0 {
 		return "", nil
 	}
-	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("teacher_workload_%s-%s%s", from.Format("20060102"), to.Format("20060102"), utils.EXCEL_FILE_SUFFIX))
+	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("teacher_workload_%s-%s_%s%s",
+		from.Format("20060102"), to.Format("20060102"), time.Now().Format("20060102150405"), utils.EXCEL_FILE_SUFFIX))
 	if err = w.ExportWorkloadToFile(reservations, reportPath); err != nil {
 		return "", err
 	}
@@ -1060,7 +1068,7 @@ func (w *Workflow) ExportTeacherWorkloadByAdmin(fromDate string, toDate string, 
 }
 
 // 管理员按月导出报表
-func (w *Workflow) ExportReportMonthlyByAdmin(monthlyDate string, userId string, userType int) (string, error) {
+func (w *Workflow) ExportReservationFeedbackReportMonthlyByAdmin(monthlyDate string, userId string, userType int) (string, error) {
 	if userId == "" {
 		return "", re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_ADMIN {
@@ -1085,15 +1093,16 @@ func (w *Workflow) ExportReportMonthlyByAdmin(monthlyDate string, userId string,
 	if len(reservations) == 0 {
 		return "", nil
 	}
-	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_report_%d_%d%s", date.Year(), date.Month(), utils.EXCEL_FILE_SUFFIX))
-	if err = w.ExportReportToFile(reservations, reportPath); err != nil {
+	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("monthly_report_%d_%d_%s%s",
+		date.Year(), date.Month(), time.Now().Format("20060102150405"), utils.EXCEL_FILE_SUFFIX))
+	if err = w.ExportReservationFeedbackReportToFile(reservations, reportPath); err != nil {
 		return "", err
 	}
 	return reportPath, nil
 }
 
 // 管理员导出指定时间段的报表
-func (w *Workflow) ExportReportByAdmin(fromDate string, toDate string, userId string, userType int) (string, error) {
+func (w *Workflow) ExportReservationFeedbackReportByAdmin(fromDate string, toDate string, userId string, userType int) (string, error) {
 	if userId == "" {
 		return "", re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_ADMIN {
@@ -1115,16 +1124,18 @@ func (w *Workflow) ExportReportByAdmin(fromDate string, toDate string, userId st
 	if err != nil {
 		return "", re.NewRErrorCodeContext("to_date is not valid", err, re.ERROR_INVALID_PARAM, "to_date")
 	}
-	to = to.AddDate(0, 0, 1)
-	reservations, err := w.mongoClient.GetReservatedReservationsBetweenTime(from, to)
+	start := from
+	end := to.AddDate(0, 0, 1)
+	reservations, err := w.mongoClient.GetReservatedReservationsBetweenTime(start, end)
 	if err != nil {
 		return "", re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
 	}
 	if len(reservations) == 0 {
 		return "", nil
 	}
-	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("reservation_report_%s-%s%s", from.Format("20060102"), to.Format("20060102"), utils.EXCEL_FILE_SUFFIX))
-	if err = w.ExportReportToFile(reservations, reportPath); err != nil {
+	reportPath := filepath.Join(utils.EXPORT_FOLDER, fmt.Sprintf("reservation_report_%s-%s_%s%s",
+		from.Format("20060102"), to.Format("20060102"), time.Now().Format("20060102150405"), utils.EXCEL_FILE_SUFFIX))
+	if err = w.ExportReservationFeedbackReportToFile(reservations, reportPath); err != nil {
 		return "", err
 	}
 	return reportPath, nil

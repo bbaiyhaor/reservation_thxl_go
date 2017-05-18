@@ -541,8 +541,12 @@ function showFeedback(index, feedback, student) {
       评估分类：<br>\
       <select id="category_first_' + index + '" onchange="selectFirstCategory(' + index + ')"></select><br>\
       <select id="category_second_' + index + '" onchange="selectSecondCategory(' + index + ')"></select>\
-      <span id="category_show_tips_' + index + '" style="color: red;"></span>\
-      <br>\
+      <span id="category_show_tips_' + index + '" style="color: red;"></span><br>\
+      本次会谈是否有危机：<input id="has_crisis_' + index + '" type="checkbox"/><br>\
+      本次会谈是否有预约：<input id="has_reservated_' + index + '" type="checkbox"/><br>\
+      是否发危机通告：<input id="is_send_notify_' + index + '" type="checkbox"/><br>\
+      院系联系人：<input id="school_contact_' + index + '" type="input"/><br>\
+      是否危机个案：<select id="crisis_level_' + index + '"><option value="0">否</option><option value="3">三星</option><option value="4">四星</option><option value="5">五星</option></select><br>\
       <div id="div_emphasis_' + index + '">\
         <b>严重程度：</b>\
         <div id="div_feedback_severity_' + index + '"></div>\
@@ -553,7 +557,6 @@ function showFeedback(index, feedback, student) {
       </div>\
       咨询记录：<br>\
       <textarea id="record_' + index + '" style="width: 100%; height:80px"></textarea><br>\
-      是否危机个案：<select id="crisis_level_'+ index + '"><option value="0">否</option><option value="3">三星</option><option value="4">四星</option><option value="5">五星</option></select><br>\
       <button type="button" onclick="submitFeedback(' + index + ',' + feedback.var_severity.length + ',' + feedback.var_medical_diagnosis.length + ',' + feedback.var_crisis.length + ');">提交</button>\
       <button type="button" onclick="$(\'#feedback_table_' + index + '\').remove();">取消</button>\
     </div>\
@@ -598,6 +601,10 @@ function showFeedback(index, feedback, student) {
 		    $('#feedback_crisis_' + index + '_' + i).first().attr('checked', feedback.crisis[i] > 0);
 	    }
     }
+    $('#has_crisis_' + index).first().attr('checked', feedback.has_crisis || false);
+    $('#has_reservated_' + index).first().attr('checked', feedback.has_reservated || false);
+    $('#is_send_notify_' + index).first().attr('checked', feedback.is_send_notify || false);
+    $('#school_contact_' + index).val(feedback.school_contact);
     $('#record_' + index).val(feedback.record);
     $('#crisis_level_' + index).val(feedback.crisis_level);
     optimize('#feedback_table_' + index);
@@ -686,6 +693,10 @@ function submitFeedback(index, varSeverityLen, varMedicalDiagnosisLen, varCrisis
     severity: severity,
     medical_diagnosis: medicalDiagnosis,
     crisis: crisis,
+    has_crisis: $('#has_crisis_' + index).first().is(':checked'),
+    has_reservated: $('#has_reservated_' + index).first().is(':checked'),
+    is_send_notify: $('#is_send_notify_' + index).first().is(':checked'),
+    school_contact: $('#school_contact_' + index).val(),
     record: $('#record_' + index).val(),
     crisis_level: $('#crisis_level_' + index).val(),
   };
@@ -1171,13 +1182,12 @@ function exportWorkload() {
 }
 
 function exportReport() {
-  $.post('/api/admin/reservation/export/report', {
+  $.post('/api/admin/reservation/export/feedback/report', {
     from_date: $('#report_from').val(),
     to_date: $('#report_to').val(),
   }, function(data, textStatus, xhr) {
     if (data.status === 'OK') {
       window.open(data.payload.report_url);
-      // window.open(data.payload.key_case_url);
     } else {
       alert(data.err_msg);
     }
@@ -1263,7 +1273,7 @@ function resetTeacherPasswordConfirm() {
 	  $('#reset_teacher_new_password').val('');
 	  $('#reset_teacher_new_password_confirm').val('');
 	  return;
-  } 
+  }
   $.post('/api/admin/teacher/password/reset', {
     "teacher_username": username,
     "teacher_fullname": fullname,

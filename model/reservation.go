@@ -5,6 +5,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -68,6 +69,10 @@ type TeacherFeedback struct {
 	Severity         []int  `bson:"severity"`          // 严重程度
 	MedicalDiagnosis []int  `bson:"medical_diagnosis"` // 疑似或明确的医疗诊断
 	Crisis           []int  `bson:"crisis"`            // 危急情况
+	HasCrisis        bool   `bson:"has_crisis"`        // 本次会谈是否有危机
+	HasReservated    bool   `bson:"has_reservated"`    // 本次会谈是否有预约
+	IsSendNotify     bool   `bson:"is_send_notify"`    // 是否发危机通告
+	SchoolContact    string `bson:"school_contact"`    // 院系联系人
 	Record           string `bson:"record"`
 }
 
@@ -81,12 +86,63 @@ func (tf TeacherFeedback) IsEmpty() bool {
 	return tf.Category == "" || len(tf.Severity) == 0 || len(tf.MedicalDiagnosis) == 0 || len(tf.Crisis) == 0 || tf.Record == ""
 }
 
+func (tf TeacherFeedback) GetServerityStr() string {
+	var severity []string
+	for i := 0; i < len(tf.Severity); i++ {
+		if tf.Severity[i] > 0 {
+			severity = append(severity, FeedbackSeverity[i])
+		}
+	}
+	return strings.Join(severity, "、")
+}
+
+func (tf TeacherFeedback) GetMedicalDiagnosisStr() string {
+	var medicalDiagnosis []string
+	for i := 0; i < len(tf.MedicalDiagnosis); i++ {
+		if tf.MedicalDiagnosis[i] > 0 {
+			medicalDiagnosis = append(medicalDiagnosis, FeedbackMedicalDiagnosis[i])
+		}
+	}
+	return strings.Join(medicalDiagnosis, "、")
+}
+
+func (tf TeacherFeedback) GetCrisisStr() string {
+	var crisis []string
+	for i := 0; i < len(tf.Crisis); i++ {
+		if tf.Crisis[i] > 0 {
+			crisis = append(crisis, FeedbackCrisis[i])
+		}
+	}
+	return strings.Join(crisis, "、")
+}
+
+func (tf TeacherFeedback) GetEmphasisStr() string {
+	severity := tf.GetServerityStr()
+	medicalDiagnosis := tf.GetMedicalDiagnosisStr()
+	crisis := tf.GetCrisisStr()
+	var emphasis []string
+	if severity != "" {
+		emphasis = append(emphasis, severity)
+	}
+	if medicalDiagnosis != "" {
+		emphasis = append(emphasis, medicalDiagnosis)
+	}
+	if crisis != "" {
+		emphasis = append(emphasis, crisis)
+	}
+	return strings.Join(emphasis, "、")
+}
+
 func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	var feedback = make(map[string]interface{})
 	feedback["category"] = tf.Category
 	feedback["severity"] = tf.Severity
 	feedback["medical_diagnosis"] = tf.MedicalDiagnosis
 	feedback["crisis"] = tf.Crisis
+	feedback["has_crisis"] = tf.HasCrisis
+	feedback["has_reservated"] = tf.HasReservated
+	feedback["is_send_notify"] = tf.IsSendNotify
+	feedback["school_contact"] = tf.SchoolContact
 	feedback["record"] = tf.Record
 	return feedback
 }
@@ -94,27 +150,13 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 func (tf TeacherFeedback) ToStringJson() map[string]interface{} {
 	var json = make(map[string]interface{})
 	json["category"] = FeedbackAllCategoryMap[tf.Category]
-	var severity string
-	for i := 0; i < len(tf.Severity); i++ {
-		if tf.Severity[i] > 0 {
-			severity += FeedbackSeverity[i] + " "
-		}
-	}
-	json["severity"] = severity
-	var medicalDiagnosis string
-	for i := 0; i < len(tf.MedicalDiagnosis); i++ {
-		if tf.MedicalDiagnosis[i] > 0 {
-			medicalDiagnosis += FeedbackMedicalDiagnosis[i] + " "
-		}
-	}
-	json["medical_diagnosis"] = medicalDiagnosis
-	var crisis string
-	for i := 0; i < len(tf.Crisis); i++ {
-		if tf.Crisis[i] > 0 {
-			crisis += FeedbackCrisis[i] + " "
-		}
-	}
-	json["crisis"] = crisis
+	json["severity"] = tf.GetServerityStr()
+	json["medical_diagnosis"] = tf.GetMedicalDiagnosisStr()
+	json["crisis"] = tf.GetCrisisStr()
+	json["has_crisis"] = tf.HasCrisis
+	json["has_reservated"] = tf.HasReservated
+	json["is_send_notify"] = tf.IsSendNotify
+	json["school_contact"] = tf.SchoolContact
 	json["record"] = tf.Record
 	return json
 }

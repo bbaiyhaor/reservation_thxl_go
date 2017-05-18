@@ -383,6 +383,10 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 	var advisoryConsulation AdvisoryConsultation
 	// 会商与危机干预
 	consultationCrisisList := make([]*ConsultationCrisis, 0)
+	// 学生咨询情况
+	studentMap := make(map[string]*model.Student)
+	teacherMap := make(map[string]*model.Teacher)
+	studentReservationsMap := make(map[string][]*model.Reservation)
 
 	// 分析咨询数据
 	for _, r := range reservations {
@@ -402,6 +406,13 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 		if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
 			continue
 		}
+		// 学生咨询情况
+		studentMap[studentId] = student
+		teacherMap[r.TeacherId] = teacher
+		if _, ok := studentReservationsMap[studentId]; !ok {
+			studentReservationsMap[studentId] = make([]*model.Reservation, 0)
+		}
+		studentReservationsMap[studentId] = append(studentReservationsMap[studentId], r)
 		// 咨询情况汇总
 		category := r.TeacherFeedback.Category
 		// 来访情况，H分类中的来访人员特殊处理
@@ -2129,6 +2140,82 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 	sheet.SetColWidth(8, 8, 13.5)
 	sheet.SetColWidth(10, 10, 20)
 	sheet.SetColWidth(11, 11, 20)
+
+	//==========学生咨询情况统计表==========
+	sheet, err = file.AddSheet("学生咨询情况统计表")
+	if err != nil {
+		return re.NewRError("fail to create student reservations sheet", err)
+	}
+	// 表头
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.SetValue("姓名")
+	cell = row.AddCell()
+	cell.SetValue("学号")
+	cell = row.AddCell()
+	cell.SetValue("性别")
+	cell = row.AddCell()
+	cell.SetValue("院系")
+	cell = row.AddCell()
+	cell.SetValue("最近一次咨询分类")
+	cell = row.AddCell()
+	cell.SetValue("最后一次重点标记")
+	cell = row.AddCell()
+	cell.SetValue("最后一次来访&危机情况")
+	cell = row.AddCell()
+	cell.SetValue("最后一次的咨询师")
+	cell = row.AddCell()
+	cell.SetValue("星级")
+	for sid, stu := range studentMap {
+		reservations := studentReservationsMap[sid]
+		if len(reservations) == 0 {
+			continue
+		}
+		sort.Sort(sort.Reverse(ByStartTimeOfReservation(reservations)))
+		r := reservations[0]
+		if r.TeacherFeedback.IsEmpty() {
+			continue
+		}
+		row = sheet.AddRow()
+		cell = row.AddCell()
+		cell.SetValue(stu.Fullname)
+		cell = row.AddCell()
+		cell.SetValue(stu.Username)
+		cell = row.AddCell()
+		cell.SetValue(stu.Gender)
+		cell = row.AddCell()
+		cell.SetValue(stu.School)
+		cell = row.AddCell()
+		cell.SetValue(model.FeedbackAllCategoryMap[r.TeacherFeedback.Category])
+		cell = row.AddCell()
+		cell.SetValue(r.TeacherFeedback.GetEmphasisStr())
+		cell = row.AddCell()
+		s := ""
+		if r.TeacherFeedback.HasReservated {
+			s += "有预约 "
+		} else {
+			s += "无预约 "
+		}
+		if r.TeacherFeedback.HasCrisis {
+			s += "有危机"
+		} else {
+			s += "无危机"
+		}
+		cell.SetValue(s)
+		cell = row.AddCell()
+		if t, ok := teacherMap[r.TeacherId]; ok {
+			cell.SetValue(t.Fullname)
+		}
+		cell = row.AddCell()
+		cell.SetValue(stu.CrisisLevel)
+	}
+	// 调整列宽
+	sheet.SetColWidth(1, 1, 10)
+	sheet.SetColWidth(3, 3, 15)
+	sheet.SetColWidth(4, 4, 20)
+	sheet.SetColWidth(5, 5, 20)
+	sheet.SetColWidth(6, 6, 20)
+	sheet.SetColWidth(7, 7, 16)
 
 	err = file.Save(path)
 	if err != nil {

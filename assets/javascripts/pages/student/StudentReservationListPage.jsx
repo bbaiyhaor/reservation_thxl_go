@@ -188,9 +188,9 @@ class StudentReservationList extends React.Component {
                 <CellBody>
                   {reservation.student_id && reservation.student_id === User.userId ?
                     <p style={{ ...hightlightStyle }}>
-                      {reservation.start_time} - {reservation.end_time.slice(-5)}　{reservation.teacher_fullname}
+                      {reservation.start_time}-{reservation.end_time.slice(-5)}({reservation.start_weekday}) {reservation.teacher_fullname}
                     </p> : <p style={{ ...normalStyle }}>
-                      {reservation.start_time} - {reservation.end_time.slice(-5)}　{reservation.teacher_fullname}
+                      {reservation.start_time}-{reservation.end_time.slice(-5)}({reservation.start_weekday}) {reservation.teacher_fullname}
                     </p>
                   }
                 </CellBody>

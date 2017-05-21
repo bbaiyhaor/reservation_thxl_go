@@ -93,7 +93,7 @@ function refreshDataTable(reservations) {
     $('#col_select').append('<div class="table_cell" id="cell_select_' + i + '">'
       + '<input class="checkbox" type="checkbox" id="cell_checkbox_' + i + '"></div>');
     $('#col_time').append('<div class="table_cell" id="cell_time_' + i + '" name="' + i + '">' + reservations[i].start_time +
-      '至' + reservations[i].end_time + '</div>');
+      '至' + reservations[i].end_time + " " + reservations[i].start_weekday + '</div>');
     $('#col_teacher_fullname').append('<div class="table_cell" id="cell_teacher_fullname_'
       + i + '">' + reservations[i].teacher_fullname + '</div>');
     $('#col_teacher_username').append('<div class="table_cell" id="cell_teacher_username_'

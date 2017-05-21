@@ -939,7 +939,7 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 		// 会商与危机干预
 		if strings.HasPrefix(r.TeacherFeedback.Category, "H") || r.TeacherFeedback.HasCrisis {
 			cc := &ConsultationCrisis{
-				Date:                 r.StartTime.Format("2006/01/02"),
+				Date:                 fmt.Sprintf("%s %s", r.StartTime.Format("2006/01/02"), utils.GetChineseWeekday(r.StartTime)),
 				Fullname:             student.Fullname,
 				Username:             student.Username,
 				Gender:               student.Gender,
@@ -2132,7 +2132,7 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 		cell.SetValue(cc.IsSendNotify)
 	}
 	// 调整列宽
-	sheet.SetColWidth(0, 0, 10)
+	sheet.SetColWidth(0, 0, 15)
 	sheet.SetColWidth(2, 2, 10)
 	sheet.SetColWidth(5, 5, 15)
 	sheet.SetColWidth(6, 6, 10)

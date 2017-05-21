@@ -346,6 +346,8 @@ func (w *Workflow) WrapSimpleReservation(reservation *model.Reservation) map[str
 	result["id"] = reservation.Id.Hex()
 	result["start_time"] = reservation.StartTime.Format("2006-01-02 15:04")
 	result["end_time"] = reservation.EndTime.Format("2006-01-02 15:04")
+	result["start_weekday"] = utils.GetChineseWeekday(reservation.StartTime)
+	result["end_weekday"] = utils.GetChineseWeekday(reservation.EndTime)
 	result["status"] = reservation.Status
 	if reservation.Status == model.RESERVATION_STATUS_RESERVATED && reservation.StartTime.Before(time.Now()) {
 		result["status"] = model.RESERVATION_STATUS_FEEDBACK

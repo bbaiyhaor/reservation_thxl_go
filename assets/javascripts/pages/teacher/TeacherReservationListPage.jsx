@@ -273,7 +273,7 @@ class TeacherReservationList extends React.Component {
           >
             <MediaBoxBody>
               <MediaBoxTitle style={{ marginBottom: '5px' }}>
-                {reservation.start_time} - {reservation.end_time.slice(-5)}
+                {reservation.start_time} - {reservation.end_time.slice(-5)} ({reservation.start_weekday})
                 {this.renderStatusButton(reservation)}
               </MediaBoxTitle>
               {reservation.teacher_fullname &&

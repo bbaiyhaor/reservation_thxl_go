@@ -4,14 +4,18 @@ import (
 	"time"
 )
 
-var Weekdays = [...]string{
-	"日",
-	"一",
-	"二",
-	"三",
-	"四",
-	"五",
-	"六",
+var weekdayMap = map[int]string{
+	1: "星期一",
+	2: "星期二",
+	3: "星期三",
+	4: "星期四",
+	5: "星期五",
+	6: "星期六",
+	0: "星期日",
+}
+
+func GetChineseWeekday(ts time.Time) string {
+	return weekdayMap[int(ts.Weekday())]
 }
 
 func ConcatTime(date time.Time, clock time.Time) time.Time {

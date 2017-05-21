@@ -17,10 +17,10 @@ import (
 )
 
 const (
-	SMS_SUCCESS_STUDENT        = "%s你好，你已成功预约星期%s（%d月%d日）%s-%s咨询，地点：紫荆C楼409室。电话：62782007。请记得携带学生卡，如需取消预约请提前一天于工作时间8:30-17:00致电62782007。"
-	SMS_SUCCESS_TEACHER        = "%s您好，%s已预约您星期%s（%d月%d日）%s-%s咨询，地点：紫荆C楼409室。电话：62782007。"
-	SMS_CANCEL_STUDENT         = "%s你好，因特殊原因你预约的星期%s（%d月%d日）%s-%s咨询已被取消，详询62782007。"
-	SMS_CANCEL_TEACHER         = "%s您好，%s预约的星期%s（%d月%d日）%s-%s咨询已被取消，详询62782007。"
+	SMS_SUCCESS_STUDENT        = "%s你好，你已成功预约%s（%d月%d日）%s-%s咨询，地点：紫荆C楼409室。电话：62782007。请记得携带学生卡，如需取消预约请提前一天于工作时间8:30-17:00致电62782007。"
+	SMS_SUCCESS_TEACHER        = "%s您好，%s已预约您%s（%d月%d日）%s-%s咨询，地点：紫荆C楼409室。电话：62782007。"
+	SMS_CANCEL_STUDENT         = "%s你好，因特殊原因你预约的%s（%d月%d日）%s-%s咨询已被取消，详询62782007。"
+	SMS_CANCEL_TEACHER         = "%s您好，%s预约的%s（%d月%d日）%s-%s咨询已被取消，详询62782007。"
 	SMS_REMINDER_STUDENT       = "温馨提示：%s你好，你已成功预约明天%s-%s咨询，地点：紫荆C楼409室。电话：62782007。"
 	SMS_REMINDER_TEACHER       = "温馨提示：%s您好，%s已预约您明天%s-%s咨询，地点：紫荆C楼409室。电话：62782007。"
 	SMS_FEEDBACK_STUDENT       = "温馨提示：%s你好，感谢使用我们的一对一咨询服务，请再次登录预约界面，为咨询师反馈评分，帮助我们成长。"
@@ -50,7 +50,7 @@ func (w *Workflow) SendSuccessSMS(reservation *model.Reservation) error {
 	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return re.NewRErrorCode("学生未注册", nil, re.ERROR_DATABASE)
 	}
-	studentSMS := fmt.Sprintf(SMS_SUCCESS_STUDENT, student.Fullname, utils.Weekdays[startTime.Weekday()],
+	studentSMS := fmt.Sprintf(SMS_SUCCESS_STUDENT, student.Fullname, utils.GetChineseWeekday(startTime),
 		startTime.Month(), startTime.Day(), startTime.Format("15:04"), endTime.Format("15:04"))
 	if err := w.sendSMS(student.Mobile, studentSMS); err != nil {
 		return err
@@ -61,7 +61,7 @@ func (w *Workflow) SendSuccessSMS(reservation *model.Reservation) error {
 			return errors.New("咨询师未注册")
 		}
 		teacherSMS := fmt.Sprintf(SMS_SUCCESS_TEACHER, teacher.Fullname, student.Fullname,
-			utils.Weekdays[startTime.Weekday()], startTime.Month(), startTime.Day(),
+			utils.GetChineseWeekday(startTime), startTime.Month(), startTime.Day(),
 			startTime.Format("15:04"), endTime.Format("15:04"))
 		if err := w.sendSMS(teacher.Mobile, teacherSMS); err != nil {
 			return err
@@ -77,7 +77,7 @@ func (w *Workflow) SendCancelSMS(reservation *model.Reservation) error {
 	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return re.NewRErrorCode("学生未注册", nil, re.ERROR_DATABASE)
 	}
-	studentSMS := fmt.Sprintf(SMS_CANCEL_STUDENT, student.Fullname, utils.Weekdays[startTime.Weekday()],
+	studentSMS := fmt.Sprintf(SMS_CANCEL_STUDENT, student.Fullname, utils.GetChineseWeekday(startTime),
 		startTime.Month(), startTime.Day(), startTime.Format("15:04"), endTime.Format("15:04"))
 	if err := w.sendSMS(student.Mobile, studentSMS); err != nil {
 		return err
@@ -88,7 +88,7 @@ func (w *Workflow) SendCancelSMS(reservation *model.Reservation) error {
 			return errors.New("咨询师未注册")
 		}
 		teacherSMS := fmt.Sprintf(SMS_CANCEL_TEACHER, teacher.Fullname, student.Fullname,
-			utils.Weekdays[startTime.Weekday()], startTime.Month(), startTime.Day(),
+			utils.GetChineseWeekday(startTime), startTime.Month(), startTime.Day(),
 			startTime.Format("15:04"), endTime.Format("15:04"))
 		if err := w.sendSMS(teacher.Mobile, teacherSMS); err != nil {
 			return err

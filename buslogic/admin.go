@@ -92,9 +92,9 @@ func (w *Workflow) AddReservationByAdmin(startTime string, endTime string, teach
 		return nil, re.NewRErrorCode("fail to get the day timetables", err, re.ERROR_DATABASE)
 	}
 	for _, tr := range theDayTimedReservations {
-		if !tr.Exceptions[start.Format("2006-01-02")] && tr.TeacherId == teacher.Id.Hex() {
+		if tr.Status != model.RESERVATION_STATUS_CLOSED && !tr.Exceptions[start.Format("2006-01-02")] && tr.TeacherId == teacher.Id.Hex() {
 			r := tr.ToReservation(start)
-			if start.After(r.StartTime) && start.Before(r.EndTime) ||
+			if (start.After(r.StartTime) && start.Before(r.EndTime)) ||
 				(end.After(r.StartTime) && end.Before(r.EndTime)) ||
 				(!start.After(r.StartTime) && !end.Before(r.EndTime)) {
 				return nil, re.NewRErrorCode("teacher time conflicts", nil, re.ERROR_ADMIN_EDIT_RESERVATION_TEACHER_TIME_CONFLICT)
@@ -208,9 +208,9 @@ func (w *Workflow) EditReservationByAdmin(reservationId string, sourceId string,
 		return nil, re.NewRErrorCode("fail to get the day timetables", err, re.ERROR_DATABASE)
 	}
 	for _, tr := range theDayTimedReservations {
-		if !tr.Exceptions[start.Format("2006-01-02")] && tr.TeacherId == teacher.Id.Hex() {
+		if tr.Status != model.RESERVATION_STATUS_CLOSED && !tr.Exceptions[start.Format("2006-01-02")] && tr.TeacherId == teacher.Id.Hex() {
 			r := tr.ToReservation(start)
-			if start.After(r.StartTime) && start.Before(r.EndTime) ||
+			if (start.After(r.StartTime) && start.Before(r.EndTime)) ||
 				(end.After(r.StartTime) && end.Before(r.EndTime)) ||
 				(!start.After(r.StartTime) && !end.Before(r.EndTime)) {
 				return nil, re.NewRErrorCode("teacher time conflicts", nil, re.ERROR_ADMIN_EDIT_RESERVATION_TEACHER_TIME_CONFLICT)

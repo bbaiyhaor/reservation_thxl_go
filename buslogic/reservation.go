@@ -1,11 +1,13 @@
 package buslogic
 
 import (
+	"fmt"
 	"github.com/mijia/sweb/log"
 	"github.com/shudiwsh2009/reservation_thxl_go/model"
 	re "github.com/shudiwsh2009/reservation_thxl_go/rerror"
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -305,6 +307,62 @@ func (w *Workflow) GetReservationsDailyWithTeacherUsernameByAdmin(fromDate strin
 	return admin, filteredReservations, nil
 }
 
+func (w *Workflow) GetReservationConsulationAndCrisisByTeacherAndAdmin(fromDate string, toDate string,
+	studentUsername string, schoolContact string, userId string, userType int) ([]*ConsultationCrisis, error) {
+	if userId == "" {
+		return nil, re.NewRErrorCode("user not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_ADMIN && userType != model.USER_TYPE_TEACHER {
+		return nil, re.NewRErrorCode("user is not admin or teacher", nil, re.ERROR_NOT_AUTHORIZED)
+	}
+	switch userType {
+	case model.USER_TYPE_ADMIN:
+		admin, err := w.mongoClient.GetAdminById(userId)
+		if err != nil || admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
+			return nil, re.NewRErrorCode("fail to get admin", err, re.ERROR_DATABASE)
+		}
+	case model.USER_TYPE_TEACHER:
+		teacher, err := w.mongoClient.GetTeacherById(userId)
+		if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
+			return nil, re.NewRErrorCode("fail to get teacher", err, re.ERROR_DATABASE)
+		}
+	}
+	var reservations []*model.Reservation
+	var err error
+	if fromDate != "" && toDate != "" {
+		from, err := time.ParseInLocation("2006-01-02", fromDate, time.Local)
+		if err != nil {
+			return nil, re.NewRErrorCodeContext("from date is not valid", err, re.ERROR_INVALID_PARAM, "from_date")
+		}
+		to, err := time.ParseInLocation("2006-01-02", toDate, time.Local)
+		if err != nil {
+			return nil, re.NewRErrorCodeContext("to date is not valid", err, re.ERROR_INVALID_PARAM, "to_date")
+		}
+		reservations, err = w.mongoClient.GetReservationsBetweenTime(from, to.AddDate(0, 0, 1))
+	} else if studentUsername != "" {
+		if !utils.IsStudentId(studentUsername) {
+			return nil, re.NewRErrorCodeContext("student_username is invalid", nil, re.ERROR_INVALID_PARAM, "student_username")
+		}
+		student, err := w.mongoClient.GetStudentByUsername(studentUsername)
+		if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
+			return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_NO_STUDENT)
+		}
+		reservations, err = w.mongoClient.GetReservationsByStudentId(student.Id.Hex())
+	} else if schoolContact != "" {
+		reservations, err = w.mongoClient.GetReservationsBySchoolContact(schoolContact)
+	}
+	if err != nil {
+		return nil, re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
+	}
+	consultationCrisisList := make([]*ConsultationCrisis, 0, len(reservations))
+	for _, r := range reservations {
+		cc := w.getReservationConsultationCrisis(r)
+		if cc != nil {
+			consultationCrisisList = append(consultationCrisisList, cc)
+		}
+	}
+	return consultationCrisisList, nil
+}
+
 func (w *Workflow) ShiftReservationTimeInDays(days int) error {
 	reservations, err := w.mongoClient.GetAllReservations()
 	if err != nil {
@@ -391,4 +449,82 @@ func (w *Workflow) WrapReservation(reservation *model.Reservation) map[string]in
 	result["has_teacher_feedback"] = !reservation.TeacherFeedback.IsEmpty()
 	result["teacher_feedback"] = reservation.TeacherFeedback.ToStringJson()
 	return result
+}
+
+func (w *Workflow) WrapReservationConsultationCrisis(cc *ConsultationCrisis) map[string]interface{} {
+	var result = make(map[string]interface{})
+	if cc == nil {
+		return result
+	}
+	result["date"] = cc.Date
+	result["fullname"] = cc.Fullname
+	result["username"] = cc.Username
+	result["gender"] = cc.Gender
+	result["academic"] = cc.Academic
+	result["school"] = cc.School
+	result["teacher_fullname"] = cc.TeacherFullname
+	result["school_contact"] = cc.SchoolContact
+	result["consultation_or_crisis"] = strings.Join(cc.ConsultationOrCrisis, "、")
+	result["reservated_status"] = cc.ReservatedStatus
+	result["category"] = model.FeedbackAllCategoryMap[cc.Category]
+	result["emphasis_str"] = cc.EmphasisStr
+	result["crisis_level"] = cc.CrisisLevel
+	result["is_send_notify"] = cc.IsSendNotify
+	return result
+}
+
+func (w *Workflow) getReservationConsultationCrisis(reservation *model.Reservation) *ConsultationCrisis {
+	if reservation.TeacherFeedback.IsEmpty() {
+		return nil
+	}
+	student, err := w.mongoClient.GetStudentById(reservation.StudentId)
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
+		return nil
+	}
+	grade, err := utils.ParseStudentId(student.Username)
+	if err != nil {
+		return nil
+	}
+	teacher, err := w.mongoClient.GetTeacherById(reservation.TeacherId)
+	if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
+		return nil
+	}
+	var cc *ConsultationCrisis
+	if strings.HasPrefix(reservation.TeacherFeedback.Category, "H") || reservation.TeacherFeedback.HasCrisis {
+		cc = &ConsultationCrisis{
+			Date:                 fmt.Sprintf("%s %s", reservation.StartTime.Format("2006/01/02"), utils.GetChineseWeekday(reservation.StartTime)),
+			Fullname:             student.Fullname,
+			Username:             student.Username,
+			Gender:               student.Gender,
+			School:               student.School,
+			TeacherFullname:      teacher.Fullname,
+			SchoolContact:        reservation.TeacherFeedback.SchoolContact,
+			ConsultationOrCrisis: make([]string, 0),
+			Category:             reservation.TeacherFeedback.Category,
+			EmphasisStr:          reservation.TeacherFeedback.GetEmphasisStr(),
+			CrisisLevel:          strconv.Itoa(student.CrisisLevel),
+		}
+		if strings.HasSuffix(grade, "级") {
+			cc.Academic = "本科生"
+		} else if strings.HasSuffix(grade, "硕") || strings.HasSuffix(grade, "博") {
+			cc.Academic = "研究生"
+		}
+		if strings.HasPrefix(reservation.TeacherFeedback.Category, "H") {
+			cc.ConsultationOrCrisis = append(cc.ConsultationOrCrisis, "会商")
+		}
+		if reservation.TeacherFeedback.HasCrisis {
+			cc.ConsultationOrCrisis = append(cc.ConsultationOrCrisis, "危机处理")
+		}
+		if reservation.TeacherFeedback.HasReservated {
+			cc.ReservatedStatus = "有预约"
+		} else {
+			cc.ReservatedStatus = "未预约"
+		}
+		if reservation.TeacherFeedback.IsSendNotify {
+			cc.IsSendNotify = "是"
+		} else {
+			cc.IsSendNotify = "否"
+		}
+	}
+	return cc
 }

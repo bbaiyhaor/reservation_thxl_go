@@ -251,6 +251,13 @@ func (m *MongoClient) GetReservationsAfterTime(start time.Time) ([]*Reservation,
 	return reservations, err
 }
 
+func (m *MongoClient) GetReservationsBySchoolContact(schoolContact string) ([]*Reservation, error) {
+	var reservations []*Reservation
+	err := dbReservation.Find(bson.M{"teacher_feedback.school_contact": schoolContact,
+		"status": bson.M{"$ne": RESERVATION_STATUS_DELETED}}).Sort("start_time").All(&reservations)
+	return reservations, err
+}
+
 var FeedbackFirstCategoryKeys = []string{
 	"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "Y", "Z",
 }

@@ -26,6 +26,7 @@ func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	m.PostJson(kStudentApiBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByStudent", RoleCookieInjection(rc.SubmitFeedbackByStudent))
 
 	m.GetJson(kTeacherApiBaseUrl+"/reservation/view", "ViewReservationsByTeacher", RoleCookieInjection(rc.ViewReservationsByTeacher))
+	m.GetJson(kTeacherApiBaseUrl+"/reservation/consultation/crisis/", "GetReservationConsulationAndCrisisByTeacherAndAdmin", RoleCookieInjection(rc.GetReservationConsulationAndCrisisByTeacherAndAdmin))
 	m.PostJson(kTeacherApiBaseUrl+"/reservation/feedback/get", "GetFeedbackByTeacher", RoleCookieInjection(rc.GetFeedbackByTeacher))
 	m.PostJson(kTeacherApiBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByTeacher", RoleCookieInjection(rc.SubmitFeedbackByTeacher))
 	m.PostJson(kTeacherApiBaseUrl+"/student/get", "GetStudentInfoByTeacher", RoleCookieInjection(rc.GetStudentInfoByTeacher))
@@ -41,6 +42,7 @@ func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view/daily", "ViewDailyReservationsByAdmin", RoleCookieInjection(rc.ViewDailyReservationsByAdmin))
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view/teacher/username", "ViewReservationsWithTeacherUsernameByAdmin", RoleCookieInjection(rc.ViewReservationsWithTeacherUsernameByAdmin))
 	m.GetJson(kAdminApiBaseUrl+"/reservation/view/daily/teacher/username", "ViewDailyReservationsWithTeacherUsernameByAdmin", RoleCookieInjection(rc.ViewDailyReservationsWithTeacherUsernameByAdmin))
+	m.GetJson(kAdminApiBaseUrl+"/reservation/consultation/crisis/", "GetReservationConsulationAndCrisisByTeacherAndAdmin", RoleCookieInjection(rc.GetReservationConsulationAndCrisisByTeacherAndAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/export/arrangements/today", "ExportTodayReservationArrangementsByAdmin", RoleCookieInjection(rc.ExportTodayReservationArrangementsByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/export/arrangements", "ExportReservationArrangementsByAdmin", RoleCookieInjection(rc.ExportReservationArrangementsByAdmin))
 	m.PostJson(kAdminApiBaseUrl+"/reservation/export/feedback/report/monthly", "ExportReservationFeedbackReportMonthlyByAdmin", RoleCookieInjection(rc.ExportReservationFeedbackReportMonthlyByAdmin))
@@ -1011,6 +1013,27 @@ func (rc *ReservationController) ClearAllStudentsBindedTeacherByAdmin(w http.Res
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (rc *ReservationController) GetReservationConsulationAndCrisisByTeacherAndAdmin(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	fromDate := form.ParamString(r, "from_date", "")
+	toDate := form.ParamString(r, "to_date", "")
+	studentUsername := form.ParamString(r, "student_username", "")
+	schoolContact := form.ParamString(r, "school_contact", "")
+
+	var result = make(map[string]interface{})
+
+	consultationCrisisList, err := service.Workflow().GetReservationConsulationAndCrisisByTeacherAndAdmin(fromDate, toDate, studentUsername, schoolContact, userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
+	var array = make([]interface{}, 0)
+	for _, cc := range consultationCrisisList {
+		array = append(array, service.Workflow().WrapReservationConsultationCrisis(cc))
+	}
+	result["consultation_crisis"] = array
 
 	return http.StatusOK, wrapJsonOk(result)
 }

@@ -1,0 +1,59 @@
+{{ define "title" }}
+<title>学生心理发展指导中心预约系统</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<link type="text/css" href="/static/legacy/assets/css/style.css" rel="stylesheet">
+<script type="text/javascript" src="/static/legacy/assets/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="/static/legacy/assets/js/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="/static/legacy/assets/js/jquery-ui.min.css" type="text/css">
+{{ end }}
+
+{{ define "content" }}
+<body background="/static/legacy/assets/img/bg.png"  style="text-align:center;">
+<div id="page_title">
+    学生心理发展指导中心预约系统<br>会商与危机干预表
+</div>
+<div style="padding-top:10px">
+    指定日期查看
+    起<input type="text" id="from_date" style="width: 100px"/>
+    止<input type="text" id="to_date" style="width: 100px"/>
+    <button onclick="getReservationConsultationCrisisWithTimeRange();">查看</button>　
+</div>
+<div style="padding-top:10px">
+    指定学生学号
+    <input type="text" id="student_username" style="width:80px;"/>
+    <button onclick="getReservationConsultationCrisisWithStudentFullname();">查看</button>
+</div>
+<div style="padding-top:10px">
+    指定院系联系人
+    <input type="text" id="school_contact" style="width:80px;"/>
+    <button onclick="getReservationConsultationCrisisWithSchoolContact();">查看</button>
+</div>
+<div id="page_maintable">
+
+</div>
+<div id="page_bottom"><br><br>清华大学学生心理发展指导中心<br>联系方式：010-62782007</div>
+
+</body>
+<script type="text/javascript" src="/static/legacy/assets/js/consultation_crisis.js"></script>
+<script type="text/javascript">
+    $(function() {
+	    $('#from_date').datepicker({
+		    showOtherMonths: true,
+		    selectOtherMonths: true,
+		    showButtonPanel: true,
+		    dateFormat: 'yy-mm-dd',
+		    showWeek: true,
+		    firstDay: 1
+	    });
+	    $('#to_date').datepicker({
+		    showOtherMonths: true,
+		    selectOtherMonths: true,
+		    showButtonPanel: true,
+		    dateFormat: 'yy-mm-dd',
+		    showWeek: true,
+		    firstDay: 1
+	    });
+	    initDataTable();
+    });
+</script>
+{{ end }}

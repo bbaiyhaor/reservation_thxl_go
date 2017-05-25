@@ -28,6 +28,7 @@ func (uc *UserController) MuxHandlers(m JsonMuxer) {
 	m.Get("/reservation/admin/login", "AdminLoginPage", uc.GetAdminLoginPageLegacy)
 	m.Get("/reservation/admin", "AdminPage", LegacyAdminPageInjection(uc.GetAdminPageLegacy))
 	m.Get("/reservation/admin/timetable", "AdminTimetablePage", LegacyAdminPageInjection(uc.GetAdminTimetablePageLegacy))
+	m.Get("/reservation/consultation/crisis", "ConsultationCrisisPage", LegacyAdminPageInjection(uc.GetReservationConsultationCrisisPageLegacy))
 
 	m.PostJson(kUserApiBaseUrl+"/student/login", "StudentLogin", uc.StudentLogin)
 	m.PostJson(kUserApiBaseUrl+"/student/register", "StudentRegister", uc.StudentRegister)
@@ -49,6 +50,7 @@ func (uc *UserController) GetTemplates() []*render.TemplateSet {
 		render.NewTemplateSet("admin_login", "desktop.html", "legacy/admin_login.html", "layout/desktop.html"),
 		render.NewTemplateSet("admin", "desktop.html", "legacy/admin.html", "layout/desktop.html"),
 		render.NewTemplateSet("admin_timetable", "desktop.html", "legacy/admin_timetable.html", "layout/desktop.html"),
+		render.NewTemplateSet("consultation_crisis", "desktop.html", "legacy/consultation_crisis.html", "layout/desktop.html"),
 	}
 }
 
@@ -116,6 +118,26 @@ func (uc *UserController) GetAdminTimetablePageLegacy(ctx context.Context, w htt
 	}
 	params := map[string]interface{}{}
 	uc.RenderHtmlOr500(w, http.StatusOK, "admin_timetable", params)
+	return ctx
+}
+
+func (uc *UserController) GetReservationConsultationCrisisPageLegacy(ctx context.Context, w http.ResponseWriter, r *http.Request, userId string, userType int) context.Context {
+	switch userType {
+	case model.USER_TYPE_ADMIN:
+		admin, err := service.MongoClient().GetAdminById(userId)
+		if err != nil || admin == nil || admin.UserType != model.USER_TYPE_ADMIN {
+			http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
+			return ctx
+		}
+	case model.USER_TYPE_TEACHER:
+		teacher, err := service.MongoClient().GetTeacherById(userId)
+		if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
+			http.Redirect(w, r, "/reservation/admin/login", http.StatusFound)
+			return ctx
+		}
+	}
+	params := map[string]interface{}{}
+	uc.RenderHtmlOr500(w, http.StatusOK, "consultation_crisis", params)
 	return ctx
 }
 

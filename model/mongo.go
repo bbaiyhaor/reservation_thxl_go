@@ -139,6 +139,12 @@ func (m *MongoClient) EnsureAllIndexes() error {
 	if err != nil {
 		return err
 	}
+	err = dbReservation.EnsureIndex(mgo.Index{
+		Key: []string{"teacher_feedback.school_contact", "status", "start_time"},
+	})
+	if err != nil {
+		return err
+	}
 
 	err = dbTimetable.EnsureIndex(mgo.Index{
 		Key: []string{"status"},

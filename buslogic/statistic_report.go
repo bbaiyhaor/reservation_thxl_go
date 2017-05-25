@@ -7,7 +7,6 @@ import (
 	"github.com/shudiwsh2009/reservation_thxl_go/utils"
 	"github.com/tealeg/xlsx"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -188,7 +187,7 @@ type ConsultationCrisis struct {
 	TeacherFullname      string   // 接待咨询师
 	SchoolContact        string   // 院系联系人
 	ConsultationOrCrisis []string // 会商or危机处理
-	ReservationStatus    string   // 来访情况（是否预约）
+	ReservatedStatus     string   // 来访情况（是否预约）
 	Category             string   // 评估分类
 	EmphasisStr          string   // 重点标记
 	CrisisLevel          string   // 星级
@@ -937,41 +936,8 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 		}
 
 		// 会商与危机干预
-		if strings.HasPrefix(r.TeacherFeedback.Category, "H") || r.TeacherFeedback.HasCrisis {
-			cc := &ConsultationCrisis{
-				Date:                 fmt.Sprintf("%s %s", r.StartTime.Format("2006/01/02"), utils.GetChineseWeekday(r.StartTime)),
-				Fullname:             student.Fullname,
-				Username:             student.Username,
-				Gender:               student.Gender,
-				School:               student.School,
-				TeacherFullname:      teacher.Fullname,
-				SchoolContact:        r.TeacherFeedback.SchoolContact,
-				ConsultationOrCrisis: make([]string, 0),
-				Category:             r.TeacherFeedback.Category,
-				EmphasisStr:          r.TeacherFeedback.GetEmphasisStr(),
-				CrisisLevel:          strconv.Itoa(student.CrisisLevel),
-			}
-			if strings.HasSuffix(grade, "级") {
-				cc.Academic = "本科生"
-			} else if strings.HasSuffix(grade, "硕") || strings.HasSuffix(grade, "博") {
-				cc.Academic = "研究生"
-			}
-			if strings.HasPrefix(r.TeacherFeedback.Category, "H") {
-				cc.ConsultationOrCrisis = append(cc.ConsultationOrCrisis, "会商")
-			}
-			if r.TeacherFeedback.HasCrisis {
-				cc.ConsultationOrCrisis = append(cc.ConsultationOrCrisis, "危机处理")
-			}
-			if r.TeacherFeedback.HasReservated {
-				cc.ReservationStatus = "有预约"
-			} else {
-				cc.ReservationStatus = "未预约"
-			}
-			if r.TeacherFeedback.IsSendNotify {
-				cc.IsSendNotify = "是"
-			} else {
-				cc.IsSendNotify = "否"
-			}
+		cc := w.getReservationConsultationCrisis(r)
+		if cc != nil {
 			consultationCrisisList = append(consultationCrisisList, cc)
 		}
 	}
@@ -2121,7 +2087,7 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 		cell = row.AddCell()
 		cell.SetValue(strings.Join(cc.ConsultationOrCrisis, "、"))
 		cell = row.AddCell()
-		cell.SetValue(cc.ReservationStatus)
+		cell.SetValue(cc.ReservatedStatus)
 		cell = row.AddCell()
 		cell.SetValue(model.FeedbackAllCategoryMap[cc.Category])
 		cell = row.AddCell()

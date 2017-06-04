@@ -215,6 +215,9 @@ func (rc *ReservationController) GetFeedbackByTeacher(w http.ResponseWriter, r *
 		return http.StatusOK, wrapJsonError(err)
 	}
 	feedback := reservation.TeacherFeedback.ToJson()
+	if reservation.TeacherFeedback.IsEmpty() && !reservation.IsAdminSet {
+		feedback["has_reservated"] = true
+	}
 	feedback["crisis_level"] = student.CrisisLevel
 	feedback["var_first_category"] = model.FeedbackFirstCategoryMap
 	feedback["var_second_category"] = model.FeedbackSecondCategoryMap
@@ -538,6 +541,9 @@ func (rc *ReservationController) GetFeedbackByAdmin(w http.ResponseWriter, r *ht
 		return http.StatusOK, wrapJsonError(err)
 	}
 	feedback := reservation.TeacherFeedback.ToJson()
+	if reservation.TeacherFeedback.IsEmpty() && !reservation.IsAdminSet {
+		feedback["has_reservated"] = true
+	}
 	feedback["crisis_level"] = student.CrisisLevel
 	feedback["var_first_category"] = model.FeedbackFirstCategoryMap
 	feedback["var_second_category"] = model.FeedbackSecondCategoryMap

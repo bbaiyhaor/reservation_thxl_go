@@ -54,6 +54,12 @@ func main() {
 			log.Errorf("fail to add new admin: %+v", err)
 			return
 		}
+	} else if *method == "20170610-flush-data-add-empty-transfer-in-reservation-teacher-feedback" {
+		err := workflow.AddEmptyTransferForAllReservationTeacherFeedback()
+		if err != nil {
+			log.Error(err)
+			return
+		}
 	}
 	log.Info("Success")
 }

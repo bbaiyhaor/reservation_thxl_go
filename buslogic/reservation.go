@@ -528,3 +528,21 @@ func (w *Workflow) getReservationConsultationCrisis(reservation *model.Reservati
 	}
 	return cc
 }
+
+// 20170610 清洗数据，为所有reservation.teacher_feedback添加transfer
+func (w *Workflow) AddEmptyTransferForAllReservationTeacherFeedback() error {
+	reservations, err := w.mongoClient.GetAllReservations()
+	if err != nil {
+		return re.NewRError("fail to get all reservations", err)
+	}
+	for _, r := range reservations {
+		if len(r.TeacherFeedback.Transfer) == 0 {
+			r.TeacherFeedback.Transfer = make([]int, len(model.FeedbackTransfer))
+			err = w.mongoClient.UpdateReservationWithoutUpdatedTime(r)
+			if err != nil {
+				log.Errorf("fail to update reservation %s, err: %+v", r.Id.Hex(), err)
+			}
+		}
+	}
+	return nil
+}

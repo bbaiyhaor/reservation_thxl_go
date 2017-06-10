@@ -43,8 +43,8 @@ func (w *Workflow) GetFeedbackByTeacher(reservationId string, sourceId string,
 
 // 咨询师提交反馈
 func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string, category string, severity []int,
-	medicalDiagnosis []int, crisis []int, hasCrisis bool, hasReservated bool, isSendNotify bool, schoolContact string,
-	record string, crisisLevel string, userId string, userType int) (*model.Reservation, error) {
+	medicalDiagnosis []int, crisis []int, transfer []int, hasCrisis bool, hasReservated bool, isSendNotify bool,
+	schoolContact string, record string, crisisLevel string, userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
 		return nil, re.NewRErrorCode("teacher not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_TEACHER {
@@ -59,6 +59,8 @@ func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string
 		return nil, re.NewRErrorCodeContext("medical_diagnosis is not valid", nil, re.ERROR_INVALID_PARAM, "medical_diagnosis")
 	} else if len(crisis) != len(model.FeedbackCrisis) {
 		return nil, re.NewRErrorCodeContext("crisis is not valid", nil, re.ERROR_INVALID_PARAM, "crisis")
+	} else if len(transfer) != len(model.FeedbackTransfer) {
+		return nil, re.NewRErrorCodeContext("transfer is not valid", nil, re.ERROR_INVALID_PARAM, "transfer")
 	} else if record == "" {
 		return nil, re.NewRErrorCodeContext("record is empty", nil, re.ERROR_MISSING_PARAM, "record")
 	} else if crisisLevel == "" {
@@ -90,6 +92,7 @@ func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string
 		Severity:         severity,
 		MedicalDiagnosis: medicalDiagnosis,
 		Crisis:           crisis,
+		Transfer:         transfer,
 		HasCrisis:        hasCrisis,
 		HasReservated:    hasReservated,
 		IsSendNotify:     isSendNotify,

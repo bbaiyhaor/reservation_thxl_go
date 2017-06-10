@@ -69,6 +69,7 @@ type TeacherFeedback struct {
 	Severity         []int  `bson:"severity"`          // 严重程度
 	MedicalDiagnosis []int  `bson:"medical_diagnosis"` // 疑似或明确的医疗诊断
 	Crisis           []int  `bson:"crisis"`            // 危急情况
+	Transfer         []int  `bson:"transfer"`          // 转介
 	HasCrisis        bool   `bson:"has_crisis"`        // 本次会谈是否有危机
 	HasReservated    bool   `bson:"has_reservated"`    // 本次会谈是否有预约
 	IsSendNotify     bool   `bson:"is_send_notify"`    // 是否发危机通告
@@ -77,13 +78,14 @@ type TeacherFeedback struct {
 }
 
 var (
-	FeedbackSeverity         = [...]string{"缓考", "休学复学", "家属陪读", "家属不知情", "任何其他需要知会院系关注的原因", "试读期"}
-	FeedbackMedicalDiagnosis = [...]string{"服药", "精神分裂", "双相情感障碍", "焦虑症（状态）", "抑郁症（状态）", "强迫症", "进食障碍", "失眠", "其他精神症状", "躯体疾病", "不遵医嘱"}
-	FeedbackCrisis           = [...]string{"自伤", "伤害他人", "自杀念头", "自杀未遂"}
+	FeedbackSeverity         = []string{"缓考", "休学复学", "家属陪读", "家属不知情", "任何其他需要知会院系关注的原因", "试读期"}
+	FeedbackMedicalDiagnosis = []string{"服药", "精神分裂", "双相情感障碍", "焦虑症（状态）", "抑郁症（状态）", "强迫症", "进食障碍", "失眠", "其他精神症状", "躯体疾病", "不遵医嘱"}
+	FeedbackCrisis           = []string{"自伤", "伤害他人", "自杀念头", "自杀未遂"}
+	FeedbackTransfer         = []string{"躯体疾病转介", "严重心理问题/精神疾病转介", "转介至学习发展中心", "转介至就业指导中心"}
 )
 
 func (tf TeacherFeedback) IsEmpty() bool {
-	return tf.Category == "" || len(tf.Severity) == 0 || len(tf.MedicalDiagnosis) == 0 || len(tf.Crisis) == 0 || tf.Record == ""
+	return tf.Category == "" || len(tf.Severity) == 0 || len(tf.MedicalDiagnosis) == 0 || len(tf.Crisis) == 0 || len(tf.Transfer) == 0 || tf.Record == ""
 }
 
 func (tf TeacherFeedback) GetServerityStr() string {
@@ -116,10 +118,21 @@ func (tf TeacherFeedback) GetCrisisStr() string {
 	return strings.Join(crisis, "、")
 }
 
+func (tf TeacherFeedback) GetTransferStr() string {
+	var transfer []string
+	for i := 0; i < len(tf.Transfer); i++ {
+		if tf.Transfer[i] > 0 {
+			transfer = append(transfer, FeedbackTransfer[i])
+		}
+	}
+	return strings.Join(transfer, "、")
+}
+
 func (tf TeacherFeedback) GetEmphasisStr() string {
 	severity := tf.GetServerityStr()
 	medicalDiagnosis := tf.GetMedicalDiagnosisStr()
 	crisis := tf.GetCrisisStr()
+	transfer := tf.GetTransferStr()
 	var emphasis []string
 	if severity != "" {
 		emphasis = append(emphasis, severity)
@@ -130,6 +143,9 @@ func (tf TeacherFeedback) GetEmphasisStr() string {
 	if crisis != "" {
 		emphasis = append(emphasis, crisis)
 	}
+	if transfer != "" {
+		emphasis = append(emphasis, transfer)
+	}
 	return strings.Join(emphasis, "、")
 }
 
@@ -139,6 +155,7 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	feedback["severity"] = tf.Severity
 	feedback["medical_diagnosis"] = tf.MedicalDiagnosis
 	feedback["crisis"] = tf.Crisis
+	feedback["transfer"] = tf.Transfer
 	feedback["has_crisis"] = tf.HasCrisis
 	feedback["has_reservated"] = tf.HasReservated
 	feedback["is_send_notify"] = tf.IsSendNotify
@@ -153,6 +170,7 @@ func (tf TeacherFeedback) ToStringJson() map[string]interface{} {
 	json["severity"] = tf.GetServerityStr()
 	json["medical_diagnosis"] = tf.GetMedicalDiagnosisStr()
 	json["crisis"] = tf.GetCrisisStr()
+	json["transfer"] = tf.GetTransferStr()
 	json["has_crisis"] = tf.HasCrisis
 	json["has_reservated"] = tf.HasReservated
 	json["is_send_notify"] = tf.IsSendNotify
@@ -259,7 +277,7 @@ func (m *MongoClient) GetReservationsBySchoolContact(schoolContact string) ([]*R
 }
 
 var FeedbackFirstCategoryKeys = []string{
-	"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "Y", "Z",
+	"A", "B", "C", "D", "E", "F", "G", "H", "I" /*"J", "Y",*/, "Z",
 }
 
 var FeedbackFirstCategoryMap = map[string]string{
@@ -273,8 +291,8 @@ var FeedbackFirstCategoryMap = map[string]string{
 	"G": "G 危机干预",
 	"H": "H 会商",
 	"I": "I 心理测试与回访",
-	"J": "J 转介",
-	"Y": "Y 团体辅导",
+	//"J": "J 转介",
+	//"Y": "Y 团体辅导",
 	"Z": "Z 个体督导",
 }
 
@@ -342,26 +360,27 @@ var FeedbackSecondCategoryMap = map[string]map[string]string{
 	},
 	"I": map[string]string{
 		"":   "请选择",
-		"I1": "I1 人格测验与反馈",
-		"I2": "I2 情绪测验与反馈",
-		"I3": "I3 学业测验与反馈",
-		"I4": "I4 职业测验与反馈",
-		"I5": "I5 新生回访适应正常",
+		"I1": "I1 心理回访正常",
+		//"I1": "I1 人格测验与反馈",
+		//"I2": "I2 情绪测验与反馈",
+		//"I3": "I3 学业测验与反馈",
+		//"I4": "I4 职业测验与反馈",
+		//"I5": "I5 新生回访适应正常",
 	},
-	"J": map[string]string{
-		"":   "请选择",
-		"J1": "J1 躯体疾病转介",
-		"J2": "J2 严重心理问题/精神疾病转介",
-		"J3": "J3 转介至学习发展中心",
-		"J4": "J4 转介至就业指导中心",
-	},
-	"Y": map[string]string{
-		"":   "请选择",
-		"Y1": "Y1 学习压力团体",
-		"Y2": "Y2 人际关系团体",
-		"Y3": "Y3 恋爱情感团体",
-		"Y4": "Y4 辅导员团体",
-	},
+	//"J": map[string]string{
+	//	"":   "请选择",
+	//	"J1": "J1 躯体疾病转介",
+	//	"J2": "J2 严重心理问题/精神疾病转介",
+	//	"J3": "J3 转介至学习发展中心",
+	//	"J4": "J4 转介至就业指导中心",
+	//},
+	//"Y": map[string]string{
+	//	"":   "请选择",
+	//	"Y1": "Y1 学习压力团体",
+	//	"Y2": "Y2 人际关系团体",
+	//	"Y3": "Y3 恋爱情感团体",
+	//	"Y4": "Y4 辅导员团体",
+	//},
 	"Z": map[string]string{
 		"":   "请选择",
 		"Z1": "Z1 个体心理督导",
@@ -403,18 +422,19 @@ var FeedbackAllCategoryMap = map[string]string{
 	"H4": "H4 会商（与学生）",
 	"H5": "H5 会商（与咨询师）",
 	"H6": "H6 会商（联席会议）",
-	"I1": "I1 人格测验与反馈",
-	"I2": "I2 情绪测验与反馈",
-	"I3": "I3 学业测验与反馈",
-	"I4": "I4 职业测验与反馈",
-	"I5": "I5 新生回访适应正常",
-	"J1": "J1 躯体疾病转介",
-	"J2": "J2 严重心理问题/精神疾病转介",
-	"J3": "J3 转介至学习发展中心",
-	"J4": "J4 转介至就业指导中心",
-	"Y1": "Y1 学习压力团体",
-	"Y2": "Y2 人际关系团体",
-	"Y3": "Y3 恋爱情感团体",
-	"Y4": "Y4 辅导员团体",
+	"I1": "I1 心理回访正常",
+	//"I1": "I1 人格测验与反馈",
+	//"I2": "I2 情绪测验与反馈",
+	//"I3": "I3 学业测验与反馈",
+	//"I4": "I4 职业测验与反馈",
+	//"I5": "I5 新生回访适应正常",
+	//"J1": "J1 躯体疾病转介",
+	//"J2": "J2 严重心理问题/精神疾病转介",
+	//"J3": "J3 转介至学习发展中心",
+	//"J4": "J4 转介至就业指导中心",
+	//"Y1": "Y1 学习压力团体",
+	//"Y2": "Y2 人际关系团体",
+	//"Y3": "Y3 恋爱情感团体",
+	//"Y4": "Y4 辅导员团体",
 	"Z1": "Z1 个体心理督导",
 }

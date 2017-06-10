@@ -554,10 +554,12 @@ function showFeedback(index, feedback, student) {
         <div id="div_feedback_medical_diagnosis_' + index + '"></div>\
         <b>危急情况：</b>\
         <div id="div_feedback_crisis_' + index + '"></div>\
+        <b>转介：</b>\
+        <div id="div_feedback_transfer_' + index + '"></div>\
       </div>\
       咨询记录：<br>\
       <textarea id="record_' + index + '" style="width: 100%; height:80px"></textarea><br>\
-      <button type="button" onclick="submitFeedback(' + index + ',' + feedback.var_severity.length + ',' + feedback.var_medical_diagnosis.length + ',' + feedback.var_crisis.length + ');">提交</button>\
+      <button type="button" onclick="submitFeedback(' + index + ',' + feedback.var_severity.length + ',' + feedback.var_medical_diagnosis.length + ',' + feedback.var_crisis.length + ',' + feedback.var_transfer.length + ');">提交</button>\
       <button type="button" onclick="$(\'#feedback_table_' + index + '\').remove();">取消</button>\
     </div>\
   ');
@@ -600,6 +602,17 @@ function showFeedback(index, feedback, student) {
 	    if (i < feedback.crisis.length) {
 		    $('#feedback_crisis_' + index + '_' + i).first().attr('checked', feedback.crisis[i] > 0);
 	    }
+    }
+    for (var i = 0; i < feedback.var_transfer.length; i++) {
+      $('#div_feedback_transfer_' + index).append($('<input>', {
+        id: 'feedback_transfer_' + index + '_' + i,
+        type: 'checkbox',
+      })).append($('<span>', {
+        text: feedback.var_transfer[i],
+      }));
+      if (i < feedback.transfer.length) {
+        $('#feedback_transfer_' + index + '_' + i).first().attr('checked', feedback.transfer[i] > 0);
+      }
     }
     $('#has_crisis_' + index).first().attr('checked', feedback.has_crisis || false);
     $('#has_reservated_' + index).first().attr('checked', feedback.has_reservated || false);
@@ -663,7 +676,7 @@ function selectSecondCategory(index) {
   }
 }
 
-function submitFeedback(index, varSeverityLen, varMedicalDiagnosisLen, varCrisisLen) {
+function submitFeedback(index, varSeverityLen, varMedicalDiagnosisLen, varCrisisLen, varTransferLen) {
   var hasEmphasis = false;
   var severity = [];
   for (var i = 0; i < varSeverityLen; i++) {
@@ -677,8 +690,13 @@ function submitFeedback(index, varSeverityLen, varMedicalDiagnosisLen, varCrisis
   }
   var crisis = [];
   for (var i = 0; i < varCrisisLen; i++) {
-    crisis.push($('#feedback_crisis_' + index + "_" + i).first().is(':checked') ? 1 : 0);
-    hasEmphasis = hasEmphasis || $('#feedback_crisis_' + index + "_" + i).first().is(':checked');
+    crisis.push($('#feedback_crisis_' + index + '_' + i).first().is(':checked') ? 1 : 0);
+    hasEmphasis = hasEmphasis || $('#feedback_crisis_' + index + '_' + i).first().is(':checked');
+  }
+  var transfer = [];
+  for (var i = 0; i < varTransferLen; i++) {
+    transfer.push($('#feedback_transfer_' + index + '_' + i).first().is(':checked') ? 1 : 0);
+    hasEmphasis = hasEmphasis || $('#feedback_transfer_' + index + '_' + i).first().is(':checked');
   }
   var secondCategory = $('#category_second_' + index).val();
   for (var i in feedbackShowNeedTips) {
@@ -693,6 +711,7 @@ function submitFeedback(index, varSeverityLen, varMedicalDiagnosisLen, varCrisis
     severity: severity,
     medical_diagnosis: medicalDiagnosis,
     crisis: crisis,
+    transfer: transfer,
     has_crisis: $('#has_crisis_' + index).first().is(':checked'),
     has_reservated: $('#has_reservated_' + index).first().is(':checked'),
     is_send_notify: $('#is_send_notify_' + index).first().is(':checked'),
@@ -924,6 +943,7 @@ function showStudent(student, reservations) {
         ' + (reservations[i].teacher_feedback.severity === '' ? '' : '<p class="children">严重程度：' + reservations[i].teacher_feedback.severity + '</p>')
         + (reservations[i].teacher_feedback.medical_diagnosis === '' ? '' : '<p class="children">疑似或明确的医疗诊断：' + reservations[i].teacher_feedback.medical_diagnosis + '</p>')
         + (reservations[i].teacher_feedback.crisis === '' ? '' : '<p class="children">危急情况：' + reservations[i].teacher_feedback.crisis + '</p>')
+        + (reservations[i].teacher_feedback.transfer === '' ? '' : '<p class="children">转介：' + reservations[i].teacher_feedback.transfer + '</p>')
         + '<p class="children">咨询记录：' + reservations[i].teacher_feedback.record + '</p>\
       </div>\
     ');

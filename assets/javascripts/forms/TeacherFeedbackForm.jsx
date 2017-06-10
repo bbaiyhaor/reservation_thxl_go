@@ -17,6 +17,8 @@ export default class TeacherFeedbackForm extends React.Component {
       varMedicalDiagnosis: [],
       crisis: [],
       varCrisis: [],
+      transfer: [],
+      varTransfer: [],
       hasCrisis: false,
       hasReservated: false,
       isSendNotify: false,
@@ -58,6 +60,13 @@ export default class TeacherFeedbackForm extends React.Component {
       }
       crisis = crisis.slice(0, varCrisis.length);
 
+      let transfer = feedback.transfer;
+      const varTransfer = feedback.var_transfer;
+      while (transfer.length < varTransfer.length) {
+        transfer.push(0);
+      }
+      transfer = transfer.slice(0, varTransfer.length);
+
       this.setState({
         firstCategories: feedback.var_first_category,
         secondCategories: feedback.var_second_category,
@@ -69,6 +78,8 @@ export default class TeacherFeedbackForm extends React.Component {
         varMedicalDiagnosis,
         crisis,
         varCrisis,
+        transfer,
+        varTransfer,
         hasCrisis: feedback.has_crisis || false,
         hasReservated: feedback.has_reservated || false,
         isSendNotify: feedback.is_send_notify || false,
@@ -103,6 +114,13 @@ export default class TeacherFeedbackForm extends React.Component {
           const { crisis } = prevState;
           crisis[Number(value)] = checked ? 1 : 0;
           return { crisis };
+        });
+        break;
+      case 'transfer':
+        this.setState((prevState) => {
+          const { transfer } = prevState;
+          transfer[Number(value)] = checked ? 1 : 0;
+          return { transfer };
         });
         break;
       default:
@@ -180,6 +198,7 @@ export default class TeacherFeedbackForm extends React.Component {
       severity: this.state.severity,
       medical_diagnosis: this.state.medicalDiagnosis,
       crisis: this.state.crisis,
+      transfer: this.state.transfer,
       has_crisis: this.state.hasCrisis,
       has_reservated: this.state.hasReservated,
       is_send_notify: this.state.isSendNotify,
@@ -265,6 +284,22 @@ export default class TeacherFeedbackForm extends React.Component {
             </CellHeader>
             <CellBody>
               {vc}
+            </CellBody>
+          </FormCell>)
+        }
+        <CellsTitle>转介</CellsTitle>
+        {this.state.varTransfer && this.state.varTransfer.map((vt, i) =>
+          <FormCell checkbox key={`checkbox-transfer-${i}`}>
+            <CellHeader>
+              <Checkbox
+                name="transfer"
+                value={i}
+                checked={this.state.transfer && this.state.transfer.length > i && this.state.transfer[i] === 1}
+                onChange={this.handleChange}
+              />
+            </CellHeader>
+            <CellBody>
+              {vt}
             </CellBody>
           </FormCell>)
         }

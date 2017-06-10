@@ -224,6 +224,7 @@ func (rc *ReservationController) GetFeedbackByTeacher(w http.ResponseWriter, r *
 	feedback["var_severity"] = model.FeedbackSeverity
 	feedback["var_medical_diagnosis"] = model.FeedbackMedicalDiagnosis
 	feedback["var_crisis"] = model.FeedbackCrisis
+	feedback["var_transfer"] = model.FeedbackTransfer
 	result["feedback"] = feedback
 	result["student"] = service.Workflow().WrapStudent(student)
 
@@ -235,24 +236,31 @@ func (rc *ReservationController) SubmitFeedbackByTeacher(w http.ResponseWriter, 
 	sourceId := form.ParamString(r, "source_id", "")
 	category := form.ParamString(r, "category", "")
 	severity := []string(r.Form["severity"])
-	severityInt := make([]int, 0)
+	severityInt := make([]int, 0, len(severity))
 	for _, s := range severity {
 		if si, err := strconv.Atoi(s); err == nil {
 			severityInt = append(severityInt, si)
 		}
 	}
 	medicalDiagnosis := []string(r.Form["medical_diagnosis"])
-	medicalDiagnosisInt := make([]int, 0)
+	medicalDiagnosisInt := make([]int, 0, len(medicalDiagnosis))
 	for _, m := range medicalDiagnosis {
 		if mi, err := strconv.Atoi(m); err == nil {
 			medicalDiagnosisInt = append(medicalDiagnosisInt, mi)
 		}
 	}
 	crisis := []string(r.Form["crisis"])
-	crisisInt := make([]int, 0)
+	crisisInt := make([]int, 0, len(crisis))
 	for _, c := range crisis {
 		if ci, err := strconv.Atoi(c); err == nil {
 			crisisInt = append(crisisInt, ci)
+		}
+	}
+	transfer := []string(r.Form["transfer"])
+	transferInt := make([]int, 0, len(transfer))
+	for _, t := range transfer {
+		if ti, err := strconv.Atoi(t); err == nil {
+			transferInt = append(transferInt, ti)
 		}
 	}
 	hasCrisis := form.ParamBoolean(r, "has_crisis", false)
@@ -265,8 +273,8 @@ func (rc *ReservationController) SubmitFeedbackByTeacher(w http.ResponseWriter, 
 	var result = make(map[string]interface{})
 
 	_, err := service.Workflow().SubmitFeedbackByTeacher(reservationId, sourceId, category, severityInt,
-		medicalDiagnosisInt, crisisInt, hasCrisis, hasReservated, isSendNotify, schoolContact, record, crisisLevel,
-		userId, userType)
+		medicalDiagnosisInt, crisisInt, transferInt, hasCrisis, hasReservated, isSendNotify, schoolContact, record,
+		crisisLevel, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
@@ -550,6 +558,7 @@ func (rc *ReservationController) GetFeedbackByAdmin(w http.ResponseWriter, r *ht
 	feedback["var_severity"] = model.FeedbackSeverity
 	feedback["var_medical_diagnosis"] = model.FeedbackMedicalDiagnosis
 	feedback["var_crisis"] = model.FeedbackCrisis
+	feedback["var_transfer"] = model.FeedbackTransfer
 	result["feedback"] = feedback
 	result["student"] = service.Workflow().WrapStudent(student)
 
@@ -561,24 +570,31 @@ func (rc *ReservationController) SubmitFeedbackByAdmin(w http.ResponseWriter, r 
 	sourceId := form.ParamString(r, "source_id", "")
 	category := form.ParamString(r, "category", "")
 	severity := []string(r.Form["severity"])
-	severityInt := make([]int, 0)
+	severityInt := make([]int, 0, len(severity))
 	for _, s := range severity {
 		if si, err := strconv.Atoi(s); err == nil {
 			severityInt = append(severityInt, si)
 		}
 	}
 	medicalDiagnosis := []string(r.Form["medical_diagnosis"])
-	medicalDiagnosisInt := make([]int, 0)
+	medicalDiagnosisInt := make([]int, 0, len(medicalDiagnosis))
 	for _, m := range medicalDiagnosis {
 		if mi, err := strconv.Atoi(m); err == nil {
 			medicalDiagnosisInt = append(medicalDiagnosisInt, mi)
 		}
 	}
 	crisis := []string(r.Form["crisis"])
-	crisisInt := make([]int, 0)
+	crisisInt := make([]int, 0, len(crisis))
 	for _, c := range crisis {
 		if ci, err := strconv.Atoi(c); err == nil {
 			crisisInt = append(crisisInt, ci)
+		}
+	}
+	transfer := []string(r.Form["transfer"])
+	transferInt := make([]int, 0, len(transfer))
+	for _, t := range transfer {
+		if ti, err := strconv.Atoi(t); err == nil {
+			transferInt = append(transferInt, ti)
 		}
 	}
 	hasCrisis := form.ParamBoolean(r, "has_crisis", false)
@@ -591,8 +607,8 @@ func (rc *ReservationController) SubmitFeedbackByAdmin(w http.ResponseWriter, r 
 	var result = make(map[string]interface{})
 
 	_, err := service.Workflow().SubmitFeedbackByAdmin(reservationId, sourceId, category, severityInt,
-		medicalDiagnosisInt, crisisInt, hasCrisis, hasReservated, isSendNotify, schoolContact, record, crisisLevel,
-		userId, userType)
+		medicalDiagnosisInt, crisisInt, transferInt, hasCrisis, hasReservated, isSendNotify, schoolContact, record,
+		crisisLevel, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}

@@ -279,6 +279,13 @@ func (w *Workflow) ExportStudentInfoToFile(student *model.Student, path string) 
 					}
 				}
 				data = append(data, crisis)
+				transfer := []string{"转介"}
+				for i := 0; i < len(r.TeacherFeedback.Transfer); i++ {
+					if r.TeacherFeedback.Transfer[i] > 0 {
+						transfer = append(transfer, model.FeedbackTransfer[i])
+					}
+				}
+				data = append(data, transfer)
 
 				data = append(data, []string{"咨询记录", r.TeacherFeedback.Record})
 			}

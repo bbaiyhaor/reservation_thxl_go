@@ -283,7 +283,7 @@ func (w *Workflow) MailTodayReservationArrangements(mailTo string) {
 	todayDate := today.Format("2006-01-02")
 	if timedReservations, err := w.mongoClient.GetTimedReservationsByWeekday(today.Weekday()); err == nil {
 		for _, tr := range timedReservations {
-			if !tr.Exceptions[todayDate] && !tr.Timed[todayDate] {
+			if tr.Status != model.RESERVATION_STATUS_CLOSED && !tr.Exceptions[todayDate] && !tr.Timed[todayDate] {
 				reservations = append(reservations, tr.ToReservation(today))
 			}
 		}
@@ -330,6 +330,8 @@ func (w *Workflow) ExportReservationArrangementsToFile(reservations []*model.Res
 	cell.SetValue("学生学号")
 	cell = row.AddCell()
 	cell.SetValue("联系方式")
+	cell = row.AddCell()
+	cell.SetValue("是否新来访者")
 	for _, r := range reservations {
 		teacher, err := w.mongoClient.GetTeacherById(r.TeacherId)
 		if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
@@ -348,6 +350,22 @@ func (w *Workflow) ExportReservationArrangementsToFile(reservations []*model.Res
 			cell.SetValue(student.Username)
 			cell = row.AddCell()
 			cell.SetValue(student.Mobile)
+			firstReservation := true
+			studentReservations, err := w.mongoClient.GetReservationsByStudentId(student.Id.Hex())
+			if err == nil {
+				for _, sr := range studentReservations {
+					if sr.Id.Hex() != r.Id.Hex() && sr.StartTime.Before(r.StartTime) {
+						firstReservation = false
+						break
+					}
+				}
+			}
+			cell = row.AddCell()
+			if firstReservation {
+				cell.SetValue("是")
+			} else {
+				cell.SetValue("否")
+			}
 		}
 	}
 

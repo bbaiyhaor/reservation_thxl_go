@@ -878,7 +878,7 @@ func (w *Workflow) ExportTodayReservationArrangementsByAdmin(userId string, user
 	todayDate := today.Format("2006-01-02")
 	if timedReservations, err := w.mongoClient.GetTimedReservationsByWeekday(today.Weekday()); err == nil {
 		for _, tr := range timedReservations {
-			if !tr.Exceptions[todayDate] && !tr.Timed[todayDate] {
+			if tr.Status != model.RESERVATION_STATUS_CLOSED && !tr.Exceptions[todayDate] && !tr.Timed[todayDate] {
 				reservations = append(reservations, tr.ToReservation(today))
 			}
 		}
@@ -920,7 +920,7 @@ func (w *Workflow) ExportReservationArrangementsByAdmin(fromDate string, userId 
 	theDayDate := from.Format("2006-01-02")
 	if timedReservations, err := w.mongoClient.GetTimedReservationsByWeekday(from.Weekday()); err == nil {
 		for _, tr := range timedReservations {
-			if !tr.Exceptions[theDayDate] && !tr.Timed[theDayDate] {
+			if tr.Status != model.RESERVATION_STATUS_CLOSED && !tr.Exceptions[theDayDate] && !tr.Timed[theDayDate] {
 				reservations = append(reservations, tr.ToReservation(from))
 			}
 		}

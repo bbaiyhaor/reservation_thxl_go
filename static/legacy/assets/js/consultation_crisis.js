@@ -7,7 +7,6 @@ function getReservationConsultationCrisisWithTimeRange() {
     from_date: $('#from_date').val(),
     to_date: $('#to_date').val(),
   }, function(json, textStatus) {
-    console.log(json + "aaa");
     if (json.status === 'OK') {
       console.log(json.payload);
       consultationCrisisList = json.payload.consultation_crisis;
@@ -23,7 +22,6 @@ function getReservationConsultationCrisisWithStudentFullname() {
 	$.getJSON('/api/admin/reservation/consultation/crisis', {
 		student_username: $('#student_username').val(),
 	}, function(json, textStatus) {
-		console.log(json + "aaa");
 		if (json.status === 'OK') {
 			console.log(json.payload);
 			consultationCrisisList = json.payload.consultation_crisis;
@@ -39,7 +37,6 @@ function getReservationConsultationCrisisWithSchoolContact() {
 	$.getJSON('/api/admin/reservation/consultation/crisis', {
 		student_username: $('#student_username').val(),
 	}, function(json, textStatus) {
-		console.log(json + "aaa");
 		if (json.status === 'OK') {
 			console.log(json.payload);
 			consultationCrisisList = json.payload.consultation_crisis;
@@ -86,7 +83,7 @@ function initDataTable() {
         <div class="table_col" id="col_category">\
             <div class="table_head table_cell">评估分类</div>\
         </div>\
-        <div class="table_col" id="col_emphasis_str">\
+        <div class="table_col" id="col_emphasis_str" style="width: 600px;">\
             <div class="table_head table_cell">重点标记</div>\
         </div>\
         <div class="table_col" id="col_crisis_level">\
@@ -137,6 +134,37 @@ function refreshDataTable(consultationCrisisList) {
 
 function optimize(t) {
   for (var i = 0; i < consultationCrisisList.length; ++i) {
+  	var maxHeight = Math.max(
+		  $('#cell_date' + i).height(),
+		  $('#cell_fullname' + i).height(),
+		  $('#cell_username' + i).height(),
+		  $('#cell_gender' + i).height(),
+		  $('#cell_academic' + i).height(),
+		  $('#cell_school' + i).height(),
+		  $('#cell_teacher_fullname' + i).height(),
+		  $('#cell_school_contact' + i).height(),
+		  $('#cell_consultation_or_crisis' + i).height(),
+		  $('#cell_reservated_status' + i).height(),
+		  $('#cell_category' + i).height(),
+		  $('#cell_emphasis_str' + i).height(),
+		  $('#cell_crisis_level' + i).height(),
+		  $('#cell_is_send_notify' + i).height()
+	  );
+	  $('#cell_date' + i).height(maxHeight);
+	  $('#cell_fullname' + i).height(maxHeight);
+	  $('#cell_username' + i).height(maxHeight);
+	  $('#cell_gender' + i).height(maxHeight);
+	  $('#cell_academic' + i).height(maxHeight);
+	  $('#cell_school' + i).height(maxHeight);
+	  $('#cell_teacher_fullname' + i).height(maxHeight);
+	  $('#cell_school_contact' + i).height(maxHeight);
+	  $('#cell_consultation_or_crisis' + i).height(maxHeight);
+	  $('#cell_reservated_status' + i).height(maxHeight);
+	  $('#cell_category' + i).height(maxHeight);
+	  $('#cell_emphasis_str' + i).height(maxHeight);
+	  $('#cell_crisis_level' + i).height(maxHeight);
+	  $('#cell_is_send_notify' + i).height(maxHeight);
+
     if (i % 2 == 1) {
       $('#col_date' + i).css('background-color', 'white');
       $('#col_fullname' + i).css('background-color', 'white');

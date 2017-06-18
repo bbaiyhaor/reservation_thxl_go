@@ -125,6 +125,12 @@ func (w *Workflow) StudentRegister(username string, password string, fullname st
 	} else if archive != nil {
 		student.ArchiveCategory = archive.ArchiveCategory
 		student.ArchiveNumber = archive.ArchiveNumber
+	} else {
+		grade, err := utils.ParseStudentId(username)
+		if err == nil {
+			student.ArchiveCategory = grade
+			student.ArchiveNumber = username
+		}
 	}
 	if err := w.mongoClient.InsertStudent(student); err != nil {
 		return nil, re.NewRErrorCode("fail to insert student", err, re.ERROR_DATABASE)

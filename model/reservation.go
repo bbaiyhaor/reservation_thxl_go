@@ -158,6 +158,9 @@ func (tf TeacherFeedback) ToJson() map[string]interface{} {
 	feedback["transfer"] = tf.Transfer
 	feedback["has_crisis"] = tf.HasCrisis
 	feedback["has_reservated"] = tf.HasReservated
+	if tf.IsEmpty() {
+		feedback["has_reservated"] = true
+	}
 	feedback["is_send_notify"] = tf.IsSendNotify
 	feedback["school_contact"] = tf.SchoolContact
 	feedback["record"] = tf.Record
@@ -173,6 +176,9 @@ func (tf TeacherFeedback) ToStringJson() map[string]interface{} {
 	json["transfer"] = tf.GetTransferStr()
 	json["has_crisis"] = tf.HasCrisis
 	json["has_reservated"] = tf.HasReservated
+	if tf.IsEmpty() {
+		json["has_reservated"] = true
+	}
 	json["is_send_notify"] = tf.IsSendNotify
 	json["school_contact"] = tf.SchoolContact
 	json["record"] = tf.Record

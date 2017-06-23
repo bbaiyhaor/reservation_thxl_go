@@ -442,6 +442,10 @@ func (w *Workflow) ExportReservationFeedbackReportToFile(reservations []*model.R
 		studentReservationsMap[studentId] = append(studentReservationsMap[studentId], r)
 		// 咨询情况汇总
 		category := r.TeacherFeedback.Category
+		// 咨询分类有变动，但是历史数据未清洗
+		if _, ok := model.FeedbackAllCategoryMap[category]; !ok {
+			continue
+		}
 		// 来访情况，H分类中的来访人员特殊处理
 		switch category {
 		case "H1":

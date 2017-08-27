@@ -10,3 +10,4 @@ reservation_thxl_go.iml
 node_modules/
 public/bundles
 webpack-assets.json
+package-lock.json

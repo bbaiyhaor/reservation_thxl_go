@@ -21,6 +21,7 @@ const (
 
 func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	m.GetJson(kStudentApiBaseUrl+"/reservation/view", "ViewReservationsByStudent", RoleCookieInjection(rc.ViewReservationsByStudent))
+	m.PostJson(kStudentApiBaseUrl+"/reservation/valid", "ValidReservationByStudent", RoleCookieInjection(rc.ValidReservationByStudent))
 	m.PostJson(kStudentApiBaseUrl+"/reservation/make", "MakeReservationByStudent", RoleCookieInjection(rc.MakeReservationByStudent))
 	m.PostJson(kStudentApiBaseUrl+"/reservation/feedback/get", "GetFeedbackByStudent", RoleCookieInjection(rc.GetFeedbackByStudent))
 	m.PostJson(kStudentApiBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByStudent", RoleCookieInjection(rc.SubmitFeedbackByStudent))
@@ -96,6 +97,23 @@ func (rc *ReservationController) ViewReservationsByStudent(w http.ResponseWriter
 		array = append(array, resJson)
 	}
 	result["reservations"] = array
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
+func (rc *ReservationController) ValidReservationByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	reservationId := form.ParamString(r, "reservation_id", "")
+	sourceId := form.ParamString(r, "source_id", "")
+	startTime := form.ParamString(r, "start_time", "")
+
+	var result = make(map[string]interface{})
+
+	student, reservation, err := service.Workflow().ValidReservationByStudent(reservationId, sourceId, startTime, userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
+	result["student"] = service.Workflow().WrapSimpleStudent(student)
+	result["reservation"] = service.Workflow().WrapSimpleReservation(reservation)
 
 	return http.StatusOK, wrapJsonOk(result)
 }

@@ -195,7 +195,7 @@ func (w *Workflow) EditReservationByAdmin(reservationId string, sourceId string,
 		return nil, re.NewRErrorCode("fail to get the day reservations", err, re.ERROR_DATABASE)
 	}
 	for _, r := range theDayReservations {
-		if r.TeacherId == teacher.Id.Hex() {
+		if r.TeacherId == teacher.Id.Hex() && r.Id.Hex() != reservation.Id.Hex() {
 			if start.After(r.StartTime) && start.Before(r.EndTime) ||
 				(end.After(r.StartTime) && end.Before(r.EndTime)) ||
 				(!start.After(r.StartTime) && !end.Before(r.EndTime)) {
@@ -958,7 +958,7 @@ func (w *Workflow) SearchTeacherByAdmin(teacherFullname string, teacherUsername 
 	}
 	if teacherUsername != "" {
 		teacher, err := w.mongoClient.GetTeacherByUsername(teacherUsername)
-		if err == nil && teacher == nil && teacher.UserType == model.USER_TYPE_TEACHER {
+		if err == nil && teacher != nil && teacher.UserType == model.USER_TYPE_TEACHER {
 			return teacher, nil
 		}
 	}

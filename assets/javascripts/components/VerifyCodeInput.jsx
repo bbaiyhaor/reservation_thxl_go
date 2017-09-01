@@ -1,6 +1,7 @@
 import 'weui';
 import { Button, CellBody, CellFooter, CellHeader, FormCell, Icon, Input, Label } from 'react-weui';
-import React, { PropTypes } from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 export default class VerifyCodeInput extends React.Component {
   constructor(props) {

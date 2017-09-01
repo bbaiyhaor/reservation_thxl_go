@@ -2,8 +2,9 @@ import 'weui';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { Application, User } from '#models/Models';
 import { Panel, PanelHeader } from 'react-weui';
-import React, { PropTypes } from 'react';
 import PageBottom from '#coms/PageBottom';
+import PropTypes from 'prop-types';
+import React from 'react';
 import StudentFeedbackForm from '#forms/StudentFeedbackForm';
 
 export default class StudentFeedbackPage extends React.Component {

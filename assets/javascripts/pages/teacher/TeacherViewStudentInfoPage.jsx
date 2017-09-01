@@ -1,9 +1,10 @@
 import 'weui';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { Cell, CellBody, CellFooter, Cells, CellsTitle, Panel, PanelHeader, TextArea } from 'react-weui';
-import React, { PropTypes } from 'react';
 import { Application } from '#models/Models';
 import PageBottom from '#coms/PageBottom';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 export default class TeacherViewStudentInfoPage extends React.Component {
   constructor(props) {
@@ -281,7 +282,7 @@ class StudentInfoPanel extends React.Component {
 }
 
 StudentInfoPanel.propTypes = {
-  reservations: PropTypes.arrayOf(React.PropTypes.object),
+  reservations: PropTypes.arrayOf(PropTypes.object),
   student: PropTypes.object,
 };
 

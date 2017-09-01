@@ -1,7 +1,8 @@
 /* eslint react/no-array-index-key: ["off"] */
 import 'weui';
 import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Checkbox, Form, FormCell, Icon, Input, Label, Select, Switch, TextArea } from 'react-weui';
-import React, { PropTypes } from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 export default class TeacherFeedbackForm extends React.Component {
   constructor(props) {
@@ -224,12 +225,12 @@ export default class TeacherFeedbackForm extends React.Component {
       >
         {this.state.secondCategories && this.state.secondCategories[this.state.firstCategory] &&
           Object.keys(this.state.secondCategories[this.state.firstCategory]).map(name =>
-            <option
+            (<option
               key={`second_category_option_${name}`}
               value={name}
             >
               {this.state.secondCategories[this.state.firstCategory][name]}
-            </option>,
+            </option>),
           )
         }
       </Select>
@@ -241,7 +242,7 @@ export default class TeacherFeedbackForm extends React.Component {
       <div>
         <CellsTitle>严重程度</CellsTitle>
         {this.state.varSeverity && this.state.varSeverity.map((vs, i) =>
-          <FormCell checkbox key={`checkbox-severity-${i}`}>
+          (<FormCell checkbox key={`checkbox-severity-${i}`}>
             <CellHeader>
               <Checkbox
                 name="severity"
@@ -253,11 +254,11 @@ export default class TeacherFeedbackForm extends React.Component {
             <CellBody>
               {vs}
             </CellBody>
-          </FormCell>)
+          </FormCell>))
         }
         <CellsTitle>疑似或明确的医疗诊断</CellsTitle>
         {this.state.varMedicalDiagnosis && this.state.varMedicalDiagnosis.map((vmd, i) =>
-          <FormCell checkbox key={`checkbox-medical-diagnosis-${i}`}>
+          (<FormCell checkbox key={`checkbox-medical-diagnosis-${i}`}>
             <CellHeader>
               <Checkbox
                 name="medicalDiagnosis"
@@ -269,11 +270,11 @@ export default class TeacherFeedbackForm extends React.Component {
             <CellBody>
               {vmd}
             </CellBody>
-          </FormCell>)
+          </FormCell>))
         }
         <CellsTitle>危急情况</CellsTitle>
         {this.state.varCrisis && this.state.varCrisis.map((vc, i) =>
-          <FormCell checkbox key={`checkbox-crisis-${i}`}>
+          (<FormCell checkbox key={`checkbox-crisis-${i}`}>
             <CellHeader>
               <Checkbox
                 name="crisis"
@@ -285,11 +286,11 @@ export default class TeacherFeedbackForm extends React.Component {
             <CellBody>
               {vc}
             </CellBody>
-          </FormCell>)
+          </FormCell>))
         }
         <CellsTitle>转介</CellsTitle>
         {this.state.varTransfer && this.state.varTransfer.map((vt, i) =>
-          <FormCell checkbox key={`checkbox-transfer-${i}`}>
+          (<FormCell checkbox key={`checkbox-transfer-${i}`}>
             <CellHeader>
               <Checkbox
                 name="transfer"
@@ -301,7 +302,7 @@ export default class TeacherFeedbackForm extends React.Component {
             <CellBody>
               {vt}
             </CellBody>
-          </FormCell>)
+          </FormCell>))
         }
       </div>
     );
@@ -328,12 +329,12 @@ export default class TeacherFeedbackForm extends React.Component {
                 onChange={this.handleChange}
               >
                 {this.state.firstCategories && Object.keys(this.state.firstCategories).map(name =>
-                  <option
+                  (<option
                     key={`first_category_option_${name}`}
                     value={name}
                   >
                     {this.state.firstCategories[name]}
-                  </option>,
+                  </option>),
                 )}
               </Select>
             </CellBody>

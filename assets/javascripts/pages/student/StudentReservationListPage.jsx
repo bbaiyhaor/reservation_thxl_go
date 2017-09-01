@@ -1,13 +1,14 @@
 /* eslint max-len: ["off"] */
 import 'weui';
-import 'react-weui/lib/react-weui.min.css';
+// import 'react-weui/lib/react-weui.min.css';
 import { AlertDialog, ConfirmDialog, LoadingHud } from '#coms/Huds';
 import { Application, User } from '#models/Models';
 import { Button, Cell, CellBody, Cells, CellsTitle, MediaBox, Panel, PanelBody, PanelHeader, SearchBar, Toptips } from 'react-weui';
-import React, { PropTypes } from 'react';
 import LogoutButton from '#coms/LogoutButton';
 import MobileDetect from '#utils/MobileDetect';
 import PageBottom from '#coms/PageBottom';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 export default class StudentReservationListPage extends React.Component {
   constructor(props) {
@@ -184,7 +185,7 @@ class StudentReservationList extends React.Component {
         <MediaBox type="small_appmsg">
           <Cells>
             {this.state.reservations && this.state.reservations.map(reservation =>
-              <Cell key={`reservation-cell-${reservation.id}`}>
+              (<Cell key={`reservation-cell-${reservation.id}`}>
                 <CellBody>
                   {reservation.student_id && reservation.student_id === User.userId ?
                     <p style={{ ...hightlightStyle }}>
@@ -195,7 +196,7 @@ class StudentReservationList extends React.Component {
                   }
                 </CellBody>
                 {this.renderButton(reservation)}
-              </Cell>)
+              </Cell>))
             }
           </Cells>
         </MediaBox>
@@ -207,7 +208,7 @@ class StudentReservationList extends React.Component {
 
 StudentReservationList.propTypes = {
   history: PropTypes.object.isRequired,
-  reservations: PropTypes.arrayOf(React.PropTypes.object),
+  reservations: PropTypes.arrayOf(PropTypes.object),
 };
 
 StudentReservationList.defaultProps = {

@@ -1,6 +1,7 @@
 import 'weui';
 import { Button, ButtonArea, Cell, CellBody, CellFooter, Cells, CellsTitle, Form, FormCell, Radio } from 'react-weui';
-import React, { PropTypes } from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 export default class StudentFeedbackForm extends React.Component {
   constructor(props) {

@@ -3,10 +3,11 @@ import 'weui';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { Application, User } from '#models/Models';
 import { Button, CellBody, CellFooter, CellsTitle, FormCell, Icon, Input, MediaBox, MediaBoxBody, MediaBoxDescription, MediaBoxTitle, Panel, PanelBody, PanelHeader, SearchBar } from 'react-weui';
-import React, { PropTypes } from 'react';
 import { Link } from 'react-router-dom';
 import LogoutButton from '#coms/LogoutButton';
 import PageBottom from '#coms/PageBottom';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 export default class TeacherReservationListPage extends React.Component {
   constructor(props) {
@@ -266,7 +267,7 @@ class TeacherReservationList extends React.Component {
           onChange={this.handleChange}
         />
         {this.state.reservations && this.state.reservations.map(reservation =>
-          <MediaBox
+          (<MediaBox
             key={`reservation-box-${reservation.id}`}
             type="appmsg"
             style={{ padding: '10px 15px' }}
@@ -283,7 +284,7 @@ class TeacherReservationList extends React.Component {
               </MediaBoxDescription>
               }
             </MediaBoxBody>
-          </MediaBox>)
+          </MediaBox>))
         }
       </div>
     );
@@ -292,7 +293,7 @@ class TeacherReservationList extends React.Component {
 
 TeacherReservationList.propTypes = {
   history: PropTypes.object.isRequired,
-  reservations: PropTypes.arrayOf(React.PropTypes.object),
+  reservations: PropTypes.arrayOf(PropTypes.object),
 };
 
 TeacherReservationList.defaultProps = {

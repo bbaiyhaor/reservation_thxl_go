@@ -1,9 +1,10 @@
 import 'weui';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { Panel, PanelBody, PanelHeader } from 'react-weui';
-import React, { PropTypes } from 'react';
 import LoginForm from '#forms/LoginForm';
 import PageBottom from '#coms/PageBottom';
+import PropTypes from 'prop-types';
+import React from 'react';
 import { User } from '#models/Models';
 
 export default class StudentLoginPage extends React.Component {

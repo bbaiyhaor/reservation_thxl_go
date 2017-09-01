@@ -2,9 +2,10 @@ import 'weui';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { Application, User } from '#models/Models';
 import { Panel, PanelHeader } from 'react-weui';
-import React, { PropTypes } from 'react';
 import MakeReservationForm from '#forms/MakeReservationForm';
 import PageBottom from '#coms/PageBottom';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 export default class StudentMakeReservationPage extends React.Component {
   constructor(props) {

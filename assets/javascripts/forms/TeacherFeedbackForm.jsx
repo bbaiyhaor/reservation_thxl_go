@@ -38,7 +38,10 @@ export default class TeacherFeedbackForm extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    const { feedback } = nextProps;
+    const { feedback, reservation } = nextProps;
+    if (reservation) {
+      this.setState({ reservation });
+    }
     if (feedback) {
       let severity = feedback.severity;
       const varSeverity = feedback.var_severity;
@@ -92,9 +95,9 @@ export default class TeacherFeedbackForm extends React.Component {
   }
 
   handleChange(e) {
-    const name = e.target.name;
-    const value = e.target.value;
-    const checked = e.target.type === 'checkbox' ? e.target.checked : value;
+    const { target } = e;
+    const { name, value, type } = target;
+    const checked = type === 'checkbox' ? target.checked : value;
     switch (name) {
       case 'severity':
         this.setState((prevState) => {
@@ -125,7 +128,7 @@ export default class TeacherFeedbackForm extends React.Component {
         });
         break;
       default:
-        if (e.target.type === 'checkbox') {
+        if (type === 'checkbox') {
           this.setState({ [name]: checked });
         } else {
           this.setState({ [name]: value });
@@ -464,7 +467,7 @@ export default class TeacherFeedbackForm extends React.Component {
 }
 
 TeacherFeedbackForm.propTypes = {
-  reservation: PropTypes.object.isRequired,
+  reservation: PropTypes.object,
   feedback: PropTypes.object,
   handleSubmit: PropTypes.func.isRequired,
   handleCancel: PropTypes.func.isRequired,
@@ -472,5 +475,6 @@ TeacherFeedbackForm.propTypes = {
 };
 
 TeacherFeedbackForm.defaultProps = {
+  reservation: null,
   feedback: null,
 };

@@ -240,7 +240,7 @@ func (w *Workflow) SubmitFeedbackByStudent(reservationId string, scores []int, u
 		return nil, re.NewRErrorCodeContext("reservation id is empty", nil, re.ERROR_MISSING_PARAM, "reservation_id")
 	} else if len(scores) != model.RESERVATION_STUDENT_FEEDBACK_SCORES_LENGTH {
 		return nil, re.NewRErrorCodeContext("scores is not valid", nil, re.ERROR_INVALID_PARAM, "scores")
-	} 
+	}
 	student, err := w.mongoClient.GetStudentById(userId)
 	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
 		return nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)

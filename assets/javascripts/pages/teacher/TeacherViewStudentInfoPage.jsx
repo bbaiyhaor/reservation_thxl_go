@@ -5,6 +5,7 @@ import { Application } from '#models/Models';
 import PageBottom from '#coms/PageBottom';
 import PropTypes from 'prop-types';
 import React from 'react';
+import queryString from 'query-string';
 
 export default class TeacherViewStudentInfoPage extends React.Component {
   constructor(props) {
@@ -16,10 +17,11 @@ export default class TeacherViewStudentInfoPage extends React.Component {
   }
 
   componentDidMount() {
-    const studentId = this.props.history.location.state.student_id || '';
-    const studentUsername = this.props.history.location.state.student_username || '';
     this.loading.show('正在加载中');
-    if (studentId && studentId !== '') {
+    const parsedQuery = queryString.parse(this.props.history.location.search);
+    const studentId = parsedQuery.student_id ? parsedQuery.student_id : '';
+    const studentUsername = parsedQuery.student_username ? parsedQuery.student_username : '';
+    if (studentId !== '') {
       setTimeout(() => {
         Application.getStudentInfoByTeacher(studentId, (data) => {
           this.loading.hide();

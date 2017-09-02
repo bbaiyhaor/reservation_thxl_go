@@ -119,7 +119,7 @@ class StudentReservationList extends React.Component {
         reservations: prevState.reservationsBak,
       }));
     }
-    const result = this.state.reservationsBak.filter((reservation) => {
+    const result = this.state.reservationsBak ? this.state.reservationsBak.filter((reservation) => {
       if (reservation.teacher_fullname.indexOf(keyword) !== -1) {
         return true;
       } else if (reservation.start_time.indexOf(keyword) !== -1) {
@@ -128,8 +128,10 @@ class StudentReservationList extends React.Component {
         return true;
       }
       return false;
-    });
-    this.setState({ reservations: result });
+    }) : null;
+    if (result !== null) {
+      this.setState({ reservations: result });
+    }
   }
 
   makeReservation(reservation) {

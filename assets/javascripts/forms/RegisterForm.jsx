@@ -1,7 +1,8 @@
 import 'weui';
 import { Agreement, Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Form, FormCell, Icon, Input, Label, Select } from 'react-weui';
-import React, { PropTypes } from 'react';
 import { Link } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 export default class RegisterForm extends React.Component {
   constructor(props) {

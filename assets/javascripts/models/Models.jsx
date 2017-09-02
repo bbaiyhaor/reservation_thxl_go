@@ -19,6 +19,7 @@ const apiLogout = `${apiServer}/user/logout`;
 
 // Student API
 const apiViewReservationsByStudent = `${apiServer}/student/reservation/view`;
+const apiValidReservationByStudent = `${apiServer}/student/reservation/valid`;
 const apiMakeReservationByStudent = `${apiServer}/student/reservation/make`;
 const apiGetFeedbackByStudent = `${apiServer}/student/reservation/feedback/get`;
 const apiSubmitFeedbackByStudent = `${apiServer}/student/reservation/feedback/submit`;
@@ -195,9 +196,11 @@ export const User = {
 };
 
 export const Application = {
+  reservation: null,
   reservations: null,
 
   clearApplication() {
+    this.reservation = null;
     this.reservations = null;
   },
 
@@ -218,6 +221,24 @@ export const Application = {
     fetch(apiViewReservationsByStudent, 'GET', {}, succ, errCallback);
   },
 
+  validReservationByStudent(reservationId, sourceId, startTime, succCallback, errCallback) {
+    const succ = (data) => {
+      if (data.status === 'OK') {
+        User.student = data.payload.student;
+        this.reservation = data.payload.reservation;
+        succCallback && succCallback(data.payload);
+      } else {
+        errCallback && errCallback(data.err_msg, data.payload);
+      }
+    };
+    const payload = {
+      reservation_id: reservationId,
+      source_id: sourceId,
+      start_time: startTime,
+    };
+    fetch(apiValidReservationByStudent, 'POST', payload, succ, errCallback);
+  },
+
   makeReservationByStudent(payload, succCallback, errCallback) {
     const succ = (data) => {
       if (data.status === 'OK') {
@@ -229,7 +250,7 @@ export const Application = {
     fetch(apiMakeReservationByStudent, 'POST', payload, succ, errCallback);
   },
 
-  getFeedbackByStudent(reservationId, sourceId, succCallback, errCallback) {
+  getFeedbackByStudent(reservationId, succCallback, errCallback) {
     const succ = (data) => {
       if (data.status === 'OK') {
         succCallback && succCallback(data.payload);
@@ -239,12 +260,11 @@ export const Application = {
     };
     const payload = {
       reservation_id: reservationId,
-      source_id: sourceId,
     };
     fetch(apiGetFeedbackByStudent, 'POST', payload, succ, errCallback);
   },
 
-  submitFeedbackByStudent(reservationId, sourceId, scores, succCallback, errCallback) {
+  submitFeedbackByStudent(reservationId, scores, succCallback, errCallback) {
     const succ = (data) => {
       if (data.status === 'OK') {
         succCallback && succCallback(data.payload);
@@ -254,7 +274,6 @@ export const Application = {
     };
     const payload = {
       reservation_id: reservationId,
-      source_id: sourceId,
       scores,
     };
     fetch(apiSubmitFeedbackByStudent, 'POST', payload, succ, errCallback);
@@ -277,7 +296,7 @@ export const Application = {
     fetch(apiViewReservationsByTeacher, 'GET', {}, succ, errCallback);
   },
 
-  getFeedbackByTeacher(reservationId, sourceId, succCallback, errCallback) {
+  getFeedbackByTeacher(reservationId, succCallback, errCallback) {
     const succ = (data) => {
       if (data.status === 'OK') {
         succCallback && succCallback(data.payload);
@@ -287,7 +306,6 @@ export const Application = {
     };
     const payload = {
       reservation_id: reservationId,
-      source_id: sourceId,
     };
     fetch(apiGetFeedbackByTeacher, 'POST', payload, succ, errCallback);
   },

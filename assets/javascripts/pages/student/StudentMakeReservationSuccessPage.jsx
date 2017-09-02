@@ -1,6 +1,7 @@
 import 'weui';
-import React, { PropTypes } from 'react';
 import { Msg } from 'react-weui';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 export default class StudentMakeReservationSuccessPage extends React.Component {
   constructor(props) {

@@ -9,16 +9,13 @@ import (
 )
 
 // 咨询师拉取反馈
-func (w *Workflow) GetFeedbackByTeacher(reservationId string, sourceId string,
-	userId string, userType int) (*model.Student, *model.Reservation, error) {
+func (w *Workflow) GetFeedbackByTeacher(reservationId string, userId string, userType int) (*model.Student, *model.Reservation, error) {
 	if userId == "" {
 		return nil, nil, re.NewRErrorCode("teacher not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_TEACHER {
 		return nil, nil, re.NewRErrorCode("user is not teacher", nil, re.ERROR_NOT_AUTHORIZED)
 	} else if reservationId == "" {
 		return nil, nil, re.NewRErrorCodeContext("reservation id is empty", nil, re.ERROR_MISSING_PARAM, "reservation_id")
-	} else if reservationId == sourceId {
-		return nil, nil, re.NewRErrorCode("cannot get feedback of available reservation", nil, re.ERROR_FEEDBACK_AVAILABLE_RESERVATION)
 	}
 	teacher, err := w.mongoClient.GetTeacherById(userId)
 	if err != nil || teacher == nil || teacher.UserType != model.USER_TYPE_TEACHER {
@@ -42,7 +39,7 @@ func (w *Workflow) GetFeedbackByTeacher(reservationId string, sourceId string,
 }
 
 // 咨询师提交反馈
-func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string, category string, severity []int,
+func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, category string, severity []int,
 	medicalDiagnosis []int, crisis []int, transfer []int, hasCrisis bool, hasReservated bool, isSendNotify bool,
 	schoolContact string, record string, crisisLevel string, userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
@@ -65,8 +62,6 @@ func (w *Workflow) SubmitFeedbackByTeacher(reservationId string, sourceId string
 		return nil, re.NewRErrorCodeContext("record is empty", nil, re.ERROR_MISSING_PARAM, "record")
 	} else if crisisLevel == "" {
 		return nil, re.NewRErrorCodeContext("crisis_level is empty", nil, re.ERROR_MISSING_PARAM, "crisis_level")
-	} else if reservationId == sourceId {
-		return nil, re.NewRErrorCode("cannot get feedback of available reservation", nil, re.ERROR_FEEDBACK_AVAILABLE_RESERVATION)
 	}
 	crisisLevelInt, err := strconv.Atoi(crisisLevel)
 	if err != nil || crisisLevelInt < 0 {

@@ -21,6 +21,7 @@ const (
 
 func (rc *ReservationController) MuxHandlers(m JsonMuxer) {
 	m.GetJson(kStudentApiBaseUrl+"/reservation/view", "ViewReservationsByStudent", RoleCookieInjection(rc.ViewReservationsByStudent))
+	m.PostJson(kStudentApiBaseUrl+"/reservation/valid", "ValidReservationByStudent", RoleCookieInjection(rc.ValidReservationByStudent))
 	m.PostJson(kStudentApiBaseUrl+"/reservation/make", "MakeReservationByStudent", RoleCookieInjection(rc.MakeReservationByStudent))
 	m.PostJson(kStudentApiBaseUrl+"/reservation/feedback/get", "GetFeedbackByStudent", RoleCookieInjection(rc.GetFeedbackByStudent))
 	m.PostJson(kStudentApiBaseUrl+"/reservation/feedback/submit", "SubmitFeedbackByStudent", RoleCookieInjection(rc.SubmitFeedbackByStudent))
@@ -100,6 +101,23 @@ func (rc *ReservationController) ViewReservationsByStudent(w http.ResponseWriter
 	return http.StatusOK, wrapJsonOk(result)
 }
 
+func (rc *ReservationController) ValidReservationByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
+	reservationId := form.ParamString(r, "reservation_id", "")
+	sourceId := form.ParamString(r, "source_id", "")
+	startTime := form.ParamString(r, "start_time", "")
+
+	var result = make(map[string]interface{})
+
+	student, reservation, err := service.Workflow().ValidReservationByStudent(reservationId, sourceId, startTime, userId, userType)
+	if err != nil {
+		return http.StatusOK, wrapJsonError(err)
+	}
+	result["student"] = service.Workflow().WrapSimpleStudent(student)
+	result["reservation"] = service.Workflow().WrapSimpleReservation(reservation)
+
+	return http.StatusOK, wrapJsonOk(result)
+}
+
 func (rc *ReservationController) MakeReservationByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
 	sourceId := form.ParamString(r, "source_id", "")
@@ -142,16 +160,16 @@ func (rc *ReservationController) MakeReservationByStudent(w http.ResponseWriter,
 
 func (rc *ReservationController) GetFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
-	sourceId := form.ParamString(r, "source_id", "")
 
 	var result = make(map[string]interface{})
 
 	var feedbackJson = make(map[string]interface{})
-	reservation, err := service.Workflow().GetFeedbackByStudent(reservationId, sourceId, userId, userType)
+	reservation, err := service.Workflow().GetFeedbackByStudent(reservationId, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
 	feedbackJson["scores"] = reservation.StudentFeedback.Scores
+	result["reservation"] = service.Workflow().WrapSimpleReservation(reservation)
 	result["feedback"] = feedbackJson
 
 	return http.StatusOK, wrapJsonOk(result)
@@ -159,7 +177,6 @@ func (rc *ReservationController) GetFeedbackByStudent(w http.ResponseWriter, r *
 
 func (rc *ReservationController) SubmitFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
-	sourceId := form.ParamString(r, "source_id", "")
 	scores := []string(r.Form["scores"])
 	scoresInt := []int{}
 	for _, p := range scores {
@@ -170,7 +187,7 @@ func (rc *ReservationController) SubmitFeedbackByStudent(w http.ResponseWriter, 
 
 	var result = make(map[string]interface{})
 
-	_, err := service.Workflow().SubmitFeedbackByStudent(reservationId, sourceId, scoresInt, userId, userType)
+	_, err := service.Workflow().SubmitFeedbackByStudent(reservationId, scoresInt, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
@@ -206,11 +223,10 @@ func (rc *ReservationController) ViewReservationsByTeacher(w http.ResponseWriter
 
 func (rc *ReservationController) GetFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
-	sourceId := form.ParamString(r, "source_id", "")
 
 	var result = make(map[string]interface{})
 
-	student, reservation, err := service.Workflow().GetFeedbackByTeacher(reservationId, sourceId, userId, userType)
+	student, reservation, err := service.Workflow().GetFeedbackByTeacher(reservationId, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
@@ -224,13 +240,13 @@ func (rc *ReservationController) GetFeedbackByTeacher(w http.ResponseWriter, r *
 	feedback["var_transfer"] = model.FeedbackTransfer
 	result["feedback"] = feedback
 	result["student"] = service.Workflow().WrapStudent(student)
+	result["reservation"] = service.Workflow().WrapReservation(reservation)
 
 	return http.StatusOK, wrapJsonOk(result)
 }
 
 func (rc *ReservationController) SubmitFeedbackByTeacher(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
-	sourceId := form.ParamString(r, "source_id", "")
 	category := form.ParamString(r, "category", "")
 	severity := []string(r.Form["severity"])
 	severityInt := make([]int, 0, len(severity))
@@ -269,7 +285,7 @@ func (rc *ReservationController) SubmitFeedbackByTeacher(w http.ResponseWriter, 
 
 	var result = make(map[string]interface{})
 
-	_, err := service.Workflow().SubmitFeedbackByTeacher(reservationId, sourceId, category, severityInt,
+	_, err := service.Workflow().SubmitFeedbackByTeacher(reservationId, category, severityInt,
 		medicalDiagnosisInt, crisisInt, transferInt, hasCrisis, hasReservated, isSendNotify, schoolContact, record,
 		crisisLevel, userId, userType)
 	if err != nil {

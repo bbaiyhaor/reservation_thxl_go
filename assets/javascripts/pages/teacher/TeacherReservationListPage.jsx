@@ -3,10 +3,11 @@ import 'weui';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { Application, User } from '#models/Models';
 import { Button, CellBody, CellFooter, CellsTitle, FormCell, Icon, Input, MediaBox, MediaBoxBody, MediaBoxDescription, MediaBoxTitle, Panel, PanelBody, PanelHeader, SearchBar } from 'react-weui';
-import React, { PropTypes } from 'react';
 import { Link } from 'react-router-dom';
 import LogoutButton from '#coms/LogoutButton';
 import PageBottom from '#coms/PageBottom';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 export default class TeacherReservationListPage extends React.Component {
   constructor(props) {
@@ -49,9 +50,8 @@ export default class TeacherReservationListPage extends React.Component {
     this.props.history.push('/password/change');
   }
 
-  handleChange(e, name) {
-    const value = e.target.value;
-    this.setState({ [name]: value });
+  handleChange(e) {
+    this.setState({ [e.target.name]: e.target.value });
   }
 
   toStudentInfo() {
@@ -62,7 +62,7 @@ export default class TeacherReservationListPage extends React.Component {
       return;
     }
     Application.queryStudentInfoByTeacher(this.state.studentUsername, () => {
-      this.props.history.push('/student', { student_username: `${this.state.studentUsername}` });
+      this.props.history.push(`/student?student_username=${this.state.studentUsername}`);
     }, (error) => {
       this.alert.show('查询失败', error, '好的', () => {
         this.alert.hide();
@@ -94,14 +94,15 @@ export default class TeacherReservationListPage extends React.Component {
             </div>
             <CellsTitle>点击预约学生姓名可查看学生信息，红色咨询为危机个案</CellsTitle>
             <CellsTitle>输入学生学号查询学生信息</CellsTitle>
-            <FormCell warn style={{ padding: '10px 0px 0px 15px' }}>
+            <FormCell warn={this.state.studentUsernameWarn} style={{ padding: '10px 0px 0px 15px' }}>
               <CellBody>
                 <Input
                   ref={(studentUsernameInput) => { this.studentUsernameInput = studentUsernameInput; }}
-                  type="input"
+                  name="studentUsername"
+                  type="text"
                   placeholder="请输入学生学号"
                   value={this.state.studentUsername}
-                  onChange={(e) => { this.handleChange(e, 'studentUsername'); }}
+                  onChange={this.handleChange}
                 />
               </CellBody>
               <CellFooter>
@@ -146,7 +147,7 @@ class TeacherReservationList extends React.Component {
           <Link
             to={{
               pathname: '/student',
-              state: { student_id: `${reservation.student_id}` },
+              search: `?student_id=${reservation.student_id}`,
             }}
             style={{ color: '#EF4F4F', ...style }}
           >
@@ -158,7 +159,7 @@ class TeacherReservationList extends React.Component {
         <Link
           to={{
             pathname: '/student',
-            state: { student_id: `${reservation.student_id}` },
+            search: `?student_id=${reservation.student_id}`,
           }}
           style={{ color: '#999999', ...style }}
         >
@@ -187,7 +188,7 @@ class TeacherReservationList extends React.Component {
   }
 
   toFeedback(reservation) {
-    this.props.history.push('/reservation/feedback', { reservation_id: `${reservation.id}` });
+    this.props.history.push(`/reservation/feedback?reservation_id=${reservation.id}`);
   }
 
   handleChange(text) {
@@ -197,7 +198,7 @@ class TeacherReservationList extends React.Component {
         reservations: prevState.reservationsBak,
       }));
     }
-    const result = this.state.reservationsBak.filter((reservation) => {
+    const result = this.state.reservationsBak ? this.state.reservationsBak.filter((reservation) => {
       if (reservation.teacher_fullname.indexOf(keyword) !== -1) {
         return true;
       } else if (reservation.teacher_mobile.indexOf(keyword) !== -1) {
@@ -214,8 +215,10 @@ class TeacherReservationList extends React.Component {
         return true;
       }
       return false;
-    });
-    this.setState({ reservations: result });
+    }) : null;
+    if (result !== null) {
+      this.setState({ reservations: result });
+    }
   }
 
   renderStatusButton(reservation) {
@@ -266,8 +269,8 @@ class TeacherReservationList extends React.Component {
           onChange={this.handleChange}
         />
         {this.state.reservations && this.state.reservations.map(reservation =>
-          <MediaBox
-            key={`reservation-box-${reservation.id}`}
+          (<MediaBox
+            key={`reservation-box-${reservation.id}-${reservation.start_time}`}
             type="appmsg"
             style={{ padding: '10px 15px' }}
           >
@@ -283,7 +286,7 @@ class TeacherReservationList extends React.Component {
               </MediaBoxDescription>
               }
             </MediaBoxBody>
-          </MediaBox>)
+          </MediaBox>))
         }
       </div>
     );
@@ -292,7 +295,7 @@ class TeacherReservationList extends React.Component {
 
 TeacherReservationList.propTypes = {
   history: PropTypes.object.isRequired,
-  reservations: PropTypes.arrayOf(React.PropTypes.object),
+  reservations: PropTypes.arrayOf(PropTypes.object),
 };
 
 TeacherReservationList.defaultProps = {

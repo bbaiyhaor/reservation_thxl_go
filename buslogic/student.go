@@ -8,6 +8,66 @@ import (
 	"time"
 )
 
+// 学生验证咨询信息
+func (w *Workflow) ValidReservationByStudent(reservationId string, sourceId string, startTime string,
+	userId string, userType int) (*model.Student, *model.Reservation, error) {
+	if userId == "" {
+		return nil, nil, re.NewRErrorCode("student not login", nil, re.ERROR_NO_LOGIN)
+	} else if userType != model.USER_TYPE_STUDENT {
+		return nil, nil, re.NewRErrorCode("user is not student", nil, re.ERROR_NOT_AUTHORIZED)
+	} else if reservationId == "" {
+		return nil, nil, re.NewRErrorCodeContext("reservation id is empty", nil, re.ERROR_MISSING_PARAM, "reservation_id")
+	}
+	student, err := w.mongoClient.GetStudentById(userId)
+	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
+		return nil, nil, re.NewRErrorCode("fail to get student", err, re.ERROR_DATABASE)
+	}
+	studentReservations, err := w.mongoClient.GetReservationsByStudentId(student.Id.Hex())
+	if err != nil {
+		return nil, nil, re.NewRErrorCode("fail to get reservations", err, re.ERROR_DATABASE)
+	}
+	for _, r := range studentReservations {
+		if r.Status == model.RESERVATION_STATUS_RESERVATED && r.StartTime.After(time.Now()) {
+			return nil, nil, re.NewRErrorCode("already have reservation", nil, re.ERROR_STUDENT_ALREADY_HAVE_RESERVATION)
+		}
+	}
+	var reservation *model.Reservation
+	if sourceId == "" {
+		// Source为ADD，无SourceId：直接预约
+		reservation, err = w.mongoClient.GetReservationById(reservationId)
+		if err != nil || reservation == nil || reservation.Status == model.RESERVATION_STATUS_DELETED {
+			return nil, nil, re.NewRErrorCode("fail to get reservation", nil, re.ERROR_DATABASE)
+		} else if reservation.StartTime.Before(time.Now()) {
+			return nil, nil, re.NewRErrorCode("cannot make outdated reservation", nil, re.ERROR_STUDENT_MAKE_OUTDATED_RESERVATION)
+		} else if reservation.Status != model.RESERVATION_STATUS_AVAILABLE {
+			return nil, nil, re.NewRErrorCode("cannot make reservated reservation", nil, re.ERROR_STUDENT_MAKE_RESERVATED_RESERVATION)
+		} else if student.BindedTeacherId != "" && student.BindedTeacherId != reservation.TeacherId {
+			return nil, nil, re.NewRErrorCode("only make binded teacher reservation", nil, re.ERROR_STUDENT_MAKE_NOT_BINDED_TEACHER_RESERVATION)
+		}
+	} else if reservationId == sourceId {
+		timedReservation, err := w.mongoClient.GetTimedReservationById(sourceId)
+		if err != nil || timedReservation == nil || timedReservation.Status == model.RESERVATION_STATUS_DELETED {
+			return nil, nil, re.NewRErrorCode("fail to get timetable", nil, re.ERROR_DATABASE)
+		}
+		start, err := time.ParseInLocation("2006-01-02 15:04", startTime, time.Local)
+		if err != nil {
+			return nil, nil, re.NewRErrorCodeContext("start time is not valid", err, re.ERROR_INVALID_PARAM, "start_time")
+		} else if start.Before(time.Now()) {
+			return nil, nil, re.NewRErrorCode("cannot make outdated reservation", nil, re.ERROR_STUDENT_MAKE_OUTDATED_RESERVATION)
+		} else if start.Format("15:04") != timedReservation.StartTime.Format("15:04") {
+			return nil, nil, re.NewRErrorCode("start time mismatch", nil, re.ERROR_START_TIME_MISMATCH)
+		} else if timedReservation.Timed[start.Format("2006-01-02")] {
+			return nil, nil, re.NewRErrorCode("cannot make reservated reservation", nil, re.ERROR_STUDENT_MAKE_RESERVATED_RESERVATION)
+		} else if student.BindedTeacherId != "" && student.BindedTeacherId != timedReservation.TeacherId {
+			return nil, nil, re.NewRErrorCode("only make binded teacher reservation", nil, re.ERROR_STUDENT_MAKE_NOT_BINDED_TEACHER_RESERVATION)
+		}
+		reservation = timedReservation.ToReservation(start)
+	} else {
+		return nil, nil, re.NewRErrorCode("cannot make reservated reservation", nil, re.ERROR_STUDENT_MAKE_RESERVATED_RESERVATION)
+	}
+	return student, reservation, nil
+}
+
 // 学生预约咨询
 func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId string, startTime string,
 	fullname string, gender string, birthday string, school string, grade string, currentAddress string,
@@ -145,16 +205,13 @@ func (w *Workflow) MakeReservationByStudent(reservationId string, sourceId strin
 }
 
 // 学生拉取反馈
-func (w *Workflow) GetFeedbackByStudent(reservationId string, sourceId string,
-	userId string, userType int) (*model.Reservation, error) {
+func (w *Workflow) GetFeedbackByStudent(reservationId string, userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
 		return nil, re.NewRErrorCode("student not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_STUDENT {
 		return nil, re.NewRErrorCode("user is not student", nil, re.ERROR_NOT_AUTHORIZED)
 	} else if reservationId == "" {
 		return nil, re.NewRErrorCodeContext("reservation id is empty", nil, re.ERROR_MISSING_PARAM, "reservation_id")
-	} else if reservationId == sourceId {
-		return nil, re.NewRErrorCode("cannot get feedback of available reservation", nil, re.ERROR_FEEDBACK_AVAILABLE_RESERVATION)
 	}
 	student, err := w.mongoClient.GetStudentById(userId)
 	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {
@@ -174,8 +231,7 @@ func (w *Workflow) GetFeedbackByStudent(reservationId string, sourceId string,
 }
 
 // 学生反馈
-func (w *Workflow) SubmitFeedbackByStudent(reservationId string, sourceId string, scores []int,
-	userId string, userType int) (*model.Reservation, error) {
+func (w *Workflow) SubmitFeedbackByStudent(reservationId string, scores []int, userId string, userType int) (*model.Reservation, error) {
 	if userId == "" {
 		return nil, re.NewRErrorCode("student not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_STUDENT {
@@ -184,8 +240,6 @@ func (w *Workflow) SubmitFeedbackByStudent(reservationId string, sourceId string
 		return nil, re.NewRErrorCodeContext("reservation id is empty", nil, re.ERROR_MISSING_PARAM, "reservation_id")
 	} else if len(scores) != model.RESERVATION_STUDENT_FEEDBACK_SCORES_LENGTH {
 		return nil, re.NewRErrorCodeContext("scores is not valid", nil, re.ERROR_INVALID_PARAM, "scores")
-	} else if reservationId == sourceId {
-		return nil, re.NewRErrorCode("cannot get feedback of available reservation", nil, re.ERROR_FEEDBACK_AVAILABLE_RESERVATION)
 	}
 	student, err := w.mongoClient.GetStudentById(userId)
 	if err != nil || student == nil || student.UserType != model.USER_TYPE_STUDENT {

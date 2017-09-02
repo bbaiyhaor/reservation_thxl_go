@@ -1,7 +1,8 @@
 import 'weui';
-import React, { PropTypes } from 'react';
 import { AlertDialog } from '#coms/Huds';
 import { Button } from 'react-weui';
+import PropTypes from 'prop-types';
+import React from 'react';
 import { User } from '#models/Models';
 
 export default class LogoutButton extends React.Component {

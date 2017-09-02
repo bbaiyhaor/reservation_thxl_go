@@ -1,7 +1,8 @@
 /* eslint consistent-return: "off" */
 import 'weui';
 import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Form, FormCell, Icon, Input, Label } from 'react-weui';
-import React, { PropTypes } from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import { User } from '#models/Models';
 import VerifyCodeInput from '#coms/VerifyCodeInput';
 

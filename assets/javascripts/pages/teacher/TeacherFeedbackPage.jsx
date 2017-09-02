@@ -2,9 +2,11 @@ import 'weui';
 import { AlertDialog, LoadingHud } from '#coms/Huds';
 import { Application, User } from '#models/Models';
 import { Panel, PanelHeader } from 'react-weui';
-import React, { PropTypes } from 'react';
 import PageBottom from '#coms/PageBottom';
+import PropTypes from 'prop-types';
+import React from 'react';
 import TeacherFeedbackForm from '#forms/TeacherFeedbackForm';
+import queryString from 'query-string';
 
 export default class TeacherFeedbackPage extends React.Component {
   constructor(props) {
@@ -20,43 +22,30 @@ export default class TeacherFeedbackPage extends React.Component {
     this.showAlert = this.showAlert.bind(this);
   }
 
-  componentWillMount() {
-    const reservationId = this.props.history.location.state.reservation_id || '';
-    if (reservationId === '' || !User.teacher || !Application.reservations) {
-      this.props.history.push('/reservation');
-      return;
-    }
-    let i = 0;
-    let reservation = null;
-    for (; i < Application.reservations.length; i += 1) {
-      if (Application.reservations[i].id === reservationId) {
-        reservation = Application.reservations[i];
-        break;
-      }
-    }
-    if (i === Application.reservations.length) {
-      this.props.history.push('/reservation');
-      return;
-    }
-    this.setState({ reservation });
-  }
-
   componentDidMount() {
     this.loading.show('正在加载中');
-    setTimeout(() => {
-      Application.getFeedbackByTeacher(this.state.reservation.id, this.state.reservation.source_id, (data) => {
-        this.loading.hide();
-        this.setState({
-          feedback: data.feedback,
-          student: data.student,
-        });
+    const parsedQuery = queryString.parse(this.props.history.location.search);
+    const reservationId = parsedQuery.reservation_id;
+    User.updateSession(() => {
+      Application.getFeedbackByTeacher(reservationId, (data) => {
+        setTimeout(() => {
+          this.setState({
+            feedback: data.feedback,
+            student: data.student,
+            reservation: data.reservation,
+          }, () => {
+            this.loading.hide();
+          });
+        }, 500);
       }, (error) => {
         this.loading.hide();
         this.alert.show('', error, '好的', () => {
           this.props.history.push('/reservation');
         });
       });
-    }, 500);
+    }, () => {
+      this.props.history.push('/login');
+    });
   }
 
   handleCancel() {

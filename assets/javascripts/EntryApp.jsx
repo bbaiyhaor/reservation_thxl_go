@@ -1,7 +1,8 @@
 import 'weui';
 import { MediaBox, MediaBoxBody, MediaBoxDescription, MediaBoxHeader, MediaBoxTitle, Panel, PanelBody, PanelHeader } from 'react-weui';
-import React, { PropTypes } from 'react';
 import PageBottom from '#coms/PageBottom';
+import PropTypes from 'prop-types';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import StudentEntryIcon from '#imgs/mobile/student.png';
 import TeacherEntryIcon from '#imgs/mobile/teacher.png';

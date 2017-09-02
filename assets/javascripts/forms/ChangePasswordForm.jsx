@@ -1,6 +1,7 @@
 import 'weui';
 import { Button, ButtonArea, CellBody, CellFooter, CellHeader, CellsTitle, Form, FormCell, Icon, Input, Label } from 'react-weui';
-import React, { PropTypes } from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 export default class ChangePasswordForm extends React.Component {
   constructor(props) {

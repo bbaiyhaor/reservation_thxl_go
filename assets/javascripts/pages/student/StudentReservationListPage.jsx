@@ -1,13 +1,13 @@
 /* eslint max-len: ["off"] */
 import 'weui';
-import 'react-weui/lib/react-weui.min.css';
 import { AlertDialog, ConfirmDialog, LoadingHud } from '#coms/Huds';
 import { Application, User } from '#models/Models';
 import { Button, Cell, CellBody, Cells, CellsTitle, MediaBox, Panel, PanelBody, PanelHeader, SearchBar, Toptips } from 'react-weui';
-import React, { PropTypes } from 'react';
 import LogoutButton from '#coms/LogoutButton';
 import MobileDetect from '#utils/MobileDetect';
 import PageBottom from '#coms/PageBottom';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 export default class StudentReservationListPage extends React.Component {
   constructor(props) {
@@ -108,7 +108,7 @@ class StudentReservationList extends React.Component {
   }
 
   toFeedback(reservation) {
-    this.props.history.push('/reservation/feedback', { reservation_id: `${reservation.id}` });
+    this.props.history.push(`/reservation/feedback?reservation_id=${reservation.id}`);
   }
 
   handleChange(text) {
@@ -118,7 +118,7 @@ class StudentReservationList extends React.Component {
         reservations: prevState.reservationsBak,
       }));
     }
-    const result = this.state.reservationsBak.filter((reservation) => {
+    const result = this.state.reservationsBak ? this.state.reservationsBak.filter((reservation) => {
       if (reservation.teacher_fullname.indexOf(keyword) !== -1) {
         return true;
       } else if (reservation.start_time.indexOf(keyword) !== -1) {
@@ -127,8 +127,10 @@ class StudentReservationList extends React.Component {
         return true;
       }
       return false;
-    });
-    this.setState({ reservations: result });
+    }) : null;
+    if (result !== null) {
+      this.setState({ reservations: result });
+    }
   }
 
   makeReservation(reservation) {
@@ -136,7 +138,7 @@ class StudentReservationList extends React.Component {
     this.confirm.show('',
       '确定预约后请准确填写个人信息，方便心理咨询中心老师与你取得联系。',
       '暂不预约', '立即预约', null,
-      () => history.push('/reservation/make', { reservation_id: `${reservation.id}` }),
+      () => history.push(`/reservation/make?reservation_id=${reservation.id}&source_id=${reservation.source_id}&start_time=${reservation.start_time}`),
     );
   }
 
@@ -184,7 +186,7 @@ class StudentReservationList extends React.Component {
         <MediaBox type="small_appmsg">
           <Cells>
             {this.state.reservations && this.state.reservations.map(reservation =>
-              <Cell key={`reservation-cell-${reservation.id}`}>
+              (<Cell key={`reservation-cell-${reservation.id}`}>
                 <CellBody>
                   {reservation.student_id && reservation.student_id === User.userId ?
                     <p style={{ ...hightlightStyle }}>
@@ -195,7 +197,7 @@ class StudentReservationList extends React.Component {
                   }
                 </CellBody>
                 {this.renderButton(reservation)}
-              </Cell>)
+              </Cell>))
             }
           </Cells>
         </MediaBox>
@@ -207,7 +209,7 @@ class StudentReservationList extends React.Component {
 
 StudentReservationList.propTypes = {
   history: PropTypes.object.isRequired,
-  reservations: PropTypes.arrayOf(React.PropTypes.object),
+  reservations: PropTypes.arrayOf(PropTypes.object),
 };
 
 StudentReservationList.defaultProps = {

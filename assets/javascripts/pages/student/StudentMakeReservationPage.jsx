@@ -6,6 +6,7 @@ import MakeReservationForm from '#forms/MakeReservationForm';
 import PageBottom from '#coms/PageBottom';
 import PropTypes from 'prop-types';
 import React from 'react';
+import queryString from 'query-string';
 
 export default class StudentMakeReservationPage extends React.Component {
   constructor(props) {
@@ -18,25 +19,31 @@ export default class StudentMakeReservationPage extends React.Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  componentWillMount() {
-    const reservationId = this.props.history.location.state.reservation_id || '';
-    if (reservationId === '' || !User.student || !Application.reservations || Application.reservations.length === 0) {
-      this.props.history.push('/reservation');
-      return;
-    }
-    let i = 0;
-    for (; i < Application.reservations.length; i += 1) {
-      if (Application.reservations[i].id === reservationId) {
-        this.setState({
-          student: User.student,
-          reservation: Application.reservations[i],
+  componentDidMount() {
+    this.loading.show('正在加载中');
+    const parsedQuery = queryString.parse(this.props.history.location.search);
+    const reservationId = parsedQuery.reservation_id;
+    const sourceId = parsedQuery.source_id;
+    const startTime = parsedQuery.start_time;
+    User.updateSession(() => {
+      Application.validReservationByStudent(reservationId, sourceId, startTime, () => {
+        setTimeout(() => {
+          this.setState({
+            student: User.student,
+            reservation: Application.reservation,
+          }, () => {
+            this.loading.hide();
+          });
+        }, 500);
+      }, (error) => {
+        this.loading.hide();
+        this.alert.show('', error, '好的', () => {
+          this.props.history.push('/reservation');
         });
-        break;
-      }
-    }
-    if (i === Application.reservations.length) {
-      this.props.history.push('/reservation');
-    }
+      });
+    }, () => {
+      this.props.history.push('/login');
+    });
   }
 
   handleSubmit(reservation, fullname, gender, birthday, school, grade, currentAddress, familyAddress, mobile, email, experienceTime, experienceLocation, experienceTeacher, fatherAge, fatherJob, fatherEdu, motherAge, motherJob, motherEdu, parentMarriage, significant, problem) {

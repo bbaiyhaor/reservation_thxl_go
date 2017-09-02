@@ -8,27 +8,8 @@ export default class MakeReservationForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      fullname: this.props.student.fullname,
-      gender: this.props.student.gender,
-      birthday: this.props.student.birthday,
-      school: this.props.student.school,
-      grade: this.props.student.grade,
-      currentAddress: this.props.student.current_address,
-      familyAddress: this.props.student.family_address,
-      mobile: this.props.student.mobile,
-      email: this.props.student.email,
-      experienceTime: this.props.student.experience_time,
-      experienceLocation: this.props.student.experience_location,
-      experienceTeacher: this.props.student.experience_teacher,
-      fatherAge: this.props.student.father_age,
-      fatherJob: this.props.student.father_job,
-      fatherEdu: this.props.student.father_edu,
-      motherAge: this.props.student.mother_age,
-      motherJob: this.props.student.mother_job,
-      motherEdu: this.props.student.mother_edu,
-      parentMarriage: this.props.student.parent_marriage,
-      significant: this.props.student.significant,
-      problem: this.props.student.problem,
+      startTime: '',
+      endTime: '',
       fullnameWarn: false,
       genderWarn: false,
       birthdayWarn: false,
@@ -44,15 +25,45 @@ export default class MakeReservationForm extends React.Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  handleChange(e, name) {
-    const value = e.target.value;
-    if (name && name !== '') {
-      this.setState({ [name]: value });
-    } else {
-      this.setState(prevState => ({
-        [value]: !prevState[value],
-      }));
-    }
+  componentWillReceiveProps(nextProps) {
+    nextProps.student && this.setState({
+      fullname: nextProps.student.fullname,
+      gender: nextProps.student.gender,
+      birthday: nextProps.student.birthday,
+      school: nextProps.student.school,
+      grade: nextProps.student.grade,
+      currentAddress: nextProps.student.current_address,
+      familyAddress: nextProps.student.family_address,
+      mobile: nextProps.student.mobile,
+      email: nextProps.student.email,
+      experienceTime: nextProps.student.experience_time,
+      experienceLocation: nextProps.student.experience_location,
+      experienceTeacher: nextProps.student.experience_teacher,
+      fatherAge: nextProps.student.father_age,
+      fatherJob: nextProps.student.father_job,
+      fatherEdu: nextProps.student.father_edu,
+      motherAge: nextProps.student.mother_age,
+      motherJob: nextProps.student.mother_job,
+      motherEdu: nextProps.student.mother_edu,
+      parentMarriage: nextProps.student.parent_marriage,
+      significant: nextProps.student.significant,
+      problem: nextProps.student.problem,
+    });
+    nextProps.reservation && this.setState({
+      reservation: nextProps.reservation,
+      startTime: nextProps.reservation.start_time,
+      endTime: nextProps.reservation.end_time,
+      teacherFullname: nextProps.reservation.teachaer_fullname,
+    });
+  }
+
+  handleChange(e) {
+    const target = e.target;
+    const name = target.name;
+    const value = target.value;
+    this.setState({
+      [name]: value,
+    });
   }
 
   handleSubmit() {
@@ -118,7 +129,7 @@ export default class MakeReservationForm extends React.Component {
       this.problemInput.focus();
       return;
     }
-    this.props.handleSubmit(this.props.reservation, this.state.fullname, this.state.gender, this.state.birthday, this.state.school, this.state.grade, this.state.currentAddress, this.state.familyAddress, this.state.mobile, this.state.email, this.state.experienceTime, this.state.experienceLocation, this.state.experienceTeacher, this.state.fatherAge, this.state.fatherJob, this.state.fatherEdu, this.state.motherAge, this.state.motherJob, this.state.motherEdu, this.state.parentMarriage, this.state.significant, this.state.problem);
+    this.props.handleSubmit(this.state.reservation, this.state.fullname, this.state.gender, this.state.birthday, this.state.school, this.state.grade, this.state.currentAddress, this.state.familyAddress, this.state.mobile, this.state.email, this.state.experienceTime, this.state.experienceLocation, this.state.experienceTeacher, this.state.fatherAge, this.state.fatherJob, this.state.fatherEdu, this.state.motherAge, this.state.motherJob, this.state.motherEdu, this.state.parentMarriage, this.state.significant, this.state.problem);
   }
 
   render() {
@@ -137,10 +148,11 @@ export default class MakeReservationForm extends React.Component {
             <CellBody>
               <Input
                 ref={(fullnameInput) => { this.fullnameInput = fullnameInput; }}
-                type="input"
+                name="fullname"
+                type="text"
                 placeholder="请输入姓名"
-                value={this.state.fullname}
-                onChange={(e) => { this.handleChange(e, 'fullname'); }}
+                value={this.state.fullname ? this.state.fullname : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
             {this.state.fullnameWarn &&
@@ -155,8 +167,9 @@ export default class MakeReservationForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Select
-                value={this.state.gender}
-                onChange={(e) => { this.handleChange(e, 'gender'); }}
+                name="gender"
+                value={this.state.gender ? this.state.gender : ''}
+                onChange={this.handleChange}
               >
                 <option value="">请选择</option>
                 <option value="男">男</option>
@@ -176,10 +189,11 @@ export default class MakeReservationForm extends React.Component {
             <CellBody>
               <Input
                 ref={(birthdayInput) => { this.birthdayInput = birthdayInput; }}
-                type="input"
+                name="birthday"
+                type="date"
                 placeholder="请输入出生日期"
-                value={this.state.birthday}
-                onChange={(e) => { this.handleChange(e, 'birthday'); }}
+                value={this.state.birthday ? this.state.birthday : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
             {this.state.birthdayWarn &&
@@ -195,10 +209,11 @@ export default class MakeReservationForm extends React.Component {
             <CellBody>
               <Input
                 ref={(schoolInput) => { this.schoolInput = schoolInput; }}
-                type="input"
+                name="school"
+                type="text"
                 placeholder="请输入院系"
-                value={this.state.school}
-                onChange={(e) => { this.handleChange(e, 'school'); }}
+                value={this.state.school ? this.state.school : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
             {this.state.schoolWarn &&
@@ -214,10 +229,11 @@ export default class MakeReservationForm extends React.Component {
             <CellBody>
               <Input
                 ref={(gradeInput) => { this.gradeInput = gradeInput; }}
-                type="input"
+                name="garde"
+                type="text"
                 placeholder="请输入年级"
-                value={this.state.grade}
-                onChange={(e) => { this.handleChange(e, 'grade'); }}
+                value={this.state.grade ? this.state.grade : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
             {this.state.gradeWarn &&
@@ -233,10 +249,11 @@ export default class MakeReservationForm extends React.Component {
             <CellBody>
               <Input
                 ref={(currentAddressInput) => { this.currentAddressInput = currentAddressInput; }}
-                type="input"
+                name="currentAddress"
+                type="text"
                 placeholder="请输入现在住址"
-                value={this.state.currentAddress}
-                onChange={(e) => { this.handleChange(e, 'currentAddress'); }}
+                value={this.state.currentAddress ? this.state.currentAddress : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
             {this.state.currentAddressWarn &&
@@ -252,10 +269,11 @@ export default class MakeReservationForm extends React.Component {
             <CellBody>
               <Input
                 ref={(familyAddressInput) => { this.familyAddressInput = familyAddressInput; }}
-                type="input"
+                name="familyAddress"
+                type="text"
                 placeholder="请输入家庭住址"
-                value={this.state.familyAddress}
-                onChange={(e) => { this.handleChange(e, 'familyAddress'); }}
+                value={this.state.familyAddress ? this.state.familyAddress : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
             {this.state.familyAddressWarn &&
@@ -271,10 +289,11 @@ export default class MakeReservationForm extends React.Component {
             <CellBody>
               <Input
                 ref={(mobileInput) => { this.mobileInput = mobileInput; }}
+                name="mobile"
                 type="tel"
                 placeholder="请输入联系电话"
-                value={this.state.mobile}
-                onChange={(e) => { this.handleChange(e, 'mobile'); }}
+                value={this.state.mobile ? this.state.mobile : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
             {this.state.mobileWarn &&
@@ -290,10 +309,11 @@ export default class MakeReservationForm extends React.Component {
             <CellBody>
               <Input
                 ref={(emailInput) => { this.emailInput = emailInput; }}
-                type="input"
+                name="email"
+                type="text"
                 placeholder="请输入邮箱"
-                value={this.state.email}
-                onChange={(e) => { this.handleChange(e, 'email'); }}
+                value={this.state.email ? this.state.email : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
             {this.state.emailWarn &&
@@ -309,10 +329,11 @@ export default class MakeReservationForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
-                type="input"
+                name="experienceTime"
+                type="text"
                 placeholder="请输入咨询时间"
-                value={this.state.experienceTime}
-                onChange={(e) => { this.handleChange(e, 'experienceTime'); }}
+                value={this.state.experienceTime ? this.state.experienceTime : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
           </FormCell>
@@ -322,10 +343,11 @@ export default class MakeReservationForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
-                type="input"
+                name="experienceLocation"
+                type="text"
                 placeholder="请输入咨询地点"
-                value={this.state.experienceLocation}
-                onChange={(e) => { this.handleChange(e, 'experienceLocation'); }}
+                value={this.state.experienceLocation ? this.state.experienceLocation : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
           </FormCell>
@@ -335,10 +357,11 @@ export default class MakeReservationForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
-                type="input"
+                name="experienceTeacher"
+                type="text"
                 placeholder="请输入咨询师姓名"
-                value={this.state.experienceTeacher}
-                onChange={(e) => { this.handleChange(e, 'experienceTeacher'); }}
+                value={this.state.experienceTeacher ? this.state.experienceTeacher : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
           </FormCell>
@@ -349,10 +372,11 @@ export default class MakeReservationForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
-                type="input"
+                name="fatherAge"
+                type="text"
                 placeholder="请输入父亲年龄"
-                value={this.state.fatherAge}
-                onChange={(e) => { this.handleChange(e, 'fatherAge'); }}
+                value={this.state.fatherAge ? this.state.fatherAge : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
           </FormCell>
@@ -362,10 +386,11 @@ export default class MakeReservationForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
-                type="input"
+                name="fatherJob"
+                type="text"
                 placeholder="请输入父亲职业"
-                value={this.state.fatherJob}
-                onChange={(e) => { this.handleChange(e, 'fatherJob'); }}
+                value={this.state.fatherJob ? this.state.fatherJob : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
           </FormCell>
@@ -375,10 +400,11 @@ export default class MakeReservationForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
-                type="input"
+                name="fatherEdu"
+                type="text"
                 placeholder="请输入父亲学历"
-                value={this.state.fatherEdu}
-                onChange={(e) => { this.handleChange(e, 'fatherEdu'); }}
+                value={this.state.fatherEdu ? this.state.fatherEdu : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
           </FormCell>
@@ -388,10 +414,11 @@ export default class MakeReservationForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
-                type="input"
+                name="motherAge"
+                type="text"
                 placeholder="请输入母亲年龄"
-                value={this.state.motherAge}
-                onChange={(e) => { this.handleChange(e, 'motherAge'); }}
+                value={this.state.motherAge ? this.state.motherAge : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
           </FormCell>
@@ -401,10 +428,11 @@ export default class MakeReservationForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
-                type="input"
+                name="motherJob"
+                type="text"
                 placeholder="请输入母亲职业"
-                value={this.state.motherJob}
-                onChange={(e) => { this.handleChange(e, 'motherJob'); }}
+                value={this.state.motherJob ? this.state.motherJob : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
           </FormCell>
@@ -414,10 +442,11 @@ export default class MakeReservationForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Input
-                type="input"
+                name="motherEdu"
+                type="text"
                 placeholder="请输入母亲学历"
-                value={this.state.motherEdu}
-                onChange={(e) => { this.handleChange(e, 'motherEdu'); }}
+                value={this.state.motherEdu ? this.state.motherEdu : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
           </FormCell>
@@ -427,8 +456,9 @@ export default class MakeReservationForm extends React.Component {
             </CellHeader>
             <CellBody>
               <Select
-                value={this.state.parentMarriage}
-                onChange={(e) => { this.handleChange(e, 'parentMarriage'); }}
+                name="parentMarriage"
+                value={this.state.parentMarriage ? this.state.parentMarriage : ''}
+                onChange={this.handleChange}
               >
                 <option value="">请选择</option>
                 <option value="良好">良好</option>
@@ -444,11 +474,12 @@ export default class MakeReservationForm extends React.Component {
           <FormCell>
             <CellBody>
               <TextArea
+                name="significant"
                 placeholder="请输入"
                 rows="3"
                 maxLength={300}
-                value={this.state.significant}
-                onChange={(e) => { this.handleChange(e, 'significant'); }}
+                value={this.state.significant ? this.state.significant : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
           </FormCell>
@@ -459,11 +490,12 @@ export default class MakeReservationForm extends React.Component {
             <CellBody>
               <TextArea
                 ref={(problemInput) => { this.problemInput = problemInput; }}
+                name="problem"
                 placeholder="请输入"
                 rows="3"
                 maxLength={300}
-                value={this.state.problem}
-                onChange={(e) => { this.handleChange(e, 'problem'); }}
+                value={this.state.problem ? this.state.problem : ''}
+                onChange={this.handleChange}
               />
             </CellBody>
             {this.state.problemWarn &&
@@ -484,8 +516,13 @@ export default class MakeReservationForm extends React.Component {
 }
 
 MakeReservationForm.propTypes = {
-  student: PropTypes.object.isRequired,
-  reservation: PropTypes.object.isRequired,
+  student: PropTypes.object,
+  reservation: PropTypes.object,
   handleSubmit: PropTypes.func.isRequired,
   handleCancel: PropTypes.func.isRequired,
+};
+
+MakeReservationForm.defaultProps = {
+  student: null,
+  reservation: null,
 };

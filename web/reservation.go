@@ -160,16 +160,16 @@ func (rc *ReservationController) MakeReservationByStudent(w http.ResponseWriter,
 
 func (rc *ReservationController) GetFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
-	sourceId := form.ParamString(r, "source_id", "")
 
 	var result = make(map[string]interface{})
 
 	var feedbackJson = make(map[string]interface{})
-	reservation, err := service.Workflow().GetFeedbackByStudent(reservationId, sourceId, userId, userType)
+	reservation, err := service.Workflow().GetFeedbackByStudent(reservationId, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
 	feedbackJson["scores"] = reservation.StudentFeedback.Scores
+	result["reservation"] = service.Workflow().WrapSimpleReservation(reservation)
 	result["feedback"] = feedbackJson
 
 	return http.StatusOK, wrapJsonOk(result)
@@ -177,7 +177,6 @@ func (rc *ReservationController) GetFeedbackByStudent(w http.ResponseWriter, r *
 
 func (rc *ReservationController) SubmitFeedbackByStudent(w http.ResponseWriter, r *http.Request, userId string, userType int) (int, interface{}) {
 	reservationId := form.ParamString(r, "reservation_id", "")
-	sourceId := form.ParamString(r, "source_id", "")
 	scores := []string(r.Form["scores"])
 	scoresInt := []int{}
 	for _, p := range scores {
@@ -188,7 +187,7 @@ func (rc *ReservationController) SubmitFeedbackByStudent(w http.ResponseWriter, 
 
 	var result = make(map[string]interface{})
 
-	_, err := service.Workflow().SubmitFeedbackByStudent(reservationId, sourceId, scoresInt, userId, userType)
+	_, err := service.Workflow().SubmitFeedbackByStudent(reservationId, scoresInt, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}

@@ -322,8 +322,12 @@ export default class StudentFeedbackForm extends React.Component {
 }
 
 StudentFeedbackForm.propTypes = {
-  reservation: PropTypes.object.isRequired,
+  reservation: PropTypes.object,
   scores: PropTypes.arrayOf(PropTypes.number).isRequired,
   handleSubmit: PropTypes.func.isRequired,
   handleCancel: PropTypes.func.isRequired,
+};
+
+StudentFeedbackForm.defaultProps = {
+  reservation: null,
 };

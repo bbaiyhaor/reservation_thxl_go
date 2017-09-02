@@ -1,6 +1,5 @@
 /* eslint max-len: ["off"] */
 import 'weui';
-// import 'react-weui/lib/react-weui.min.css';
 import { AlertDialog, ConfirmDialog, LoadingHud } from '#coms/Huds';
 import { Application, User } from '#models/Models';
 import { Button, Cell, CellBody, Cells, CellsTitle, MediaBox, Panel, PanelBody, PanelHeader, SearchBar, Toptips } from 'react-weui';
@@ -109,7 +108,7 @@ class StudentReservationList extends React.Component {
   }
 
   toFeedback(reservation) {
-    this.props.history.push('/reservation/feedback', { reservation_id: `${reservation.id}` });
+    this.props.history.push(`/reservation/feedback?reservation_id=${reservation.id}`);
   }
 
   handleChange(text) {
@@ -139,7 +138,7 @@ class StudentReservationList extends React.Component {
     this.confirm.show('',
       '确定预约后请准确填写个人信息，方便心理咨询中心老师与你取得联系。',
       '暂不预约', '立即预约', null,
-      () => history.push('/reservation/make', { reservation_id: `${reservation.id}` }),
+      () => history.push(`/reservation/make?reservation_id=${reservation.id}&source_id=${reservation.source_id}&start_time=${reservation.start_time}`),
     );
   }
 

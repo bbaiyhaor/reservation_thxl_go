@@ -6,6 +6,7 @@ import PageBottom from '#coms/PageBottom';
 import PropTypes from 'prop-types';
 import React from 'react';
 import StudentFeedbackForm from '#forms/StudentFeedbackForm';
+import queryString from 'query-string';
 
 export default class StudentFeedbackPage extends React.Component {
   constructor(props) {
@@ -18,41 +19,29 @@ export default class StudentFeedbackPage extends React.Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  componentWillMount() {
-    const reservationId = this.props.history.location.state.reservation_id || '';
-    if (reservationId === '' || !User.student || !Application.reservations) {
-      this.props.history.push('/reservation');
-      return;
-    }
-    let i = 0;
-    for (; i < Application.reservations.length; i += 1) {
-      if (Application.reservations[i].id === reservationId) {
-        this.setState({
-          reservation: Application.reservations[i],
-        });
-        break;
-      }
-    }
-    if (i === Application.reservations.length) {
-      this.props.history.push('/reservation');
-    }
-  }
-
   componentDidMount() {
     this.loading.show('正在加载中');
-    setTimeout(() => {
-      Application.getFeedbackByStudent(this.state.reservation.id, this.state.reservation.source_id, (data) => {
-        this.loading.hide();
-        this.setState({
-          scores: data.feedback.scores,
-        });
+    const parsedQuery = queryString.parse(this.props.history.location.search);
+    const reservationId = parsedQuery.reservation_id;
+    User.updateSession(() => {
+      Application.getFeedbackByStudent(reservationId, (data) => {
+        setTimeout(() => {
+          this.setState({
+            scores: data.feedback.scores,
+            reservation: data.reservation,
+          }, () => {
+            this.loading.hide();
+          });
+        }, 500);
       }, (error) => {
         this.loading.hide();
         this.alert.show('', error, '好的', () => {
           this.props.history.push('/reservation');
         });
       });
-    }, 500);
+    }, () => {
+      this.props.history.push('/login');
+    });
   }
 
   handleCancel() {
@@ -63,7 +52,7 @@ export default class StudentFeedbackPage extends React.Component {
     const scores = [feedback1, feedback2, feedback3, feedback4, feedback5];
     this.loading.show('正在加载中');
     setTimeout(() => {
-      Application.submitFeedbackByStudent(this.state.reservation.id, this.state.reservation.source_id, scores, () => {
+      Application.submitFeedbackByStudent(this.state.reservation.id, scores, () => {
         this.loading.hide();
         this.alert.show('提交成功', '你已成功提交反馈', '好的', () => {
           this.props.history.push('/reservation');

@@ -9,7 +9,7 @@ function viewTimedReservations() {
       timedReservations = json.payload.timed_reservations;
       for (var weekday in timedReservations) {
         if (timedReservations.hasOwnProperty(weekday)) {
-          refreshDataTable(weekday, timedReservations[weekday])
+          refreshDataTable(weekday, timedReservations[weekday]);
           optimize(weekday);
         }
       }
@@ -38,6 +38,9 @@ function refreshDataTable(weekday, timedReservations) {
   <div class="table_col" id="col_teacher_mobile_' + weekday + '">\
     <div class="table_head table_cell">咨询师手机</div>\
   </div>\
+  <div class="table_col" id="col_teacher_work_type_' + weekday + '">\
+    <div class="table_head table_cell">咨询师工作类型</div>\
+  </div>\
   <div class="table_col" id="col_status_' + weekday + '">\
     <div class="table_head table_cell">状态</div>\
   </div>\
@@ -58,6 +61,11 @@ function refreshDataTable(weekday, timedReservations) {
       + i + '">' + timedReservations[i].teacher_username + '</div>');
     $('#col_teacher_mobile_' + weekday).append('<div class="table_cell" id="cell_teacher_mobile_' + weekday + '_'
       + i + '">' + timedReservations[i].teacher_mobile + '</div>');
+    $('#col_teacher_work_type_' + weekday).append('<div class="table_cell" id="cell_teacher_work_type_' + weekday + '_'
+      + i + '"><select id="select_teacher_work_type_' + weekday + '_' + i + '"><option value="0">请选择</option>' +
+      '<option value="1">专职咨询师</option><option value="2">兼职咨询师</option><option value="3">实习咨询师</option>' +
+      '</select></div>');
+    $('#select_teacher_work_type_' + weekday + '_' + i).val(timedReservations[i].teacher_work_type);
     if (timedReservations[i].status === 1) {
       $('#col_status_' + weekday).append('<div class="table_cell" id="cell_status_' + weekday + '_' + i + '">生效</div>');
       $('#col_operation_' + weekday).append('<div class="table_cell" id="cell_operation_' + weekday + '_' + + i + '">'
@@ -75,6 +83,7 @@ function refreshDataTable(weekday, timedReservations) {
   $('#col_teacher_fullname_' + weekday).append('<div class="table_cell" id="cell_teacher_fullname_' + weekday + '_add"></div>');
   $('#col_teacher_username_' + weekday).append('<div class="table_cell" id="cell_teacher_username_' + weekday + '_add"></div>');
   $('#col_teacher_mobile_' + weekday).append('<div class="table_cell" id="cell_teacher_mobile_' + weekday + '_add"></div>');
+  $('#col_teacher_work_type_' + weekday).append('<div class="table_cell" id="cell_teacher_work_type_' + weekday + '_add"></div>');
   $('#col_status_' + weekday).append('<div class="table_cell" id="cell_status_' + weekday + '_add"></div>');
   $('#col_operation_' + weekday).append('<div class="table_cell" id="cell_operation_' + weekday + '_add"></div>');
   $(function() {
@@ -107,6 +116,7 @@ function optimize(weekday, t) {
   $('#col_teacher_fullname_' + weekday).width(120);
   $('#col_teacher_username_' + weekday).width(160);
   $('#col_teacher_mobile_' + weekday).width(160);
+  $('#col_teacher_work_type_' + weekday).width(160);
   $('#col_status_' + weekday).width(85);
   $('#col_operation_' + weekday).width(85);
   for (var i = 0; i < timedReservations[weekday].length; ++i) {
@@ -116,6 +126,7 @@ function optimize(weekday, t) {
       $('#cell_teacher_fullname_' + weekday + '_' + i).height(),
       $('#cell_teacher_username_' + weekday + '_' + i).height(),
       $('#cell_teacher_mobile_' + weekday + '_' + i).height(),
+      $('#cell_teacher_work_type_' + weekday + '_' + i).height(),
       $('#cell_status_' + weekday + '_' + i).height(),
       $('#cell_operation_' + weekday + '_' + i).height()
     );
@@ -124,6 +135,7 @@ function optimize(weekday, t) {
     $('#cell_teacher_fullname_' + weekday + '_' + i).height(maxHeight);
     $('#cell_teacher_username_' + weekday + '_' + i).height(maxHeight);
     $('#cell_teacher_mobile_' + weekday + '_' + i).height(maxHeight);
+    $('#cell_teacher_work_type_' + weekday + '_' + i).height(maxHeight);
     $('#cell_status_' + weekday + '_' + i).height(maxHeight);
     $('#cell_operation_' + weekday + '_' + i).height(maxHeight);
 
@@ -133,6 +145,7 @@ function optimize(weekday, t) {
       $('#cell_teacher_fullname_' + weekday + '_' + i).css('background-color', 'white');
       $('#cell_teacher_username_' + weekday + '_' + i).css('background-color', 'white');
       $('#cell_teacher_mobile_' + weekday + '_' + i).css('background-color', 'white');
+      $('#cell_teacher_work_type_' + weekday + '_' + i).css('background-color', 'white');
       $('#cell_status_' + weekday + '_' + i).css('background-color', 'white');
       $('#cell_operation_' + weekday + '_' + i).css('background-color', 'white');
     } else {
@@ -141,6 +154,7 @@ function optimize(weekday, t) {
       $('#cell_teacher_fullname_' + weekday + '_' + i).css('background-color', '#f3f3ff');
       $('#cell_teacher_username_' + weekday + '_' + i).css('background-color', '#f3f3ff');
       $('#cell_teacher_mobile_' + weekday + '_' + i).css('background-color', '#f3f3ff');
+      $('#cell_teacher_work_type_' + weekday + '_' + i).css('background-color', '#f3f3ff');
       $('#cell_status_' + weekday + '_' + i).css('background-color', '#f3f3ff');
       $('#cell_operation_' + weekday + '_' + i).css('background-color', '#f3f3ff');
     }
@@ -156,13 +170,14 @@ function optimize(weekday, t) {
   $('#cell_teacher_fullname_' + weekday + '_add').height(28);
   $('#cell_teacher_username_' + weekday + '_add').height(28);
   $('#cell_teacher_mobile_' + weekday + '_add').height(28);
+  $('#cell_teacher_work_type_' + weekday + '_add').height(28);
   $('#cell_status_' + weekday + '_add').height(28);
   $('#cell_operation_' + weekday + '_add').height(28);
 
   $('.table_head').height($('#head_select_' + weekday).height());
   $(t).css('left', (width - $(t).width()) / 2 - 11 + 'px');
   $(t).css('top', (height - $(t).height()) / 2 - 11 + 'px');
-  $('#page_maintable_' + weekday).css('margin-left', 0.5 * (width - (40 + 300 + 120 + 85 + 85 + 320)) + 'px');
+  $('#page_maintable_' + weekday).css('margin-left', 0.5 * (width - (40 + 300 + 120 + 85 + 85 + 480)) + 'px');
 }
 
 function addTimedReservation(weekday) {
@@ -175,6 +190,8 @@ function addTimedReservation(weekday) {
     + '<button type="button" onclick="searchTeacher(\'' + weekday + '\');">搜索</button>');
   $('#cell_teacher_username_' + weekday + '_add').first().html('<input id="teacher_username_' + weekday + '_add" style="width:120px"/>');
   $('#cell_teacher_mobile_' + weekday + '_add').first().html('<input id="teacher_mobile_' + weekday + '_add" style="width:120px"/>');
+  $('#cell_teacher_work_type_' + weekday + '_add').first().html('<select id="select_teacher_work_type_' + weekday + '_add">' +
+    '<option value="0">请选择</option><option value="1">专职咨询师</option><option value="2">兼职咨询师</option><option value="3">实习咨询师</option></select>');
   $('#cell_status_' + weekday + '_add').first().html('<button type="button" onclick="addTimedReservationConfirm(\'' + weekday + '\');">确认</button>');
   $('#cell_operation_' + weekday + '_add').first().html('<button type="button" onclick="window.location.reload();">取消</button>');
   optimize(weekday);
@@ -208,6 +225,7 @@ function addTimedReservationConfirm(weekday) {
     teacher_username: $('#teacher_username_' + weekday + '_add').val(),
     teacher_fullname: $('#teacher_fullname_' + weekday + '_add').val(),
     teacher_mobile: $('#teacher_mobile_' + weekday + '_add').val(),
+    teacher_work_type: $('#select_teacher_work_type_' + weekday + '_add').val(),
   };
   $.post('/api/admin/timetable/add', payload, function(data, textStatus, xhr) {
     if (data.status === 'OK') {
@@ -264,6 +282,9 @@ function editTimedReservation(weekday, index) {
     + 'value="' + timedReservations[weekday][index].teacher_username + '"/>');
   $('#cell_teacher_mobile_' + weekday + '_' + index).first().html('<input id="teacher_mobile_' + weekday + '_' + index + '" style="width:120px" '
     + 'value="' + timedReservations[weekday][index].teacher_mobile + '"/>');
+  $('#cell_teacher_work_type_' + weekday + '_' + index).first().html('<select id="select_teacher_work_type_' + weekday + '_' + index + '">' +
+    '<option value="0">请选择</option><option value="1">专职咨询师</option><option value="2">兼职咨询师</option><option value="3">实习咨询师</option></select>');
+  $('#select_teacher_work_type_' + weekday + '_' + index).val(timedReservations[weekday][index].teacher_work_type);
   $('#cell_status_' + weekday + '_' + index).first().html('<button type="button" onclick="editTimedReservationConfirm(\'' + weekday + '\',' + index + ');">确认</button>');
   $('#cell_operation_' + weekday + '_' + index).first().html('<button type="button" onclick="window.location.reload();">取消</button>');
   optimize(weekday);
@@ -298,6 +319,7 @@ function editTimedReservationConfirm(weekday, index) {
       teacher_username: $('#teacher_username_' + weekday + '_' + index).val(),
       teacher_fullname: $('#teacher_fullname_' + weekday + '_' + index).val(),
       teacher_mobile: $('#teacher_mobile_' + weekday + '_' + index).val(),
+      teacher_work_type: $('#select_teacher_work_type_' + weekday + '_' + index).val(),
   };
   $.post('/api/admin/timetable/edit', payload, function(data, textStatus, xhr) {
     if (data.status === 'OK') {

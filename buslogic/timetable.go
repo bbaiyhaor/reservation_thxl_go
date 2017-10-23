@@ -39,7 +39,7 @@ func (w *Workflow) ViewTimetableByAdmin(userId string, userType int) (map[time.W
 
 // 管理员添加时间表
 func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClock string,
-	teacherUsername string, teacherFullname string, teacherMobile string, force bool,
+	teacherUsername string, teacherFullname string, teacherMobile string, teacherWorkType int, force bool,
 	userId string, userType int) (*model.TimedReservation, error) {
 	if userId == "" {
 		return nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
@@ -55,6 +55,8 @@ func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClo
 		return nil, re.NewRErrorCodeContext("teacher fullname is empty", nil, re.ERROR_MISSING_PARAM, "teacher_fullname")
 	} else if teacherMobile == "" {
 		return nil, re.NewRErrorCodeContext("teacher mobile is empty", nil, re.ERROR_MISSING_PARAM, "teacher_mobile")
+	} else if teacherWorkType < 0 {
+		return nil, re.NewRErrorCodeContext("teacher work type is empty", nil, re.ERROR_MISSING_PARAM, "teacher_work_type")
 	} else if !utils.IsMobile(teacherMobile) {
 		return nil, re.NewRErrorCode("mobile format is wrong", nil, re.ERROR_FORMAT_MOBILE)
 	}
@@ -86,16 +88,18 @@ func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClo
 			Password: TEACHER_DEFAULT_PASSWORD,
 			Fullname: teacherFullname,
 			Mobile:   teacherMobile,
+			WorkType: teacherWorkType,
 		}
 		if err = w.mongoClient.InsertTeacher(teacher); err != nil {
 			return nil, re.NewRErrorCode("fail to insert new teacher", err, re.ERROR_DATABASE)
 		}
-	} else if teacher.Fullname != teacherFullname || teacher.Mobile != teacherMobile {
+	} else if teacher.Fullname != teacherFullname || teacher.Mobile != teacherMobile || teacher.WorkType != teacherWorkType {
 		if !force {
 			return nil, re.NewRErrorCode("teacher info changes without force symbol", nil, re.CHECK)
 		}
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
+		teacher.WorkType = teacherWorkType
 		if err = w.mongoClient.UpdateTeacher(teacher); err != nil {
 			return nil, re.NewRErrorCode("fail to update teacher", err, re.ERROR_DATABASE)
 		}
@@ -118,7 +122,7 @@ func (w *Workflow) AddTimetableByAdmin(weekday string, startClock string, endClo
 // 管理员编辑时间表
 func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday string,
 	startClock string, endClock string, teacherUsername string, teacherFullname string, teacherMobile string,
-	force bool, userId string, userType int) (*model.TimedReservation, error) {
+	teacherWorkType int, force bool, userId string, userType int) (*model.TimedReservation, error) {
 	if userId == "" {
 		return nil, re.NewRErrorCode("admin not login", nil, re.ERROR_NO_LOGIN)
 	} else if userType != model.USER_TYPE_ADMIN {
@@ -135,6 +139,8 @@ func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday strin
 		return nil, re.NewRErrorCodeContext("teacher fullname is empty", nil, re.ERROR_MISSING_PARAM, "teacher_fullname")
 	} else if teacherMobile == "" {
 		return nil, re.NewRErrorCodeContext("teacher mobile is empty", nil, re.ERROR_MISSING_PARAM, "teacher_mobile")
+	} else if teacherWorkType < 0 {
+		return nil, re.NewRErrorCodeContext("teacher work type is empty", nil, re.ERROR_MISSING_PARAM, "teacher_work_type")
 	} else if !utils.IsMobile(teacherMobile) {
 		return nil, re.NewRErrorCode("mobile format is wrong", nil, re.ERROR_FORMAT_MOBILE)
 	}
@@ -170,16 +176,18 @@ func (w *Workflow) EditTimetableByAdmin(timedReservationId string, weekday strin
 			Password: TEACHER_DEFAULT_PASSWORD,
 			Fullname: teacherFullname,
 			Mobile:   teacherMobile,
+			WorkType: teacherWorkType,
 		}
 		if err = w.mongoClient.InsertTeacher(teacher); err != nil {
 			return nil, re.NewRErrorCode("fail to insert new teacher", err, re.ERROR_DATABASE)
 		}
-	} else if teacher.Fullname != teacherFullname || teacher.Mobile != teacherMobile {
+	} else if teacher.Fullname != teacherFullname || teacher.Mobile != teacherMobile || teacher.WorkType != teacherWorkType {
 		if !force {
 			return nil, re.NewRErrorCode("teacher info changes without force symbol", nil, re.CHECK)
 		}
 		teacher.Fullname = teacherFullname
 		teacher.Mobile = teacherMobile
+		teacher.WorkType = teacherWorkType
 		if err = w.mongoClient.UpdateTeacher(teacher); err != nil {
 			return nil, re.NewRErrorCode("fail to update teacher", err, re.ERROR_DATABASE)
 		}
@@ -412,6 +420,7 @@ func (w *Workflow) WrapTimedReservation(timedReservation *model.TimedReservation
 			result["teacher_username"] = teacher.Username
 			result["teacher_fullname"] = teacher.Fullname
 			result["teacher_mobile"] = teacher.Mobile
+			result["teacher_work_type"] = teacher.WorkType
 		}
 	}
 	return result

@@ -951,15 +951,13 @@ func (rc *ReservationController) AddTimedReservationByAdmin(w http.ResponseWrite
 	teacherUsername := form.ParamString(r, "teacher_username", "")
 	teacherFullname := form.ParamString(r, "teacher_fullname", "")
 	teacherMobile := form.ParamString(r, "teacher_mobile", "")
-	var forceBool bool
-	if force := form.ParamString(r, "force", ""); force != "" {
-		forceBool, _ = strconv.ParseBool(r.FormValue("force"))
-	}
+	teacherWorkType := form.ParamInt(r, "teacher_work_type", -1)
+	force := form.ParamBoolean(r, "force", false)
 
 	var result = make(map[string]interface{})
 
 	timedReservation, err := service.Workflow().AddTimetableByAdmin(weekday, startTime, endTime, teacherUsername, teacherFullname,
-		teacherMobile, forceBool, userId, userType)
+		teacherMobile, teacherWorkType, force, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}
@@ -976,15 +974,13 @@ func (rc *ReservationController) EditTimedReservationByAdmin(w http.ResponseWrit
 	teacherUsername := form.ParamString(r, "teacher_username", "")
 	teacherFullname := form.ParamString(r, "teacher_fullname", "")
 	teacherMobile := form.ParamString(r, "teacher_mobile", "")
-	var forceBool bool
-	if force := form.ParamString(r, "force", ""); force != "" {
-		forceBool, _ = strconv.ParseBool(r.FormValue("force"))
-	}
+	teacherWorkType := form.ParamInt(r, "teacher_work_type", -1)
+	force := form.ParamBoolean(r, "force", false)
 
 	var result = make(map[string]interface{})
 
 	timedReservation, err := service.Workflow().EditTimetableByAdmin(timedReservationId, weekday, startTime, endTime, teacherUsername,
-		teacherFullname, teacherMobile, forceBool, userId, userType)
+		teacherFullname, teacherMobile, teacherWorkType, force, userId, userType)
 	if err != nil {
 		return http.StatusOK, wrapJsonError(err)
 	}

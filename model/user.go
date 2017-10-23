@@ -20,6 +20,11 @@ const (
 
 	USER_GENDER_MALE   = "男"
 	USER_GENDER_FEMALE = "女"
+
+	TeacherWorkTypeDefault  = 0 // 默认
+	TeacherWorkTypeFulltime = 1 // 专职
+	TeacherWorkTypeParttime = 2 // 兼职
+	TeacherWorkTypeIntern   = 3 // 实习
 )
 
 // Index: username + user_type
@@ -163,6 +168,7 @@ type Teacher struct {
 	UserType          int           `bson:"user_type"`
 	Fullname          string        `bson:"fullname"`
 	Mobile            string        `bson:"mobile"`
+	WorkType          int           `bson:"work_type"`
 	CreatedAt         time.Time     `bson:"created_at"`
 	UpdatedAt         time.Time     `bson:"updated_at"`
 }

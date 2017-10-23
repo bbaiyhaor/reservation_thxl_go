@@ -41,14 +41,9 @@ func (w *Workflow) GetReservationsByStudent(userId string, userType int) (*model
 				continue
 			}
 			result = append(result, r)
-		} else if student.BindedTeacherId == "" || student.BindedTeacherId == r.TeacherId {
+		} else if (student.BindedTeacherId == "" || student.BindedTeacherId == r.TeacherId) && r.StartTime.After(time.Now()) {
 			result = append(result, r)
 		}
-		//} else if r.TeacherId == student.BindedTeacherId && r.Status == model.AVAILABLE {
-		//	result = append(result, r)
-		//} else if student.BindedTeacherId == "" && r.Status == model.AVAILABLE {
-		//	result = append(result, r)
-		//}
 	}
 	timedReservations, err := w.mongoClient.GetAllTimedReservations()
 	if err != nil {

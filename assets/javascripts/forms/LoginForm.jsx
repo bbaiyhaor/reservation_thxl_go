@@ -85,7 +85,7 @@ export default class LoginForm extends React.Component {
           </FormCell>
         </Form>
         <ButtonArea direction="horizontal">
-          <Button onClick={this.handleSubmit}>{this.props.submitText}</Button>
+          <Button type="default" onClick={this.handleSubmit}>{this.props.submitText}</Button>
           {this.props.cancelText && <Button type="default" onClick={this.props.handleCancel}>{this.props.cancelText}</Button>}
         </ButtonArea>
       </div>

@@ -44,7 +44,7 @@ export default class StudentLoginPage extends React.Component {
               passwordLabel="密码"
               passwordPlaceholder="请输入密码"
               submitText="登录"
-              cancelText="没有账户"
+              cancelText="注册"
               handleSubmit={this.onLogin}
               handleCancel={this.toRegister}
             />

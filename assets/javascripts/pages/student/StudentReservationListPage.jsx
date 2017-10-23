@@ -63,7 +63,13 @@ export default class StudentReservationListPage extends React.Component {
                 退出登录
               </LogoutButton>
             </div>
-            <CellsTitle>可预约时间为当前时间加一周减去1.5小时，请根据您的需要选择相应咨询师和时间段进行预约。</CellsTitle>
+            <CellsTitle>
+              <b>亲爱的同学，欢迎使用心理中心咨询预约系统！</b><br/>
+              系统每天开放6个时间段的咨询：上午8:30—9:30、9:30-10:30、10:30-11:30，下午13:30-14:30, 14:30-15:30、 15:30-16:30。<br/>
+              目前你所看到的以下可预约时间段为<b>当前时间加一周减1.5小时，每结束一个咨询时间段，系统会自动放出下一个可预约的时间段。</b><br/>
+              建议你可以参照小清心上中心咨询师的介绍和咨询师排班表，再根据你的需要选择相应的咨询师和时间段进行预约。如有事需取消咨询，请于工作时间早八点至下午五点致电：62782007。<br/>
+              期待你的光临，让我们一起聊一聊！
+            </CellsTitle>
           </PanelHeader>
           <PanelBody>
             <StudentReservationList
